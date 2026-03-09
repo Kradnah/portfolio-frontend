@@ -61,6 +61,16 @@ export class ChatService {
     return this.http.post<any>(`${this.apiUrl}/${idConversacion}/take`, { id_agente: idAgente });
   }
 
+  changeConversationState(idConversacion: number, estado: string): Observable<any> {
+    const webhookApiUrl = 'https://webhook.kodizof.com/api';
+    return this.http.put<any>(`${webhookApiUrl}/conversations/${idConversacion}/state`, { estado });
+  }
+
+  sendMessage(idConversacion: number, text: string): Observable<any> {
+    const webhookApiUrl = 'https://webhook.kodizof.com/api';
+    return this.http.post<any>(`${webhookApiUrl}/messages/send`, { conv_id: idConversacion, text });
+  }
+
   connectToConversation(idConversacion: number) {
     this.disconnect(); // Ensure previous connection is closed
 

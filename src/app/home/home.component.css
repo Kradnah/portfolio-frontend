@@ -426,6 +426,40 @@
 
 .take-btn:hover { background: #2563eb; }
 
+.action-buttons-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.release-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.release-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.close-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.close-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
 /* Messages */
 .chat-messages {
     flex: 1;
@@ -504,6 +538,11 @@
     border-color: var(--accent-blue);
 }
 
+.chat-input input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .send-btn {
     background: var(--wpp-green);
     color: white;
@@ -512,7 +551,16 @@
     border-radius: 999px;
     font-weight: 600;
     cursor: pointer;
-    opacity: 0.5; /* Disabled visually */
+    transition: all 0.2s;
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.send-btn:not(:disabled):hover {
+    background: #16a34a;
 }
 
 .chat-input-disabled {

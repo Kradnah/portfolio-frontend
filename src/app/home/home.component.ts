@@ -34,6 +34,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     messages: Message[] = [];
     wsSubscription: Subscription | null = null;
     refreshInterval: any;
+    newMessageText: string = '';
+    isSending: boolean = false;
 
     ngOnInit() {
         const userInfo = this.authService.getCurrentUser();
@@ -151,6 +153,39 @@ export class HomeComponent implements OnInit, OnDestroy {
                 this.loadConversations();
             },
             error: (err) => console.error("Error taking conversation", err)
+        });
+    }
+
+    changeState(newState: 'OPEN' | 'CLOSE') {
+        if (!this.selectedConversation) return;
+        this.chatService.changeConversationState(this.selectedConversation.id, newState).subscribe({
+            next: () => {
+                if (this.selectedConversation) {
+                    this.selectedConversation.estado = newState;
+                }
+                this.loadConversations();
+                this.selectedConversation = null;
+            },
+            error: (err) => console.error("Error changing state", err)
+        });
+    }
+
+    sendMessage() {
+        if (!this.selectedConversation || !this.newMessageText.trim() || this.isSending) return;
+        
+        this.isSending = true;
+        const textToSend = this.newMessageText.trim();
+        this.newMessageText = '';
+
+        this.chatService.sendMessage(this.selectedConversation.id, textToSend).subscribe({
+            next: (res) => {
+                this.isSending = false;
+            },
+            error: (err) => {
+                console.error("Error sending message", err);
+                this.isSending = false;
+                this.newMessageText = textToSend; 
+            }
         });
     }
 

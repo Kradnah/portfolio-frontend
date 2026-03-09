@@ -148,6 +148,14 @@
                                     (click)="takeConversation()">
                                 Tomar Conversación
                             </button>
+                            <div class="action-buttons-group" *ngIf="selectedConversation.estado === 'ATTENDING'">
+                                <button class="release-btn" (click)="changeState('OPEN')" title="Devolver a Nuevas">
+                                    Soltar
+                                </button>
+                                <button class="close-btn" (click)="changeState('CLOSE')" title="Finalizar Conversación">
+                                    Cerrar Chat
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -171,10 +179,17 @@
                         </div>
                     </div>
                     
-                    <!-- Chat Input Array (Placeholder, pending functionality info from DB) -->
                     <div class="chat-input" *ngIf="selectedConversation.estado === 'ATTENDING'">
-                        <input type="text" placeholder="Escribe un mensaje..." disabled>
-                        <button class="send-btn" disabled>Envia (Próximamente)</button>
+                        <input type="text" 
+                               placeholder="Escribe un mensaje..." 
+                               [(ngModel)]="newMessageText" 
+                               (keyup.enter)="sendMessage()"
+                               [disabled]="isSending">
+                        <button class="send-btn" 
+                                (click)="sendMessage()" 
+                                [disabled]="!newMessageText.trim() || isSending">
+                            {{ isSending ? 'Enviando...' : 'Enviar' }}
+                        </button>
                     </div>
                     <div class="chat-input-disabled" *ngIf="selectedConversation.estado !== 'ATTENDING'">
                         Debe tomar la conversación para responder.
