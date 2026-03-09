@@ -125,7 +125,7 @@
                                  <span class="user-phone">{{ conv.num_wpp }}</span>
                              </div>
                              
-                             <div class="conv-agent" *ng if="conv.nombre_agente">
+                             <div class="conv-agent" *ngIf="conv.nombre_agente">
                                  Agente: {{ conv.nombre_agente }}
                              </div>
                         </div>
