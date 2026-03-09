@@ -28,11 +28,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     idEmpresa: number = 0;
 
     // Chat data
-    activeTab: 'OPEN' | 'CLOSED' = 'OPEN';
+    activeTab: 'OPEN' | 'ATTENDING' | 'CLOSE' = 'OPEN';
     conversations: Conversation[] = [];
     selectedConversation: Conversation | null = null;
     messages: Message[] = [];
     wsSubscription: Subscription | null = null;
+    refreshInterval: any;
 
     ngOnInit() {
         const userInfo = this.authService.getCurrentUser();
@@ -42,6 +43,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         this.loadDashboardData();
         this.loadConversations();
+        
+        // Auto refresh mechanism
+        this.refreshInterval = setInterval(() => {
+            this.loadDashboardData();
+            this.loadConversations();
+        }, 15000); // refresh every 15 seconds
 
         // Subscribe to WebSocket messages
         this.wsSubscription = this.chatService.messages$.subscribe((msg: any) => {
@@ -72,6 +79,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.wsSubscription) {
             this.wsSubscription.unsubscribe();
         }
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
         this.chatService.disconnect();
     }
 
@@ -89,7 +99,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     // --- Chat Logic ---
 
-    setTab(tab: 'OPEN' | 'CLOSED') {
+    setTab(tab: 'OPEN' | 'ATTENDING' | 'CLOSE') {
         this.activeTab = tab;
         this.selectedConversation = null;
         this.messages = [];

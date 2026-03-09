@@ -95,16 +95,19 @@
                 <div class="chat-sidebar">
                     <div class="chat-tabs">
                         <button class="tab-btn" [class.active]="activeTab === 'OPEN'" (click)="setTab('OPEN')">
-                            Abiertas
+                            Nuevas
                         </button>
-                        <button class="tab-btn" [class.active]="activeTab === 'CLOSED'" (click)="setTab('CLOSED')">
+                        <button class="tab-btn" [class.active]="activeTab === 'ATTENDING'" (click)="setTab('ATTENDING')">
+                            Atendiendo
+                        </button>
+                        <button class="tab-btn" [class.active]="activeTab === 'CLOSE'" (click)="setTab('CLOSE')">
                             Cerradas
                         </button>
                     </div>
 
                     <div class="conversation-list">
                         <div *ngIf="conversations.length === 0" class="no-conversations">
-                            No hay conversaciones {{ activeTab === 'OPEN' ? 'abiertas' : 'cerradas' }}.
+                            No hay conversaciones en esta pestaña.
                         </div>
                         <div *ngFor="let conv of conversations" 
                              class="conversation-item"
