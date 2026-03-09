@@ -18,7 +18,7 @@ export interface DashboardReporteConsolidado {
 })
 export class DashboardService {
     private http = inject(HttpClient);
-    private apiUrl = 'http://localhost:3000/dashboard';
+    private apiUrl = 'https://api.kodizof.com/dashboard';
 
     getReporteConsolidado() {
         return this.http.get<DashboardReporteConsolidado[]>(`${this.apiUrl}/reporte-consolidado`);

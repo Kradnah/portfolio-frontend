@@ -39,9 +39,9 @@ export interface Message {
 export class ChatService {
   private http = inject(HttpClient);
   // NestJS Backend URL
-  private apiUrl = 'http://localhost:3000/conversations';
+  private apiUrl = 'https://api.kodizof.com/conversations';
   // FastAPI WebSocket URL
-  private wsUrl = 'ws://localhost:8000/api/ws/conversations';
+  private wsUrl = 'wss://webhook.kodizof.com/api/ws/conversations';
   
   private socket: WebSocket | null = null;
   

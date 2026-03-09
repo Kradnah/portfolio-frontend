@@ -9,7 +9,7 @@ import { Observable, tap } from 'rxjs';
 export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
-    private backendUrl = 'http://localhost:3000/auth';
+    private backendUrl = 'https://api.kodizof.com/auth';
 
     login(username: string, password: string): Observable<any> {
         return this.http.post<any>(`${this.backendUrl}/login`, { username, password })
