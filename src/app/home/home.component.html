@@ -5,15 +5,15 @@
             <span>CRM Kodi Dashboard</span>
         </div>
         <button (click)="logout()" class="logout-btn">
-            <span class="icon">🚪</span> Log out
+            <span class="icon">🚪</span> Cerrar sesión
         </button>
     </nav>
 
     <main class="content">
         <header class="page-header">
             <div>
-                <h1>Welcome Back!</h1>
-                <p>Here's an overview of your messaging metrics today.</p>
+                <h1>¡Bienvenido de nuevo!</h1>
+                <p>Aquí tienes un resumen de tus métricas de mensajería de hoy.</p>
             </div>
         </header>
 
@@ -21,7 +21,7 @@
             <div class="metric-card">
                 <div class="card-icon blue">💬</div>
                 <div class="card-content">
-                    <h3>Total Conversations</h3>
+                    <h3>Total Conversaciones</h3>
                     <span class="metric-value">{{ totalConversaciones }}</span>
                 </div>
             </div>
@@ -33,7 +33,7 @@
                     </svg>
                 </div>
                 <div class="card-content">
-                    <h3>WhatsApp Messages</h3>
+                    <h3>Mensajes WhatsApp</h3>
                     <span class="metric-value">{{ totalWppMensajes }}</span>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     </svg>
                 </div>
                 <div class="card-content">
-                    <h3>Facebook Messages</h3>
+                    <h3>Mensajes Facebook</h3>
                     <span class="metric-value">{{ totalFbMensajes }}</span>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     </svg>
                 </div>
                 <div class="card-content">
-                    <h3>Instagram Messages</h3>
+                    <h3>Mensajes Instagram</h3>
                     <span class="metric-value">{{ totalIgMensajes }}</span>
                 </div>
             </div>
@@ -65,23 +65,23 @@
 
         <section class="table-container">
             <div class="table-header">
-                <h2>Client Breakdown</h2>
+                <h2>Desglose por Cliente</h2>
             </div>
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Company Name</th>
-                            <th>Total Convos</th>
-                            <th class="whatsapp-col">Wpp Total</th>
-                            <th class="whatsapp-col">Wpp Sent</th>
-                            <th class="whatsapp-col">Wpp Rcvd</th>
-                            <th class="fb-col">FB Total</th>
-                            <th class="fb-col">FB Sent</th>
-                            <th class="fb-col">FB Rcvd</th>
-                            <th class="ig-col">IG Total</th>
-                            <th class="ig-col">IG Sent</th>
-                            <th class="ig-col">IG Rcvd</th>
+                            <th>Empresa</th>
+                            <th>Total Convs</th>
+                            <th class="whatsapp-col">Total WPP</th>
+                            <th class="whatsapp-col">Env WPP</th>
+                            <th class="whatsapp-col">Rec WPP</th>
+                            <th class="fb-col">Total FB</th>
+                            <th class="fb-col">Env FB</th>
+                            <th class="fb-col">Rec FB</th>
+                            <th class="ig-col">Total IG</th>
+                            <th class="ig-col">Env IG</th>
+                            <th class="ig-col">Rec IG</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,7 +99,7 @@
                             <td class="ig-cell subtle">{{ row.ig_recibidos }}</td>
                         </tr>
                         <tr *ngIf="reporteConsolidado.length === 0" class="empty-row">
-                            <td colspan="11">No data available at the moment.</td>
+                            <td colspan="11">No hay información disponible por el momento.</td>
                         </tr>
                     </tbody>
                 </table>

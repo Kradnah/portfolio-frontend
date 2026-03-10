@@ -64,7 +64,7 @@
 }
 
 .content {
-    max-width: 1200px;
+    max-width: 1500px; /* Incrementado para más espacio en pantallas anchas */
     margin: 0 auto;
     padding: 2rem;
 }
@@ -88,7 +88,7 @@
 /* Metrics Grid */
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Permitir que quepan 4 tarjetas en una fila */
     gap: 1.5rem;
     margin-bottom: 3rem;
 }
@@ -195,8 +195,14 @@
 
 .data-table th,
 .data-table td {
-    padding: 1rem 1.5rem;
+    padding: 1rem; /* Reducido un poco para que las columnas no colapsen */
     border-bottom: 1px solid var(--border-color);
+    text-align: center; /* Centrar todo para que se distribuya mejor */
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+    text-align: left; /* Salvo el nombre de la empresa */
 }
 
 .data-table th {
@@ -267,7 +273,7 @@
 
 .chat-section {
     margin-top: 2rem;
-    height: 600px;
+    height: 650px; /* Un poco más alto para mejor experiencia */
     background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
