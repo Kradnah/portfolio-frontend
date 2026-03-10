@@ -33,6 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     selectedConversation: Conversation | null = null;
     messages: Message[] = [];
     wsSubscription: Subscription | null = null;
+    dashboardWsSubscription: Subscription | null = null;
     refreshInterval: any;
     newMessageText: string = '';
     isSending: boolean = false;
@@ -46,11 +47,19 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loadDashboardData();
         this.loadConversations();
         
-        // Auto refresh mechanism
-        this.refreshInterval = setInterval(() => {
+        // Timeout de fallback para asegurar que si algo falló rápido al inicio, se vuelva a pedir (ej interceptor)
+        setTimeout(() => {
             this.loadDashboardData();
             this.loadConversations();
-        }, 15000); // refresh every 15 seconds
+        }, 1000);
+
+        // Suscribirse al WebSocket del Dashboard para actualizaciones en tiempo real
+        this.chatService.connectToDashboard();
+        this.dashboardWsSubscription = this.chatService.dashboardUpdates$.subscribe((msg: any) => {
+            console.log("Dashboard WS actualiza:", msg);
+            this.loadDashboardData();
+            this.loadConversations();
+        });
 
         // Subscribe to WebSocket messages
         this.wsSubscription = this.chatService.messages$.subscribe((msg: any) => {
@@ -81,10 +90,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.wsSubscription) {
             this.wsSubscription.unsubscribe();
         }
+        if (this.dashboardWsSubscription) {
+            this.dashboardWsSubscription.unsubscribe();
+        }
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
         }
         this.chatService.disconnect();
+        this.chatService.disconnectDashboard();
     }
 
     loadDashboardData() {

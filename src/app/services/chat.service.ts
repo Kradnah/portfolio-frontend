@@ -42,12 +42,19 @@ export class ChatService {
   private apiUrl = 'https://api.kodizof.com/conversations';
   // FastAPI WebSocket URL
   private wsUrl = 'wss://webhook.kodizof.com/api/ws/conversations';
+  // FastAPI Dashboard WebSocket URL
+  private wsDashboardUrl = 'wss://webhook.kodizof.com/api/ws/dashboard';
   
   private socket: WebSocket | null = null;
+  private dashboardSocket: WebSocket | null = null;
   
   // Observable for new incoming WebSocket messages
   private messageSubject = new Subject<any>();
   public messages$ = this.messageSubject.asObservable();
+
+  // Observable for dashboard general updates
+  private dashboardSubject = new Subject<any>();
+  public dashboardUpdates$ = this.dashboardSubject.asObservable();
 
   getConversations(idEmpresa: number, status: string = 'OPEN'): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.apiUrl}?id_empresa=${idEmpresa}&status=${status}`);
@@ -109,6 +116,38 @@ export class ChatService {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
+    }
+  }
+
+  connectToDashboard() {
+    this.disconnectDashboard();
+
+    this.dashboardSocket = new WebSocket(this.wsDashboardUrl);
+
+    this.dashboardSocket.onopen = () => {
+      console.log('Conectado al WS del Dashboard');
+    };
+
+    this.dashboardSocket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        this.dashboardSubject.next(data);
+      } catch(e) {
+        console.error("Error parsing WS dashboard message", e);
+      }
+    };
+
+    this.dashboardSocket.onclose = () => {
+      console.log('Conexión WS del Dashboard cerrada');
+      // Intentar reconectar si se corta
+      setTimeout(() => this.connectToDashboard(), 5000);
+    };
+  }
+
+  disconnectDashboard() {
+    if (this.dashboardSocket) {
+      this.dashboardSocket.close();
+      this.dashboardSocket = null;
     }
   }
 }
