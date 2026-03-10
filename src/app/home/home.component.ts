@@ -63,6 +63,17 @@ export class HomeComponent implements OnInit, OnDestroy {
             console.log("Dashboard WS actualiza:", msg);
             this.loadDashboardData();
             this.loadConversations();
+            
+            // Si hay una conversación abierta, recargamos sus mensajes por si acaso se perdió el evento WS específico
+            if (this.selectedConversation) {
+                this.chatService.getMessages(this.selectedConversation.id).subscribe({
+                    next: (data) => {
+                        this.messages = data;
+                        this.scrollToBottom();
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
         });
 
         // Subscribe to WebSocket messages
@@ -151,12 +162,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             error: (err) => console.error("Error loading messages", err)
         });
 
-        // Conectar WebSocket si está abierta
-        if (this.activeTab === 'OPEN') {
-            this.chatService.connectToConversation(conv.id);
-        } else {
-            this.chatService.disconnect();
-        }
+        // Conectar WebSocket siempre que se seleccione una conversación
+        this.chatService.connectToConversation(conv.id);
     }
 
     takeConversation() {
@@ -201,11 +208,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.chatService.sendMessage(this.selectedConversation.id, textToSend).subscribe({
             next: (res) => {
                 this.isSending = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error("Error sending message", err);
                 this.isSending = false;
                 this.newMessageText = textToSend; 
+                this.cdr.detectChanges();
             }
         });
     }
