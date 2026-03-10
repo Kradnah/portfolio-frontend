@@ -38,15 +38,27 @@
                 </div>
             </div>
             <div class="metric-card">
-                <div class="card-icon purple">
+                <div class="card-icon facebook-blue">
+                    <!-- Facebook Icon -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M12 0C5.373 0 0 5.373 0 12c0 6.628 5.373 12 12 12 6.628 0 12-5.372 12-12C24 5.373 18.628 0 12 0zm5.66 9.492c-.114.717-.611 2.67-1.353 4.542-.236.592-.478 1.137-.704 1.54-.15.268-.302.502-.455.674-.638.74-1.259 1.054-2.126.96-.927-.101-1.616-.689-2.274-1.332-.777-.76-1.272-1.464-1.928-2.548-.87-1.428-1.503-2.678-2.036-4.008-.433-1.082-.79-2.057-.962-2.731-.054-.216-.076-.36-.057-.428.016-.056.096-.134.33-.083.218.048.563.181-.131-.476a2.083 2.083 0 01.352-.392 3.868 3.868 0 011.025-.56c.304-.114.613-.19.923-.23.479-.06.914.07 1.258.463.303.344.475.9.489 1.603.013.626-.145 1.378-.314 1.882-.103.31-.19.535-.205.577-.076.216-.14.39-.17.514-.04.168-.052.285-.01.366.059.108.204.148.455.105.289-.05.698-.314 1.206-.757.77-.674 1.52-1.748 1.96-2.915.228-.6.381-1.12.433-1.472.039-.27.027-.552-.163-.736-.217-.208-.6-.282-1.201-.25-.327.017-.714.076-1.138.169-.475.103-1.026.273-1.618.528 2.072-1.036 4.303.111 5.37 2.185.341.657.485 1.343.435 2.016z" />
+                        <path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.96 3.63 9.07 8.4 9.83v-6.95h-2.5v-2.88h2.5v-2.2c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.23 0-1.61.76-1.61 1.54v1.88h2.74l-.44 2.88h-2.3v6.95c4.77-.76 8.4-4.87 8.4-9.83 0-5.5-4.46-9.96-9.96-9.96z"/>
                     </svg>
                 </div>
                 <div class="card-content">
-                    <h3>Meta Messages</h3>
-                    <span class="metric-value">{{ totalMetaMensajes }}</span>
+                    <h3>Facebook Messages</h3>
+                    <span class="metric-value">{{ totalFbMensajes }}</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="card-icon instagram-gradient">
+                    <!-- Instagram Icon -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.75 2h8.5c3.17 0 5.75 2.58 5.75 5.75v8.5c0 3.17-2.58 5.75-5.75 5.75h-8.5c-3.17 0-5.75-2.58-5.75-5.75v-8.5c0-3.17 2.58-5.75 5.75-5.75zm0 1.9h8.5c2.12 0 3.85 1.73 3.85 3.85v8.5c0 2.12-1.73 3.85-3.85 3.85h-8.5c-2.12 0-3.85-1.73-3.85-3.85v-8.5c0-2.12 1.73-3.85 3.85-3.85zM12 6.8c-2.87 0-5.2 2.33-5.2 5.2s2.33 5.2 5.2 5.2 5.2-2.33 5.2-5.2-2.33-5.2-5.2-5.2zm0 1.9c1.82 0 3.3 1.48 3.3 3.3s-1.48 3.3-3.3 3.3-3.3-1.48-3.3-3.3 1.48-3.3 3.3-3.3zm5.3-2.6c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2.54-1.2 1.2-1.2 1.2.54 1.2 1.2z"/>
+                    </svg>
+                </div>
+                <div class="card-content">
+                    <h3>Instagram Messages</h3>
+                    <span class="metric-value">{{ totalIgMensajes }}</span>
                 </div>
             </div>
         </section>
@@ -64,9 +76,12 @@
                             <th class="whatsapp-col">Wpp Total</th>
                             <th class="whatsapp-col">Wpp Sent</th>
                             <th class="whatsapp-col">Wpp Rcvd</th>
-                            <th class="meta-col">Meta Total</th>
-                            <th class="meta-col">Meta Sent</th>
-                            <th class="meta-col">Meta Rcvd</th>
+                            <th class="fb-col">FB Total</th>
+                            <th class="fb-col">FB Sent</th>
+                            <th class="fb-col">FB Rcvd</th>
+                            <th class="ig-col">IG Total</th>
+                            <th class="ig-col">IG Sent</th>
+                            <th class="ig-col">IG Rcvd</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,12 +91,15 @@
                             <td class="wpp-cell">{{ row.total_mensajes_wpp }}</td>
                             <td class="wpp-cell subtle">{{ row.wpp_enviados }}</td>
                             <td class="wpp-cell subtle">{{ row.wpp_recibidos }}</td>
-                            <td class="meta-cell">{{ row.total_mensajes_meta }}</td>
-                            <td class="meta-cell subtle">{{ row.meta_enviados }}</td>
-                            <td class="meta-cell subtle">{{ row.meta_recibidos }}</td>
+                            <td class="fb-cell">{{ row.total_mensajes_fb }}</td>
+                            <td class="fb-cell subtle">{{ row.fb_enviados }}</td>
+                            <td class="fb-cell subtle">{{ row.fb_recibidos }}</td>
+                            <td class="ig-cell">{{ row.total_mensajes_ig }}</td>
+                            <td class="ig-cell subtle">{{ row.ig_enviados }}</td>
+                            <td class="ig-cell subtle">{{ row.ig_recibidos }}</td>
                         </tr>
                         <tr *ngIf="reporteConsolidado.length === 0" class="empty-row">
-                            <td colspan="8">No data available at the moment.</td>
+                            <td colspan="11">No data available at the moment.</td>
                         </tr>
                     </tbody>
                 </table>

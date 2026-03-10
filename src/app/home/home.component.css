@@ -135,6 +135,16 @@
     color: var(--meta-purple);
 }
 
+.card-icon.facebook-blue {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877F2;
+}
+
+.card-icon.instagram-gradient {
+    background: rgba(225, 48, 108, 0.1);
+    color: #E1306C;
+}
+
 .card-content h3 {
     margin: 0;
     font-size: 0.875rem;
@@ -202,8 +212,12 @@
     color: var(--wpp-green);
 }
 
-.data-table th.meta-col {
-    color: #e879f9;
+.data-table th.fb-col {
+    color: #1877F2;
+}
+
+.data-table th.ig-col {
+    color: #E1306C;
 }
 
 .data-table tbody tr:hover {
@@ -228,7 +242,11 @@
     color: #a7f3d0;
 }
 
-.meta-cell {
+.fb-cell {
+    color: #bfdbfe;
+}
+
+.ig-cell {
     color: #fbcfe8;
 }
 

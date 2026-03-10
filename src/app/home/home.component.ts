@@ -22,7 +22,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Global stats
     totalConversaciones = 0;
     totalWppMensajes = 0;
-    totalMetaMensajes = 0;
+    totalFbMensajes = 0;
+    totalIgMensajes = 0;
 
     // Table data
     reporteConsolidado: DashboardReporteConsolidado[] = [];
@@ -231,7 +232,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     calculateTotals(data: DashboardReporteConsolidado[]) {
         this.totalConversaciones = data.reduce((sum, item) => sum + Number(item.total_conversaciones || 0), 0);
         this.totalWppMensajes = data.reduce((sum, item) => sum + Number(item.total_mensajes_wpp || 0), 0);
-        this.totalMetaMensajes = data.reduce((sum, item) => sum + Number(item.total_mensajes_meta || 0), 0);
+        this.totalFbMensajes = data.reduce((sum, item) => sum + Number(item.total_mensajes_fb || 0), 0);
+        this.totalIgMensajes = data.reduce((sum, item) => sum + Number(item.total_mensajes_ig || 0), 0);
     }
 
     logout() {

@@ -8,9 +8,12 @@ export interface DashboardReporteConsolidado {
     total_mensajes_wpp: string;
     wpp_enviados: string;
     wpp_recibidos: string;
-    total_mensajes_meta: string;
-    meta_enviados: string;
-    meta_recibidos: string;
+    total_mensajes_fb: string;
+    fb_enviados: string;
+    fb_recibidos: string;
+    total_mensajes_ig: string;
+    ig_enviados: string;
+    ig_recibidos: string;
 }
 
 @Injectable({
@@ -32,7 +35,11 @@ export class DashboardService {
         return this.http.get<any[]>(`${this.apiUrl}/mensajes-whatsapp`);
     }
 
-    getMensajesMeta() {
-        return this.http.get<any[]>(`${this.apiUrl}/mensajes-meta`);
+    getMensajesFb() {
+        return this.http.get<any[]>(`${this.apiUrl}/mensajes-fb`);
+    }
+
+    getMensajesIg() {
+        return this.http.get<any[]>(`${this.apiUrl}/mensajes-ig`);
     }
 }
