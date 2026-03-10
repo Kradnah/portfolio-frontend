@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
@@ -17,6 +17,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     authService = inject(AuthService);
     dashboardService = inject(DashboardService);
     chatService = inject(ChatService);
+    private cdr = inject(ChangeDetectorRef);
 
     // Global stats
     totalConversaciones = 0;
@@ -49,8 +50,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         
         // Timeout de fallback para asegurar que si algo falló rápido al inicio, se vuelva a pedir (ej interceptor)
         setTimeout(() => {
+            const ui = this.authService.getCurrentUser();
+            if (ui && ui.id_empresa) this.idEmpresa = ui.id_empresa;
             this.loadDashboardData();
             this.loadConversations();
+            this.cdr.detectChanges();
         }, 1000);
 
         // Suscribirse al WebSocket del Dashboard para actualizaciones en tiempo real
@@ -82,6 +86,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                 };
                 this.messages.push(newMsg);
                 this.scrollToBottom();
+                this.cdr.detectChanges();
             }
         });
     }
@@ -105,6 +110,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             next: (data) => {
                 this.reporteConsolidado = data;
                 this.calculateTotals(data);
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Error fetching dashboard data', err);
@@ -127,6 +133,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.chatService.getConversations(this.idEmpresa, this.activeTab).subscribe({
             next: (data) => {
                 this.conversations = data;
+                this.cdr.detectChanges();
             },
             error: (err) => console.error("Error loading conversations", err)
         });
@@ -139,6 +146,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             next: (data) => {
                 this.messages = data;
                 this.scrollToBottom();
+                this.cdr.detectChanges();
             },
             error: (err) => console.error("Error loading messages", err)
         });
