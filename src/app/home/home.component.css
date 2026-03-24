@@ -367,6 +367,24 @@
     color: var(--text-muted);
 }
 
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-whatsapp {
+    color: var(--wpp-green);
+}
+
+.icon-facebook {
+    color: #1877F2;
+}
+
+.icon-instagram {
+    color: #E1306C;
+}
+
 .conv-status {
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
@@ -435,6 +453,9 @@
 .header-platform {
     font-size: 0.8rem;
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .take-btn {
@@ -531,6 +552,18 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 0.25rem;
+}
+
+.bubble-icon {
+    margin-left: 0.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.message-bubble.sent .bubble-icon.icon-whatsapp,
+.message-bubble.sent .bubble-icon.icon-facebook,
+.message-bubble.sent .bubble-icon.icon-instagram {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .message-time {
