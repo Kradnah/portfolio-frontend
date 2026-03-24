@@ -236,6 +236,28 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.totalIgMensajes = data.reduce((sum, item) => sum + Number(item.total_mensajes_ig || 0), 0);
     }
 
+    // --- Helpers para Multimedia ---
+    getMediaUrl(ruta: string | null | undefined): string {
+        if (!ruta) return '';
+        if (ruta.startsWith('http')) return ruta;
+        return ruta.replace('/app/multimedia', 'https://webhook.kodizof.com/api/multimedia');
+    }
+
+    isImage(ruta: string | null | undefined): boolean {
+        if (!ruta) return false;
+        return /\.(jpg|jpeg|png|gif|webp)$/i.test(ruta);
+    }
+
+    isAudio(ruta: string | null | undefined): boolean {
+        if (!ruta) return false;
+        return /\.(mp3|wav|ogg|m4a|aac)$/i.test(ruta) || ruta.includes('audio') || ruta.includes('voice');
+    }
+
+    isVideo(ruta: string | null | undefined): boolean {
+        if (!ruta) return false;
+        return /\.(mp4|mov|webm|avi)$/i.test(ruta) || ruta.includes('video');
+    }
+
     logout() {
         this.authService.logout();
     }

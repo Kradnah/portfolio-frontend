@@ -629,3 +629,58 @@
     font-size: 0.9rem;
     font-style: italic;
 }
+
+/* =========================================
+   MULTIMEDIA ELEMENTS
+========================================= */
+
+.multimedia-container {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chat-image {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.chat-audio {
+    width: 100%;
+    max-width: 250px;
+    height: 40px;
+    border-radius: 20px;
+}
+
+.chat-video {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+.chat-document {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.05); /* Lighter inside chat sent/received bubbles */
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+
+.chat-document:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.message-text {
+    word-break: break-word;
+}
