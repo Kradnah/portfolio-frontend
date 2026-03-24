@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { DashboardService, DashboardReporteConsolidado } from '../services/dashboard.service';
 import { ChatService, Conversation, Message } from '../services/chat.service';
+import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -17,7 +18,25 @@ export class HomeComponent implements OnInit, OnDestroy {
     authService = inject(AuthService);
     dashboardService = inject(DashboardService);
     chatService = inject(ChatService);
+    userService = inject(UserService);
     private cdr = inject(ChangeDetectorRef);
+
+    // User Roles and Views
+    userTipo: string = 'vendedor';
+    currentView: 'dashboard' | 'users' = 'dashboard';
+
+    // User management data
+    usuarios: any[] = [];
+    empresas: any[] = [];
+    showUserModal: boolean = false;
+    editingUserId: number | null = null;
+    userForm: any = {
+        nombre: '',
+        usuario: '',
+        password: '',
+        tipo: 'vendedor',
+        id_empresa: null
+    };
 
     // Global stats
     totalConversaciones = 0;
@@ -45,6 +64,12 @@ export class HomeComponent implements OnInit, OnDestroy {
         const userInfo = this.authService.getCurrentUser();
         if (userInfo && userInfo.id_empresa) {
             this.idEmpresa = userInfo.id_empresa;
+            this.userTipo = userInfo.tipo || 'vendedor';
+        }
+
+        if (this.userTipo === 'admin') {
+            this.loadUsers();
+            this.loadEmpresas();
         }
 
         this.loadDashboardData();
@@ -291,6 +316,84 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (mensaje && mensaje.includes('[Archivo Multimedia: video]')) return true;
         if (!ruta) return false;
         return /\.(mp4|mov|webm|avi)$/i.test(ruta) || ruta.includes('video');
+    }
+
+    // --- User Management Logic ---
+
+    toggleView() {
+        this.currentView = this.currentView === 'dashboard' ? 'users' : 'dashboard';
+        if (this.currentView === 'users' && this.usuarios.length === 0) {
+            this.loadUsers();
+            this.loadEmpresas();
+        }
+    }
+
+    loadUsers() {
+        this.userService.getUsers().subscribe({
+            next: (data) => {
+                this.usuarios = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error("Error loading users", err)
+        });
+    }
+
+    loadEmpresas() {
+        this.userService.getEmpresas().subscribe({
+            next: (data) => {
+                this.empresas = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error("Error loading empresas", err)
+        });
+    }
+
+    openUserModal(user?: any) {
+        if (user) {
+            this.editingUserId = user.id;
+            this.userForm = {
+                nombre: user.nombre,
+                usuario: user.usuario,
+                password: '',
+                tipo: user.tipo,
+                id_empresa: user.id_empresa
+            };
+        } else {
+            this.editingUserId = null;
+            this.userForm = {
+                nombre: '',
+                usuario: '',
+                password: '',
+                tipo: 'vendedor',
+                id_empresa: this.empresas.length > 0 ? this.empresas[0].id : null
+            };
+        }
+        this.showUserModal = true;
+    }
+
+    closeUserModal() {
+        this.showUserModal = false;
+        this.editingUserId = null;
+    }
+
+    saveUser() {
+        if (this.editingUserId) {
+            this.userService.updateUser(this.editingUserId, this.userForm).subscribe({
+                next: () => {
+                    this.loadUsers();
+                    this.closeUserModal();
+                },
+                error: (err) => console.error("Error updating user", err)
+            });
+        } else {
+            this.userService.createUser(this.userForm).subscribe({
+                next: () => {
+                    this.loadUsers();
+                    this.closeUserModal();
+                },
+                error: (err) => console.error("Error creating user", err)
+            });
+        }
     }
 
     logout() {

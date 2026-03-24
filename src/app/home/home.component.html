@@ -4,13 +4,19 @@
             <span class="icon">📊</span>
             <span>CRM Kodi Dashboard</span>
         </div>
-        <button (click)="logout()" class="logout-btn">
-            <span class="icon">🚪</span> Cerrar sesión
-        </button>
+        <div class="nav-actions">
+            <button *ngIf="userTipo === 'admin'" (click)="toggleView()" class="nav-btn admin-btn">
+                <span class="icon">👥</span> {{ currentView === 'dashboard' ? 'Gestionar Usuarios' : 'Volver al Dashboard' }}
+            </button>
+            <button (click)="logout()" class="logout-btn">
+                <span class="icon">🚪</span> Cerrar sesión
+            </button>
+        </div>
     </nav>
 
     <main class="content">
-        <header class="page-header">
+        <ng-container *ngIf="currentView === 'dashboard'">
+            <header class="page-header">
             <div>
                 <h1>¡Bienvenido de nuevo!</h1>
                 <p>Aquí tienes un resumen de tus métricas de mensajería de hoy.</p>
@@ -307,5 +313,91 @@
                 </div>
             </div>
         </section>
+        </ng-container>
+
+        <!-- --- USERS SECTION (ADMIN ONLY) --- -->
+        <ng-container *ngIf="currentView === 'users' && userTipo === 'admin'">
+            <header class="page-header">
+                <div>
+                    <h1>Gestión de Usuarios</h1>
+                    <p>Administra los usuarios del sistema y sus accesos.</p>
+                </div>
+                <button class="primary-btn" (click)="openUserModal()">+ Añadir Usuario</button>
+            </header>
+
+            <section class="table-container">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Usuario</th>
+                                <th>Tipo</th>
+                                <th>Empresa Asignada</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let user of usuarios">
+                                <td>{{ user.id }}</td>
+                                <td class="bold-cell">{{ user.nombre }}</td>
+                                <td>{{ user.usuario }}</td>
+                                <td><span class="badge" [ngClass]="user.tipo === 'admin' ? 'badge-admin' : 'badge-user'">{{ user.tipo | titlecase }}</span></td>
+                                <td>{{ user.nombre_empresa || 'Ninguna (' + user.id_empresa + ')' }}</td>
+                                <td>
+                                    <button class="action-btn edit-btn" (click)="openUserModal(user)">Editar</button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="usuarios.length === 0" class="empty-row">
+                                <td colspan="6">Cargando usuarios...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- User Modal -->
+            <div class="modal-overlay" *ngIf="showUserModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>{{ editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+                        <button class="close-modal-btn" (click)="closeUserModal()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Nombre:</label>
+                            <input type="text" [(ngModel)]="userForm.nombre" class="form-control" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario (Login):</label>
+                            <input type="text" [(ngModel)]="userForm.usuario" class="form-control" placeholder="Nombre de usuario">
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña: <small *ngIf="editingUserId">(Dejar en blanco para no cambiar)</small></label>
+                            <input type="password" [(ngModel)]="userForm.password" class="form-control" placeholder="Contraseña">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Usuario:</label>
+                            <select [(ngModel)]="userForm.tipo" class="form-control">
+                                <option value="vendedor">Vendedor (Cliente)</option>
+                                <option value="soporte">Soporte</option>
+                                <option value="admin">Administrador Total</option>
+                            </select>
+                        </div>
+                        <div class="form-group" *ngIf="userForm.tipo !== 'admin'">
+                            <label>Empresa (Cliente) Asignada:</label>
+                            <select [(ngModel)]="userForm.id_empresa" class="form-control">
+                                <option *ngFor="let emp of empresas" [value]="emp.id">{{ emp.nombre_empresa }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" (click)="closeUserModal()">Cancelar</button>
+                        <button class="btn btn-primary" (click)="saveUser()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
     </main>
 </div>
