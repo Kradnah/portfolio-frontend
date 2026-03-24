@@ -221,22 +221,22 @@
                                 <ng-container *ngIf="msg.ruta_multimedia">
                                     <div class="multimedia-container">
                                         <!-- Image -->
-                                        <img *ngIf="isImage(msg.ruta_multimedia)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="chat-image" />
+                                        <img *ngIf="isImage(msg.ruta_multimedia, msg.mensaje)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="chat-image" />
                                         
                                         <!-- Audio -->
-                                        <audio *ngIf="isAudio(msg.ruta_multimedia)" controls class="chat-audio">
+                                        <audio *ngIf="isAudio(msg.ruta_multimedia, msg.mensaje)" controls class="chat-audio">
                                             <source [src]="getMediaUrl(msg.ruta_multimedia)">
                                             Tu navegador no soporta el audio.
                                         </audio>
                                         
                                         <!-- Video -->
-                                        <video *ngIf="isVideo(msg.ruta_multimedia)" controls class="chat-video">
+                                        <video *ngIf="isVideo(msg.ruta_multimedia, msg.mensaje)" controls class="chat-video">
                                             <source [src]="getMediaUrl(msg.ruta_multimedia)">
                                             Tu navegador no soporta el video.
                                         </video>
                                         
                                         <!-- Document/Other -->
-                                        <a *ngIf="!isImage(msg.ruta_multimedia) && !isAudio(msg.ruta_multimedia) && !isVideo(msg.ruta_multimedia)" 
+                                        <a *ngIf="!isImage(msg.ruta_multimedia, msg.mensaje) && !isAudio(msg.ruta_multimedia, msg.mensaje) && !isVideo(msg.ruta_multimedia, msg.mensaje)" 
                                            [href]="getMediaUrl(msg.ruta_multimedia)" target="_blank" class="chat-document">
                                             📎 Ver Archivo Adjunto
                                         </a>

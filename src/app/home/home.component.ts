@@ -243,17 +243,20 @@ export class HomeComponent implements OnInit, OnDestroy {
         return ruta.replace('/app/multimedia', 'https://webhook.kodizof.com/api/multimedia');
     }
 
-    isImage(ruta: string | null | undefined): boolean {
+    isImage(ruta: string | null | undefined, mensaje?: string | null): boolean {
+        if (mensaje && mensaje.includes('[Archivo Multimedia: image]')) return true;
         if (!ruta) return false;
         return /\.(jpg|jpeg|png|gif|webp)$/i.test(ruta);
     }
 
-    isAudio(ruta: string | null | undefined): boolean {
+    isAudio(ruta: string | null | undefined, mensaje?: string | null): boolean {
+        if (mensaje && (mensaje.includes('[Archivo Multimedia: audio]') || mensaje.includes('[Archivo Multimedia: voice]'))) return true;
         if (!ruta) return false;
-        return /\.(mp3|wav|ogg|m4a|aac)$/i.test(ruta) || ruta.includes('audio') || ruta.includes('voice');
+        return /\.(mp3|wav|ogg|m4a|aac|oga)$/i.test(ruta) || ruta.includes('audio') || ruta.includes('voice');
     }
 
-    isVideo(ruta: string | null | undefined): boolean {
+    isVideo(ruta: string | null | undefined, mensaje?: string | null): boolean {
+        if (mensaje && mensaje.includes('[Archivo Multimedia: video]')) return true;
         if (!ruta) return false;
         return /\.(mp4|mov|webm|avi)$/i.test(ruta) || ruta.includes('video');
     }
