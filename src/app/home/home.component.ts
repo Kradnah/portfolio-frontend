@@ -39,6 +39,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     refreshInterval: any;
     newMessageText: string = '';
     isSending: boolean = false;
+    selectedFile: File | null = null;
 
     ngOnInit() {
         const userInfo = this.authService.getCurrentUser();
@@ -200,24 +201,55 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     sendMessage() {
-        if (!this.selectedConversation || !this.newMessageText.trim() || this.isSending) return;
+        if (!this.selectedConversation || this.isSending) return;
+        if (!this.newMessageText.trim() && !this.selectedFile) return;
         
         this.isSending = true;
-        const textToSend = this.newMessageText.trim();
-        this.newMessageText = '';
+        
+        if (this.selectedFile) {
+            // Send Media
+            this.chatService.sendMediaMessage(this.selectedConversation.id, this.selectedFile).subscribe({
+                next: (res) => {
+                    this.isSending = false;
+                    this.selectedFile = null;
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    console.error("Error sending media", err);
+                    this.isSending = false;
+                    this.cdr.detectChanges();
+                }
+            });
+        } else {
+            // Send Text
+            const textToSend = this.newMessageText.trim();
+            this.newMessageText = '';
 
-        this.chatService.sendMessage(this.selectedConversation.id, textToSend).subscribe({
-            next: (res) => {
-                this.isSending = false;
-                this.cdr.detectChanges();
-            },
-            error: (err) => {
-                console.error("Error sending message", err);
-                this.isSending = false;
-                this.newMessageText = textToSend; 
-                this.cdr.detectChanges();
-            }
-        });
+            this.chatService.sendMessage(this.selectedConversation.id, textToSend).subscribe({
+                next: (res) => {
+                    this.isSending = false;
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    console.error("Error sending message", err);
+                    this.isSending = false;
+                    this.newMessageText = textToSend; 
+                    this.cdr.detectChanges();
+                }
+            });
+        }
+    }
+
+    onFileSelected(event: any) {
+        if (event.target.files && event.target.files.length > 0) {
+            this.selectedFile = event.target.files[0];
+            this.cdr.detectChanges();
+        }
+    }
+
+    removeFile() {
+        this.selectedFile = null;
+        this.cdr.detectChanges();
     }
 
     scrollToBottom() {

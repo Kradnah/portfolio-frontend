@@ -78,6 +78,14 @@ export class ChatService {
     return this.http.post<any>(`${webhookApiUrl}/messages/send`, { conv_id: idConversacion, text });
   }
 
+  sendMediaMessage(idConversacion: number, file: File): Observable<any> {
+    const webhookApiUrl = 'https://webhook.kodizof.com/api';
+    const formData = new FormData();
+    formData.append('conv_id', idConversacion.toString());
+    formData.append('file', file);
+    return this.http.post<any>(`${webhookApiUrl}/messages/send-media`, formData);
+  }
+
   connectToConversation(idConversacion: number) {
     this.disconnect(); // Ensure previous connection is closed
 
