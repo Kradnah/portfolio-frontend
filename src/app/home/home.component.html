@@ -5,6 +5,10 @@
             <span>CRM Kodi Dashboard</span>
         </div>
         <div class="nav-actions">
+            <!-- Cambio de Contraseña -->
+            <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()" class="nav-btn admin-btn">
+                <span class="icon">🔑</span> Cambiar Contraseña
+            </button>
             <button *ngIf="userTipo === 'admin'" (click)="toggleView()" class="nav-btn admin-btn">
                 <span class="icon">👥</span> {{ currentView === 'dashboard' ? 'Gestionar Usuarios' : 'Volver al Dashboard' }}
             </button>
@@ -399,5 +403,29 @@
                 </div>
             </div>
         </ng-container>
+
+        <!-- Change Password Modal -->
+        <div class="modal-overlay" *ngIf="showPasswordModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Cambiar mi Contraseña</h2>
+                    <button class="close-modal-btn" (click)="closePasswordModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Ingresa la nueva contraseña para tu cuenta de administrador.
+                    </p>
+                    <div class="form-group">
+                        <label>Nueva Contraseña:</label>
+                        <input type="password" [(ngModel)]="newAdminPassword" class="form-control" placeholder="Escribe aquí tu nueva contraseña">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" (click)="closePasswordModal()">Cancelar</button>
+                    <button class="btn btn-primary" (click)="saveAdminPassword()" [disabled]="!newAdminPassword.trim()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 </div>

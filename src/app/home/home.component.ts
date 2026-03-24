@@ -29,6 +29,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     usuarios: any[] = [];
     empresas: any[] = [];
     showUserModal: boolean = false;
+    showPasswordModal: boolean = false;
+    newAdminPassword: string = '';
+    
     editingUserId: number | null = null;
     userForm: any = {
         nombre: '',
@@ -392,6 +395,34 @@ export class HomeComponent implements OnInit, OnDestroy {
                     this.closeUserModal();
                 },
                 error: (err) => console.error("Error creating user", err)
+            });
+        }
+    }
+
+    // --- Admin Password Change Logic ---
+    openPasswordModal() {
+        this.newAdminPassword = '';
+        this.showPasswordModal = true;
+    }
+
+    closePasswordModal() {
+        this.showPasswordModal = false;
+    }
+
+    saveAdminPassword() {
+        if (!this.newAdminPassword.trim()) return;
+        const userInfo = this.authService.getCurrentUser();
+        if (userInfo && userInfo.sub) {
+            this.userService.updateUser(userInfo.sub, { password: this.newAdminPassword }).subscribe({
+                next: () => {
+                    alert('Contraseña actualizada exitosamente. Por favor, inicia sesión de nuevo.');
+                    this.closePasswordModal();
+                    this.logout();
+                },
+                error: (err) => {
+                    console.error("Error updating password", err);
+                    alert('Error al actualizar la contraseña');
+                }
             });
         }
     }
