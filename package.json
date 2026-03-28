@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prebuild": "node set-env.js",
     "start": "npx serve -s dist/client/browser -l 4200",
     "start:dev": "ng serve",
     "build": "ng build",
