@@ -978,6 +978,24 @@
 .large-modal {
     max-width: 900px !important;
     width: 95vw !important;
+    max-height: 90vh !important;
+    display: flex;
+    flex-direction: column;
+}
+.modal-scrollable {
+    overflow-y: auto;
+    flex: 1;
+}
+.input-with-icon {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-with-icon input {
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 2.5rem;
 }
 .form-group label {
     display: block;
