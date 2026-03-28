@@ -6,6 +6,8 @@ import { DashboardService, DashboardReporteConsolidado } from '../services/dashb
 import { ChatService, Conversation, Message } from '../services/chat.service';
 import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
+import { ClientesService } from '../services/clientes.service';
+import { CryptoService } from '../services/crypto.service';
 
 @Component({
     selector: 'app-home',
@@ -19,11 +21,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     dashboardService = inject(DashboardService);
     chatService = inject(ChatService);
     userService = inject(UserService);
+    clientesService = inject(ClientesService);
+    cryptoService = inject(CryptoService);
     private cdr = inject(ChangeDetectorRef);
 
     // User Roles and Views
     userTipo: string = 'vendedor';
-    currentView: 'dashboard' | 'users' = 'dashboard';
+    currentView: 'dashboard' | 'users' | 'clientes' = 'dashboard';
 
     // User management data
     usuarios: any[] = [];
@@ -40,6 +44,19 @@ export class HomeComponent implements OnInit, OnDestroy {
         tipo: 'vendedor',
         id_empresa: null
     };
+
+    // Clientes management
+    clientes: any[] = [];
+    showClienteModal: boolean = false;
+    editingClienteId: number | null = null;
+    clienteForm: any = {
+        nombre_empresa: '',
+        responsable: '',
+        numero_celular: '',
+        estado: 1,
+        notificaciones: []
+    };
+    showNotificationsContent: boolean = false; // Toggle eye
 
     // Global stats
     totalConversaciones = 0;
@@ -321,14 +338,20 @@ export class HomeComponent implements OnInit, OnDestroy {
         return /\.(mp4|mov|webm|avi)$/i.test(ruta) || ruta.includes('video');
     }
 
-    // --- User Management Logic ---
+    // --- View Management Logic ---
 
-    toggleView() {
-        this.currentView = this.currentView === 'dashboard' ? 'users' : 'dashboard';
-        if (this.currentView === 'users' && this.usuarios.length === 0) {
+    setView(view: 'dashboard' | 'users' | 'clientes') {
+        this.currentView = view;
+        if (view === 'users' && this.usuarios.length === 0) {
             this.loadUsers();
             this.loadEmpresas();
+        } else if (view === 'clientes' && this.clientes.length === 0) {
+            this.loadClientes();
         }
+    }
+
+    toggleView() {
+        this.setView(this.currentView === 'dashboard' ? 'users' : 'dashboard');
     }
 
     loadUsers() {
@@ -395,6 +418,84 @@ export class HomeComponent implements OnInit, OnDestroy {
                     this.closeUserModal();
                 },
                 error: (err) => console.error("Error creating user", err)
+            });
+        }
+    }
+
+    // --- Clientes Management Logic ---
+    loadClientes() {
+        this.clientesService.getClientes().subscribe({
+            next: (data) => {
+                this.clientes = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error("Error loading clientes", err)
+        });
+    }
+
+    openClienteModal(cliente?: any) {
+        if (cliente) {
+            this.editingClienteId = cliente.id;
+            let notif = cliente.notificaciones ? JSON.parse(JSON.stringify(cliente.notificaciones)) : [];
+            notif = this.cryptoService.decryptNotifications(notif);
+            this.clienteForm = {
+                nombre_empresa: cliente.nombre_empresa,
+                responsable: cliente.responsable || '',
+                numero_celular: cliente.numero_celular || '',
+                estado: cliente.estado,
+                notificaciones: notif
+            };
+        } else {
+            this.editingClienteId = null;
+            this.clienteForm = {
+                nombre_empresa: '',
+                responsable: '',
+                numero_celular: '',
+                estado: 1,
+                notificaciones: []
+            };
+        }
+        this.showNotificationsContent = false;
+        this.showClienteModal = true;
+    }
+
+    closeClienteModal() {
+        this.showClienteModal = false;
+        this.editingClienteId = null;
+    }
+
+    addNotification() {
+        if (!this.clienteForm.notificaciones) this.clienteForm.notificaciones = [];
+        this.clienteForm.notificaciones.push({ correo: '', nombre: '', telefono: '', descripcion: '' });
+    }
+
+    removeNotification(index: number) {
+        this.clienteForm.notificaciones.splice(index, 1);
+    }
+
+    toggleNotificationsView() {
+        this.showNotificationsContent = !this.showNotificationsContent;
+    }
+
+    saveCliente() {
+        const dataToSave = { ...this.clienteForm };
+        dataToSave.notificaciones = this.cryptoService.encryptNotifications(dataToSave.notificaciones);
+
+        if (this.editingClienteId) {
+            this.clientesService.updateCliente(this.editingClienteId, dataToSave).subscribe({
+                next: () => {
+                    this.loadClientes();
+                    this.closeClienteModal();
+                },
+                error: (err) => console.error("Error updating cliente", err)
+            });
+        } else {
+            this.clientesService.createCliente(dataToSave).subscribe({
+                next: () => {
+                    this.loadClientes();
+                    this.closeClienteModal();
+                },
+                error: (err) => console.error("Error creating cliente", err)
             });
         }
     }

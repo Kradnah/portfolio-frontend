@@ -10,7 +10,10 @@
                 <span class="icon">🔑</span> Cambiar Contraseña
             </button>
             <button *ngIf="userTipo === 'admin'" (click)="toggleView()" class="nav-btn admin-btn">
-                <span class="icon">👥</span> {{ currentView === 'dashboard' ? 'Gestionar Usuarios' : 'Volver al Dashboard' }}
+                <span class="icon">👥</span> {{ currentView === 'users' ? 'Volver al Dashboard' : 'Gestionar Usuarios' }}
+            </button>
+            <button *ngIf="userTipo === 'admin'" (click)="currentView === 'clientes' ? setView('dashboard') : setView('clientes')" class="nav-btn admin-btn">
+                <span class="icon">⚙️</span> {{ currentView === 'clientes' ? 'Volver al Dashboard' : 'Config. Clientes' }}
             </button>
             <button (click)="logout()" class="logout-btn">
                 <span class="icon">🚪</span> Cerrar sesión
@@ -399,6 +402,137 @@
                     <div class="modal-footer">
                         <button class="btn btn-secondary" (click)="closeUserModal()">Cancelar</button>
                         <button class="btn btn-primary" (click)="saveUser()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- --- CLIENTES SECTION (ADMIN ONLY) --- -->
+        <ng-container *ngIf="currentView === 'clientes' && userTipo === 'admin'">
+            <header class="page-header">
+                <div>
+                    <h1>Configuración de Clientes</h1>
+                    <p>Administra las empresas clientes y sus notificaciones.</p>
+                </div>
+                <button class="primary-btn" (click)="openClienteModal()">+ Añadir Cliente</button>
+            </header>
+
+            <section class="table-container">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Empresa</th>
+                                <th>Teléfono</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let cliente of clientes">
+                                <td>{{ cliente.id }}</td>
+                                <td class="bold-cell">{{ cliente.nombre_empresa }}</td>
+                                <td>{{ cliente.numero_celular || 'N/A' }}</td>
+                                <td><span class="badge" [ngClass]="cliente.estado === 1 ? 'badge-user' : 'badge-admin'">{{ cliente.estado === 1 ? 'Activo' : 'Inactivo' }}</span></td>
+                                <td>
+                                    <button class="action-btn edit-btn" (click)="openClienteModal(cliente)">Editar / Configurar</button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="clientes.length === 0" class="empty-row">
+                                <td colspan="5">Cargando clientes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Cliente Modal -->
+            <div class="modal-overlay" *ngIf="showClienteModal">
+                <div class="modal-content large-modal">
+                    <div class="modal-header">
+                        <h2>{{ editingClienteId ? 'Configurar Cliente' : 'Nuevo Cliente' }}</h2>
+                        <button class="close-modal-btn" (click)="closeClienteModal()">✕</button>
+                    </div>
+                    <div class="modal-body modal-scrollable">
+                        <div class="form-group row-group">
+                            <div class="col" style="flex: 1; margin-right: 1rem;">
+                                <label>Nombre de Empresa:</label>
+                                <input type="text" [(ngModel)]="clienteForm.nombre_empresa" class="form-control" placeholder="Ej: Kodizof">
+                            </div>
+                            <div class="col" style="flex: 1;">
+                                <label>Responsable:</label>
+                                <input type="text" [(ngModel)]="clienteForm.responsable" class="form-control" placeholder="Nombre completo">
+                            </div>
+                        </div>
+                        <div class="form-group row-group" style="display: flex; margin-top: 1rem;">
+                            <div class="col" style="flex: 1; margin-right: 1rem;">
+                                <label>Número Celular (Bot):</label>
+                                <input type="text" [(ngModel)]="clienteForm.numero_celular" class="form-control" placeholder="Ej: 573001234567">
+                            </div>
+                            <div class="col" style="flex: 1;">
+                                <label>Estado:</label>
+                                <select [(ngModel)]="clienteForm.estado" class="form-control">
+                                    <option [ngValue]="1">Activo</option>
+                                    <option [ngValue]="0">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border-color);" />
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color);">Notificaciones</h3>
+                            <button class="secondary-btn" (click)="toggleNotificationsView()" title="Mostrar/Ocultar Datos Sensibles">
+                                <span *ngIf="!showNotificationsContent">👁️ Ver Datos Sensibles</span>
+                                <span *ngIf="showNotificationsContent">🙈 Ocultar Datos</span>
+                            </button>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Configura quién recibe las notificaciones y alertas internamente.</p>
+                        
+                        <div class="notifications-list" style="max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
+                            <div *ngFor="let noti of clienteForm.notificaciones; let i = index" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <strong>Destinatario {{i + 1}}</strong>
+                                    <button style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;" (click)="removeNotification(i)">✕</button>
+                                </div>
+                                <div class="form-group row-group" style="display: flex;">
+                                    <div class="col" style="flex: 1; margin-right: 1rem;">
+                                        <label>Nombre:</label>
+                                        <input type="text" [(ngModel)]="noti.nombre" class="form-control" placeholder="Nombre Destinatario">
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <label>Descripción / Evento:</label>
+                                        <input type="text" [(ngModel)]="noti.descripcion" class="form-control" placeholder="Ej: recibe alertas">
+                                    </div>
+                                </div>
+                                <div class="form-group row-group" style="display: flex; margin-top: 1rem;" *ngIf="showNotificationsContent">
+                                    <div class="col" style="flex: 1; margin-right: 1rem;">
+                                        <label>Correo (Sensible):</label>
+                                        <input type="email" [(ngModel)]="noti.correo" class="form-control" placeholder="correo@ejemplo.com">
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <label>Teléfono (Sensible):</label>
+                                        <input type="text" [(ngModel)]="noti.telefono" class="form-control" placeholder="Ej: 57300...">
+                                    </div>
+                                </div>
+                                <div class="form-group row-group" style="display: flex; margin-top: 1rem; opacity: 0.7;" *ngIf="!showNotificationsContent">
+                                    <div class="col" style="flex: 1; margin-right: 1rem;">
+                                        <label>Correo:</label>
+                                        <input type="password" value="********" class="form-control" disabled>
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <label>Teléfono:</label>
+                                        <input type="password" value="********" class="form-control" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="primary-btn" style="width: 100%; margin-top: 0.5rem;" (click)="addNotification()">+ Agregar Destinatario</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" (click)="closeClienteModal()">Cancelar</button>
+                        <button class="btn btn-primary" (click)="saveCliente()">Guardar Cambios</button>
                     </div>
                 </div>
             </div>
