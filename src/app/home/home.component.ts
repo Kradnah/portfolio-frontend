@@ -52,11 +52,20 @@ export class HomeComponent implements OnInit, OnDestroy {
     clienteForm: any = {
         nombre_empresa: '',
         responsable: '',
+        id_meta: '',
+        fb_id: '',
+        ig_id: '',
+        id_tiktok: '',
+        id_openAI: '',
         numero_celular: '',
         estado: 1,
         notificaciones: []
     };
-    showNotificationsContent: boolean = false; // Toggle eye
+    visibleFields: { [key: string]: boolean } = {};
+
+    toggleVisibility(field: string) {
+        this.visibleFields[field] = !this.visibleFields[field];
+    }
 
     // Global stats
     totalConversaciones = 0;
@@ -434,6 +443,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     openClienteModal(cliente?: any) {
+        this.visibleFields = {};
         if (cliente) {
             this.editingClienteId = cliente.id;
             let notif = cliente.notificaciones ? JSON.parse(JSON.stringify(cliente.notificaciones)) : [];
@@ -441,6 +451,11 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.clienteForm = {
                 nombre_empresa: cliente.nombre_empresa,
                 responsable: cliente.responsable || '',
+                id_meta: cliente.id_meta || '',
+                fb_id: cliente.fb_id || '',
+                ig_id: cliente.ig_id || '',
+                id_tiktok: cliente.id_tiktok || '',
+                id_openAI: cliente.id_openAI || '',
                 numero_celular: cliente.numero_celular || '',
                 estado: cliente.estado,
                 notificaciones: notif
@@ -450,12 +465,16 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.clienteForm = {
                 nombre_empresa: '',
                 responsable: '',
+                id_meta: '',
+                fb_id: '',
+                ig_id: '',
+                id_tiktok: '',
+                id_openAI: '',
                 numero_celular: '',
                 estado: 1,
                 notificaciones: []
             };
         }
-        this.showNotificationsContent = false;
         this.showClienteModal = true;
     }
 
@@ -471,10 +490,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     removeNotification(index: number) {
         this.clienteForm.notificaciones.splice(index, 1);
-    }
-
-    toggleNotificationsView() {
-        this.showNotificationsContent = !this.showNotificationsContent;
     }
 
     saveCliente() {

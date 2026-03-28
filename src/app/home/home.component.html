@@ -455,22 +455,71 @@
                         <button class="close-modal-btn" (click)="closeClienteModal()">✕</button>
                     </div>
                     <div class="modal-body modal-scrollable">
-                        <div class="form-group row-group">
-                            <div class="col" style="flex: 1; margin-right: 1rem;">
+                        <!-- FILA 1 -->
+                        <div class="form-grid-2">
+                            <div class="form-group col">
                                 <label>Nombre de Empresa:</label>
                                 <input type="text" [(ngModel)]="clienteForm.nombre_empresa" class="form-control" placeholder="Ej: Kodizof">
                             </div>
-                            <div class="col" style="flex: 1;">
+                            <div class="form-group col">
                                 <label>Responsable:</label>
                                 <input type="text" [(ngModel)]="clienteForm.responsable" class="form-control" placeholder="Nombre completo">
                             </div>
                         </div>
-                        <div class="form-group row-group" style="display: flex; margin-top: 1rem;">
-                            <div class="col" style="flex: 1; margin-right: 1rem;">
-                                <label>Número Celular (Bot):</label>
-                                <input type="text" [(ngModel)]="clienteForm.numero_celular" class="form-control" placeholder="Ej: 573001234567">
+
+                        <!-- FILA 2 -->
+                        <div class="form-grid-3">
+                            <div class="form-group col">
+                                <label>Token/ID Meta (WhatsApp):</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['id_meta'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_meta" class="form-control" placeholder="Token Meta">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_meta')"><span *ngIf="!visibleFields['id_meta']">👁️</span><span *ngIf="visibleFields['id_meta']">🙈</span></button>
+                                </div>
                             </div>
-                            <div class="col" style="flex: 1;">
+                            <div class="form-group col">
+                                <label>ID Facebook (fb_id):</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['fb_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.fb_id" class="form-control" placeholder="ID de la página">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('fb_id')"><span *ngIf="!visibleFields['fb_id']">👁️</span><span *ngIf="visibleFields['fb_id']">🙈</span></button>
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                <label>ID Instagram (ig_id):</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['ig_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.ig_id" class="form-control" placeholder="ID IG">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('ig_id')"><span *ngIf="!visibleFields['ig_id']">👁️</span><span *ngIf="visibleFields['ig_id']">🙈</span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FILA 3 -->
+                        <div class="form-grid-3">
+                            <div class="form-group col">
+                                <label>ID TikTok:</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['id_tiktok'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_tiktok" class="form-control" placeholder="ID o Token">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_tiktok')"><span *ngIf="!visibleFields['id_tiktok']">👁️</span><span *ngIf="visibleFields['id_tiktok']">🙈</span></button>
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                <label>Token OpenAI:</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="form-control" placeholder="sk-...">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_openAI')"><span *ngIf="!visibleFields['id_openAI']">👁️</span><span *ngIf="visibleFields['id_openAI']">🙈</span></button>
+                                </div>
+                            </div>
+                            <div class="form-group col">
+                                <label>Número Celular (Bot):</label>
+                                <div class="input-with-icon">
+                                    <input [type]="visibleFields['numero_celular'] ? 'text' : 'password'" [(ngModel)]="clienteForm.numero_celular" class="form-control" placeholder="Ej: 573001234567">
+                                    <button class="eye-inline-btn" (click)="toggleVisibility('numero_celular')"><span *ngIf="!visibleFields['numero_celular']">👁️</span><span *ngIf="visibleFields['numero_celular']">🙈</span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FILA 4 -->
+                        <div class="form-grid-2">
+                            <div class="form-group col">
                                 <label>Estado:</label>
                                 <select [(ngModel)]="clienteForm.estado" class="form-control">
                                     <option [ngValue]="1">Activo</option>
@@ -481,49 +530,41 @@
 
                         <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border-color);" />
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="margin-bottom: 1rem;">
                             <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color);">Notificaciones</h3>
-                            <button class="secondary-btn" (click)="toggleNotificationsView()" title="Mostrar/Ocultar Datos Sensibles">
-                                <span *ngIf="!showNotificationsContent">👁️ Ver Datos Sensibles</span>
-                                <span *ngIf="showNotificationsContent">🙈 Ocultar Datos</span>
-                            </button>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Configura quién recibe las notificaciones y alertas internamente. (Cifrado localmente priorizado en AES)</p>
                         </div>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Configura quién recibe las notificaciones y alertas internamente.</p>
                         
                         <div class="notifications-list" style="max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
-                            <div *ngFor="let noti of clienteForm.notificaciones; let i = index" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                    <strong>Destinatario {{i + 1}}</strong>
-                                    <button style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;" (click)="removeNotification(i)">✕</button>
+                            <div *ngFor="let noti of clienteForm.notificaciones; let i = index" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                                    <strong style="color: var(--accent-blue);">Destinatario {{i + 1}}</strong>
+                                    <button style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(220, 53, 69, 0.1);" title="Eliminar Destinatario" (click)="removeNotification(i)">✕</button>
                                 </div>
-                                <div class="form-group row-group" style="display: flex;">
-                                    <div class="col" style="flex: 1; margin-right: 1rem;">
+                                <div class="form-grid-2">
+                                    <div class="form-group col">
                                         <label>Nombre:</label>
                                         <input type="text" [(ngModel)]="noti.nombre" class="form-control" placeholder="Nombre Destinatario">
                                     </div>
-                                    <div class="col" style="flex: 1;">
+                                    <div class="form-group col">
                                         <label>Descripción / Evento:</label>
                                         <input type="text" [(ngModel)]="noti.descripcion" class="form-control" placeholder="Ej: recibe alertas">
                                     </div>
                                 </div>
-                                <div class="form-group row-group" style="display: flex; margin-top: 1rem;" *ngIf="showNotificationsContent">
-                                    <div class="col" style="flex: 1; margin-right: 1rem;">
+                                <div class="form-grid-2" style="margin-bottom: 0;">
+                                    <div class="form-group col">
                                         <label>Correo (Sensible):</label>
-                                        <input type="email" [(ngModel)]="noti.correo" class="form-control" placeholder="correo@ejemplo.com">
+                                        <div class="input-with-icon">
+                                            <input [type]="visibleFields['correo_'+i] ? 'email' : 'password'" [(ngModel)]="noti.correo" class="form-control" placeholder="correo@ejemplo.com">
+                                            <button class="eye-inline-btn" (click)="toggleVisibility('correo_'+i)"><span *ngIf="!visibleFields['correo_'+i]">👁️</span><span *ngIf="visibleFields['correo_'+i]">🙈</span></button>
+                                        </div>
                                     </div>
-                                    <div class="col" style="flex: 1;">
+                                    <div class="form-group col">
                                         <label>Teléfono (Sensible):</label>
-                                        <input type="text" [(ngModel)]="noti.telefono" class="form-control" placeholder="Ej: 57300...">
-                                    </div>
-                                </div>
-                                <div class="form-group row-group" style="display: flex; margin-top: 1rem; opacity: 0.7;" *ngIf="!showNotificationsContent">
-                                    <div class="col" style="flex: 1; margin-right: 1rem;">
-                                        <label>Correo:</label>
-                                        <input type="password" value="********" class="form-control" disabled>
-                                    </div>
-                                    <div class="col" style="flex: 1;">
-                                        <label>Teléfono:</label>
-                                        <input type="password" value="********" class="form-control" disabled>
+                                        <div class="input-with-icon">
+                                            <input [type]="visibleFields['tel_'+i] ? 'text' : 'password'" [(ngModel)]="noti.telefono" class="form-control" placeholder="Ej: 57300...">
+                                            <button class="eye-inline-btn" (click)="toggleVisibility('tel_'+i)"><span *ngIf="!visibleFields['tel_'+i]">👁️</span><span *ngIf="visibleFields['tel_'+i]">🙈</span></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
