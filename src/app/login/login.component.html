@@ -1,26 +1,54 @@
-<div class="login-container">
-    <div class="login-card">
-        <h2>Welcome Back</h2>
-        <p>Sign in to your account</p>
+<div class="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] flex items-center justify-center p-4 transition-colors duration-300 font-sans">
+    
+    <div class="w-full max-w-md neo-box p-8 md:p-10 animate-fade-in text-center relative overflow-hidden">
+        <!-- Logo Header -->
+        <div class="mx-auto w-20 h-20 mb-6 rounded-full neo-inset flex items-center justify-center text-[var(--accent-color)]">
+            <lucide-icon name="users" [size]="40"></lucide-icon>
+        </div>
+        
+        <h2 class="text-2xl md:text-3xl font-bold mb-2 tracking-tight">Bienvenido a Kodizof</h2>
+        <p class="text-[var(--text-muted)] mb-8">Ingresa tus credenciales para continuar</p>
 
-        <div *ngIf="errorMessage" class="error-banner">
-            {{ errorMessage }}
+        <!-- Error Banner -->
+        <div *ngIf="errorMessage" class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-semibold flex items-center gap-2 justify-center animate-fade-in">
+            <lucide-icon name="x" [size]="16"></lucide-icon> {{ errorMessage }}
         </div>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" formControlName="username" placeholder="Enter username">
+        <!-- Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6 text-left">
+            <div>
+                <label for="username" class="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 ml-1">Usuario</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--text-muted)] opacity-50">
+                        <lucide-icon name="users" [size]="18"></lucide-icon>
+                    </div>
+                    <input type="text" id="username" formControlName="username" 
+                           class="w-full bg-transparent neo-inset py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-[var(--accent-color)]/50 transition-all font-medium" 
+                           placeholder="Ingresa tu usuario">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" formControlName="password" placeholder="Enter password">
+            <div>
+                <label for="password" class="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 ml-1">Contraseña</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--text-muted)] opacity-50">
+                        <lucide-icon name="key-round" [size]="18"></lucide-icon>
+                    </div>
+                    <input type="password" id="password" formControlName="password" 
+                           class="w-full bg-transparent neo-inset py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-[var(--accent-color)]/50 transition-all font-medium tracking-widest" 
+                           placeholder="••••••••">
+                </div>
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid || isSubmitting" class="login-btn">
-                {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
+            <button type="submit" [disabled]="loginForm.invalid || isSubmitting" 
+                    class="neo-btn mt-4 w-full py-4 rounded-xl bg-[var(--accent-color)] text-white font-bold tracking-wide flex items-center justify-center gap-2 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                <lucide-icon [name]="isSubmitting ? 'sun' : 'layout-dashboard'" [size]="20" [class.animate-spin]="isSubmitting"></lucide-icon>
+                {{ isSubmitting ? 'Verificando...' : 'Iniciar Sesión' }}
             </button>
         </form>
+
+        <div class="mt-8 text-xs text-[var(--text-muted)] opacity-60">
+            &copy; 2026 Kodizof CRM. Todos los derechos reservados.
+        </div>
     </div>
 </div>

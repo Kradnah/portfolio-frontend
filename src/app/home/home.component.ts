@@ -8,11 +8,12 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, LucideAngularModule],
     templateUrl: './home.component.html',
     styleUrl: './home.component.css'
 })
@@ -28,6 +29,25 @@ export class HomeComponent implements OnInit, OnDestroy {
     // User Roles and Views
     userTipo: string = 'vendedor';
     currentView: 'dashboard' | 'users' | 'clientes' = 'dashboard';
+
+    // UI State
+    isDarkMode: boolean = false;
+    isMobileMenuOpen: boolean = false;
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        if (this.isDarkMode) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    toggleMobileMenu() {
+        this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    }
 
     // User management data
     usuarios: any[] = [];
@@ -99,6 +119,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.userTipo === 'admin') {
             this.loadUsers();
             this.loadEmpresas();
+        }
+
+        // Initialize Theme from localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            this.isDarkMode = true;
+            document.documentElement.classList.add('dark');
         }
 
         this.loadDashboardData();

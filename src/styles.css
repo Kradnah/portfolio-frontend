@@ -1,9 +1,72 @@
-/* You can add global styles to this file, and also import other style files */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #0f172a; /* var(--bg-dark) */
-  color: #f8fafc;
+@import "tailwindcss";
+
+@theme {
+  --color-neo-light-bg: #e0e5ec;
+  --color-neo-light-shadow-light: #ffffff;
+  --color-neo-light-shadow-dark: #a3b1c6;
+  
+  --shadow-neo-light: 8px 8px 16px var(--color-neo-light-shadow-dark), -8px -8px 16px var(--color-neo-light-shadow-light);
+  --shadow-neo-light-inset: inset 8px 8px 16px var(--color-neo-light-shadow-dark), inset -8px -8px 16px var(--color-neo-light-shadow-light);
+  
+  --color-neo-dark-bg: #2d3035;
+  --color-neo-dark-shadow-light: #3d4148;
+  --color-neo-dark-shadow-dark: #1d1f22;
+  
+  --shadow-neo-dark: 8px 8px 16px var(--color-neo-dark-shadow-dark), -8px -8px 16px var(--color-neo-dark-shadow-light);
+  --shadow-neo-dark-inset: inset 8px 8px 16px var(--color-neo-dark-shadow-dark), inset -8px -8px 16px var(--color-neo-dark-shadow-light);
+}
+
+@layer base {
+  :root {
+    --bg-color: var(--color-neo-light-bg);
+    --text-color: #333333;
+    --text-muted: #666666;
+    --shadow-neo: var(--shadow-neo-light);
+    --shadow-neo-inset: var(--shadow-neo-light-inset);
+    --accent-color: #3b82f6;
+  }
+  
+  .dark {
+    --bg-color: var(--color-neo-dark-bg);
+    --text-color: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow-neo: var(--shadow-neo-dark);
+    --shadow-neo-inset: var(--shadow-neo-dark-inset);
+    --accent-color: #60a5fa;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .neo-box {
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-neo);
+    border-radius: 1rem;
+  }
+  .neo-inset {
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-neo-inset);
+    border-radius: 1rem;
+  }
+  .neo-btn {
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-neo);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+  .neo-btn:active {
+    box-shadow: var(--shadow-neo-inset);
+  }
+  .neo-btn:hover {
+    filter: brightness(1.05);
+  }
 }

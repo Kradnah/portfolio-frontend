@@ -1,340 +1,316 @@
-<div class="home-container">
-    <nav class="navbar">
-        <div class="logo">
-            <span class="icon">📊</span>
-            <span>CRM Kodi Dashboard</span>
+<div class="flex h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300 font-sans overflow-hidden">
+    
+    <!-- Sidebar / Navigation -->
+    <aside class="w-72 flex-shrink-0 flex flex-col justify-between py-6 px-4 m-4 neo-box h-[calc(100vh-2rem)] z-20">
+        <!-- Logo Area -->
+        <div class="flex items-center gap-3 mb-8 px-2 text-[var(--accent-color)]">
+            <div class="p-2 neo-box rounded-full shrink-0">
+                <lucide-icon name="layout-dashboard" [size]="28"></lucide-icon>
+            </div>
+            <h2 class="text-2xl font-bold tracking-tight text-[var(--text-color)] flex-1 overflow-hidden whitespace-nowrap">CRM Kodi</h2>
         </div>
-        <div class="nav-actions">
-            <!-- Cambio de Contraseña -->
-            <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()" class="nav-btn admin-btn">
-                <span class="icon">🔑</span> Cambiar Contraseña
-            </button>
-            <button *ngIf="userTipo === 'admin'" (click)="toggleView()" class="nav-btn admin-btn">
-                <span class="icon">👥</span> {{ currentView === 'users' ? 'Volver al Dashboard' : 'Gestionar Usuarios' }}
-            </button>
-            <button *ngIf="userTipo === 'admin'" (click)="currentView === 'clientes' ? setView('dashboard') : setView('clientes')" class="nav-btn admin-btn">
-                <span class="icon">⚙️</span> {{ currentView === 'clientes' ? 'Volver al Dashboard' : 'Config. Clientes' }}
-            </button>
-            <button (click)="logout()" class="logout-btn">
-                <span class="icon">🚪</span> Cerrar sesión
-            </button>
-        </div>
-    </nav>
 
-    <main class="content">
+        <!-- Navigation Links -->
+        <nav class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+            <button (click)="setView('dashboard')" 
+                    [ngClass]="currentView === 'dashboard' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn hover:text-[var(--accent-color)]'"
+                    class="flex items-center gap-4 px-5 py-4 text-left font-semibold transition-all rounded-xl">
+                <lucide-icon name="message-circle" [size]="22"></lucide-icon> <span class="text-sm">Dashboard & Chat</span>
+            </button>
+
+            <button *ngIf="userTipo === 'admin'" (click)="setView('clientes')"
+                    [ngClass]="currentView === 'clientes' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn hover:text-[var(--accent-color)]'"
+                    class="flex items-center gap-4 px-5 py-4 text-left font-semibold transition-all rounded-xl">
+                <lucide-icon name="settings" [size]="22"></lucide-icon> <span class="text-sm">Config. Clientes</span>
+            </button>
+            
+            <button *ngIf="userTipo === 'admin'" (click)="setView('users')"
+                    [ngClass]="currentView === 'users' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn hover:text-[var(--accent-color)]'"
+                    class="flex items-center gap-4 px-5 py-4 text-left font-semibold transition-all rounded-xl">
+                <lucide-icon name="users" [size]="22"></lucide-icon> <span class="text-sm">Gestión Usuarios</span>
+            </button>
+        </nav>
+
+        <!-- Bottom Actions -->
+        <div class="flex flex-col gap-3 pt-6 mt-4 relative after:absolute after:top-0 after:left-4 after:right-4 after:h-px after:bg-[var(--text-muted)] after:opacity-20">
+            <button (click)="toggleTheme()" class="neo-btn flex items-center justify-center gap-2 px-4 py-3 font-medium text-sm transition-all hover:text-[var(--accent-color)]">
+                <lucide-icon [name]="isDarkMode ? 'sun' : 'moon'" [size]="18"></lucide-icon>
+                {{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}
+            </button>
+            <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()" class="neo-btn flex items-center justify-center gap-2 px-4 py-3 font-medium text-sm transition-all hover:text-[var(--accent-color)]">
+                <lucide-icon name="key-round" [size]="18"></lucide-icon>
+                Contraseña
+            </button>
+            <button (click)="logout()" class="neo-btn text-red-500 hover:text-red-600 flex items-center justify-center gap-2 px-4 py-3 font-medium text-sm mt-1 transition-all">
+                <lucide-icon name="log-out" [size]="18"></lucide-icon>
+                Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 ml-0 mt-4 mb-4 mr-4 neo-inset h-[calc(100vh-2rem)] flex flex-col relative z-10">
+        
+        <!-- DASHBOARD SECTION -->
         <ng-container *ngIf="currentView === 'dashboard'">
-            <header class="page-header">
-            <div>
-                <h1>¡Bienvenido de nuevo!</h1>
-                <p>Aquí tienes un resumen de tus métricas de mensajería de hoy.</p>
-            </div>
-        </header>
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold mb-2">¡Bienvenido de nuevo!</h1>
+                <p class="text-[var(--text-muted)] text-lg">Aquí tienes un resumen de tus métricas de mensajería de hoy.</p>
+            </header>
 
-        <section class="metrics-grid">
-            <div class="metric-card">
-                <div class="card-icon blue">💬</div>
-                <div class="card-content">
-                    <h3>Total Conversaciones</h3>
-                    <span class="metric-value">{{ totalConversaciones }}</span>
-                </div>
-            </div>
-            <div class="metric-card">
-                <div class="card-icon green">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <h3>Mensajes WhatsApp</h3>
-                    <span class="metric-value">{{ totalWppMensajes }}</span>
-                </div>
-            </div>
-            <div class="metric-card">
-                <div class="card-icon facebook-blue">
-                    <!-- Facebook Icon -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.96 3.63 9.07 8.4 9.83v-6.95h-2.5v-2.88h2.5v-2.2c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.23 0-1.61.76-1.61 1.54v1.88h2.74l-.44 2.88h-2.3v6.95c4.77-.76 8.4-4.87 8.4-9.83 0-5.5-4.46-9.96-9.96-9.96z"/>
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <h3>Mensajes Facebook</h3>
-                    <span class="metric-value">{{ totalFbMensajes }}</span>
-                </div>
-            </div>
-            <div class="metric-card">
-                <div class="card-icon instagram-gradient">
-                    <!-- Instagram Icon -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M7.75 2h8.5c3.17 0 5.75 2.58 5.75 5.75v8.5c0 3.17-2.58 5.75-5.75 5.75h-8.5c-3.17 0-5.75-2.58-5.75-5.75v-8.5c0-3.17 2.58-5.75 5.75-5.75zm0 1.9h8.5c2.12 0 3.85 1.73 3.85 3.85v8.5c0 2.12-1.73 3.85-3.85 3.85h-8.5c-2.12 0-3.85-1.73-3.85-3.85v-8.5c0-2.12 1.73-3.85 3.85-3.85zM12 6.8c-2.87 0-5.2 2.33-5.2 5.2s2.33 5.2 5.2 5.2 5.2-2.33 5.2-5.2-2.33-5.2-5.2-5.2zm0 1.9c1.82 0 3.3 1.48 3.3 3.3s-1.48 3.3-3.3 3.3-3.3-1.48-3.3-3.3 1.48-3.3 3.3-3.3zm5.3-2.6c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2.54-1.2 1.2-1.2 1.2.54 1.2 1.2z"/>
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <h3>Mensajes Instagram</h3>
-                    <span class="metric-value">{{ totalIgMensajes }}</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="table-container">
-            <div class="table-header">
-                <h2>Desglose por Cliente</h2>
-            </div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Total Convs</th>
-                            <th class="whatsapp-col">Total WPP</th>
-                            <th class="whatsapp-col">Env WPP</th>
-                            <th class="whatsapp-col">Rec WPP</th>
-                            <th class="fb-col">Total FB</th>
-                            <th class="fb-col">Env FB</th>
-                            <th class="fb-col">Rec FB</th>
-                            <th class="ig-col">Total IG</th>
-                            <th class="ig-col">Env IG</th>
-                            <th class="ig-col">Rec IG</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let row of reporteConsolidado">
-                            <td class="company-cell">{{ row.nombre_empresa }}</td>
-                            <td class="bold-cell">{{ row.total_conversaciones }}</td>
-                            <td class="wpp-cell">{{ row.total_mensajes_wpp }}</td>
-                            <td class="wpp-cell subtle">{{ row.wpp_enviados }}</td>
-                            <td class="wpp-cell subtle">{{ row.wpp_recibidos }}</td>
-                            <td class="fb-cell">{{ row.total_mensajes_fb }}</td>
-                            <td class="fb-cell subtle">{{ row.fb_enviados }}</td>
-                            <td class="fb-cell subtle">{{ row.fb_recibidos }}</td>
-                            <td class="ig-cell">{{ row.total_mensajes_ig }}</td>
-                            <td class="ig-cell subtle">{{ row.ig_enviados }}</td>
-                            <td class="ig-cell subtle">{{ row.ig_recibidos }}</td>
-                        </tr>
-                        <tr *ngIf="reporteConsolidado.length === 0" class="empty-row">
-                            <td colspan="11">No hay información disponible por el momento.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- --- CHAT SECTION --- -->
-        <section class="chat-section">
-            <div class="chat-container">
-                <!-- Sidebar: Conversation List -->
-                <div class="chat-sidebar">
-                    <div class="chat-tabs">
-                        <button class="tab-btn" [class.active]="activeTab === 'OPEN'" (click)="setTab('OPEN')">
-                            Nuevas
-                        </button>
-                        <button class="tab-btn" [class.active]="activeTab === 'ATTENDING'" (click)="setTab('ATTENDING')">
-                            Atendiendo
-                        </button>
-                        <button class="tab-btn" [class.active]="activeTab === 'CLOSE'" (click)="setTab('CLOSE')">
-                            Cerradas
-                        </button>
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="neo-box p-6 flex items-center gap-4">
+                    <div class="p-3 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-500/30">
+                        <lucide-icon name="message-circle" [size]="28"></lucide-icon>
                     </div>
-
-                    <div class="conversation-list">
-                        <div *ngIf="conversations.length === 0" class="no-conversations">
-                            No hay conversaciones en esta pestaña.
-                        </div>
-                        <div *ngFor="let conv of conversations" 
-                             class="conversation-item"
-                             [class.active]="selectedConversation?.id === conv.id"
-                             (click)="selectConversation(conv)">
-                             
-                             <div class="conv-header">
-                                 <span class="conv-platform">
-                                     <i class="icon icon-whatsapp" *ngIf="conv.plataforma === 'whatsapp'">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                        </svg>
-                                     </i>
-                                     <i class="icon icon-facebook" *ngIf="conv.plataforma === 'messenger' || conv.plataforma === 'facebook'">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.96 3.63 9.07 8.4 9.83v-6.95h-2.5v-2.88h2.5v-2.2c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.23 0-1.61.76-1.61 1.54v1.88h2.74l-.44 2.88h-2.3v6.95c4.77-.76 8.4-4.87 8.4-9.83 0-5.5-4.46-9.96-9.96-9.96z"/>
-                                        </svg>
-                                     </i>
-                                     <i class="icon icon-instagram" *ngIf="conv.plataforma === 'instagram'">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M7.75 2h8.5c3.17 0 5.75 2.58 5.75 5.75v8.5c0 3.17-2.58 5.75-5.75 5.75h-8.5c-3.17 0-5.75-2.58-5.75-5.75v-8.5c0-3.17 2.58-5.75 5.75-5.75zm0 1.9h8.5c2.12 0 3.85 1.73 3.85 3.85v8.5c0 2.12-1.73 3.85-3.85 3.85h-8.5c-2.12 0-3.85-1.73-3.85-3.85v-8.5c0-2.12 1.73-3.85 3.85-3.85zM12 6.8c-2.87 0-5.2 2.33-5.2 5.2s2.33 5.2 5.2 5.2 5.2-2.33 5.2-5.2-2.33-5.2-5.2-5.2zm0 1.9c1.82 0 3.3 1.48 3.3 3.3s-1.48 3.3-3.3 3.3-3.3-1.48-3.3-3.3 1.48-3.3 3.3-3.3zm5.3-2.6c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2.54-1.2 1.2-1.2 1.2.54 1.2 1.2z"/>
-                                        </svg>
-                                     </i>
-                                     {{ conv.plataforma === 'messenger' ? 'Facebook' : (conv.plataforma | titlecase) }}
-                                 </span>
-                                 <span class="conv-status state-{{conv.estado.toLowerCase()}}">{{ conv.estado }}</span>
-                             </div>
-                             
-                             <div class="conv-user">
-                                 <span class="user-name">{{ conv.user_name || 'Desconocido' }}</span>
-                                 <span class="user-phone">{{ conv.num_wpp }}</span>
-                             </div>
-                             
-                             <div class="conv-agent" *ngIf="conv.nombre_agente">
-                                 Agente: {{ conv.nombre_agente }}
-                             </div>
-                        </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-[var(--text-muted)]">Conversaciones</h3>
+                        <span class="text-2xl font-bold">{{ totalConversaciones }}</span>
                     </div>
                 </div>
+                <div class="neo-box p-6 flex items-center gap-4">
+                    <div class="p-3 bg-green-500 text-white rounded-xl shadow-lg shadow-green-500/30">
+                        <lucide-icon name="phone" [size]="28"></lucide-icon>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-[var(--text-muted)]">WhatsApp</h3>
+                        <span class="text-2xl font-bold">{{ totalWppMensajes }}</span>
+                    </div>
+                </div>
+                <div class="neo-box p-6 flex items-center gap-4">
+                    <div class="p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/30">
+                        <lucide-icon name="facebook" [size]="28"></lucide-icon>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-[var(--text-muted)]">Facebook</h3>
+                        <span class="text-2xl font-bold">{{ totalFbMensajes }}</span>
+                    </div>
+                </div>
+                <div class="neo-box p-6 flex items-center gap-4">
+                    <div class="p-3 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white rounded-xl shadow-lg shadow-pink-500/30">
+                        <lucide-icon name="instagram" [size]="28"></lucide-icon>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-[var(--text-muted)]">Instagram</h3>
+                        <span class="text-2xl font-bold">{{ totalIgMensajes }}</span>
+                    </div>
+                </div>
+            </section>
 
-                <!-- Main: Active Chat Window -->
-                <div class="chat-main" *ngIf="selectedConversation">
-                    <div class="chat-header">
-                        <div class="chat-header-info">
-                            <h3>{{ selectedConversation.user_name || selectedConversation.num_wpp }}</h3>
-                            <span class="header-platform">
-                                <i class="icon icon-whatsapp" *ngIf="selectedConversation.plataforma === 'whatsapp'">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                    </svg>
-                                </i>
-                                <i class="icon icon-facebook" *ngIf="selectedConversation.plataforma === 'messenger' || selectedConversation.plataforma === 'facebook'">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.96 3.63 9.07 8.4 9.83v-6.95h-2.5v-2.88h2.5v-2.2c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.23 0-1.61.76-1.61 1.54v1.88h2.74l-.44 2.88h-2.3v6.95c4.77-.76 8.4-4.87 8.4-9.83 0-5.5-4.46-9.96-9.96-9.96z"/>
-                                    </svg>
-                                </i>
-                                <i class="icon icon-instagram" *ngIf="selectedConversation.plataforma === 'instagram'">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M7.75 2h8.5c3.17 0 5.75 2.58 5.75 5.75v8.5c0 3.17-2.58 5.75-5.75 5.75h-8.5c-3.17 0-5.75-2.58-5.75-5.75v-8.5c0-3.17 2.58-5.75 5.75-5.75zm0 1.9h8.5c2.12 0 3.85 1.73 3.85 3.85v8.5c0 2.12-1.73 3.85-3.85 3.85h-8.5c-2.12 0-3.85-1.73-3.85-3.85v-8.5c0-2.12 1.73-3.85 3.85-3.85zM12 6.8c-2.87 0-5.2 2.33-5.2 5.2s2.33 5.2 5.2 5.2 5.2-2.33 5.2-5.2-2.33-5.2-5.2-5.2zm0 1.9c1.82 0 3.3 1.48 3.3 3.3s-1.48 3.3-3.3 3.3-3.3-1.48-3.3-3.3 1.48-3.3 3.3-3.3zm5.3-2.6c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2.54-1.2 1.2-1.2 1.2.54 1.2 1.2z"/>
-                                    </svg>
-                                </i>
-                                {{ selectedConversation.plataforma === 'messenger' ? 'Facebook' : (selectedConversation.plataforma | titlecase) }}
-                            </span>
+            <section class="neo-box p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4 border-b border-[var(--text-muted)] pb-2 opacity-80">Desglose por Cliente</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full neo-table text-sm">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Total Convs</th>
+                                <th class="text-green-500">Total WPP</th>
+                                <th class="text-green-500 opacity-70">Env WPP</th>
+                                <th class="text-green-500 opacity-70">Rec WPP</th>
+                                <th class="text-blue-500">Total FB</th>
+                                <th class="text-blue-500 opacity-70">Env FB</th>
+                                <th class="text-blue-500 opacity-70">Rec FB</th>
+                                <th class="text-pink-500">Total IG</th>
+                                <th class="text-pink-500 opacity-70">Env IG</th>
+                                <th class="text-pink-500 opacity-70">Rec IG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of reporteConsolidado">
+                                <td class="font-semibold">{{ row.nombre_empresa }}</td>
+                                <td class="font-bold">{{ row.total_conversaciones }}</td>
+                                <td class="text-green-600 font-medium">{{ row.total_mensajes_wpp }}</td>
+                                <td class="text-green-600 opacity-70">{{ row.wpp_enviados }}</td>
+                                <td class="text-green-600 opacity-70">{{ row.wpp_recibidos }}</td>
+                                <td class="text-blue-600 font-medium">{{ row.total_mensajes_fb }}</td>
+                                <td class="text-blue-600 opacity-70">{{ row.fb_enviados }}</td>
+                                <td class="text-blue-600 opacity-70">{{ row.fb_recibidos }}</td>
+                                <td class="text-pink-600 font-medium">{{ row.total_mensajes_ig }}</td>
+                                <td class="text-pink-600 opacity-70">{{ row.ig_enviados }}</td>
+                                <td class="text-pink-600 opacity-70">{{ row.ig_recibidos }}</td>
+                            </tr>
+                            <tr *ngIf="reporteConsolidado.length === 0">
+                                <td colspan="11" class="text-center italic opacity-60 py-4">No hay información disponible por el momento.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- CHAT SECTION -->
+            <section class="neo-box overflow-hidden flex flex-col h-[700px] max-h-[70vh]">
+                <div class="flex h-full">
+                    <!-- Sidebar: Conversation List -->
+                    <div class="w-80 border-r border-[var(--text-muted)] border-opacity-20 flex flex-col">
+                        <div class="flex p-4 gap-2 border-b border-[var(--text-muted)] border-opacity-20 shrink-0">
+                            <button class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-center"
+                                    [ngClass]="activeTab === 'OPEN' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn'"
+                                    (click)="setTab('OPEN')">Nuevas</button>
+                            <button class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-center"
+                                    [ngClass]="activeTab === 'ATTENDING' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn'"
+                                    (click)="setTab('ATTENDING')">Atendiendo</button>
+                            <button class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-center"
+                                    [ngClass]="activeTab === 'CLOSE' ? 'neo-inset text-[var(--accent-color)]' : 'neo-btn'"
+                                    (click)="setTab('CLOSE')">Cerradas</button>
                         </div>
-                        <div class="chat-header-actions">
-                            <button *ngIf="selectedConversation.estado === 'OPEN'" 
-                                    class="take-btn" 
-                                    (click)="takeConversation()">
-                                Tomar Conversación
-                            </button>
-                            <div class="action-buttons-group" *ngIf="selectedConversation.estado === 'ATTENDING'">
-                                <button class="release-btn" (click)="changeState('OPEN')" title="Devolver a Nuevas">
-                                    Soltar
-                                </button>
-                                <button class="close-btn" (click)="changeState('CLOSE')" title="Finalizar Conversación">
-                                    Cerrar Chat
-                                </button>
+
+                        <div class="flex-1 overflow-y-auto p-2">
+                            <div *ngIf="conversations.length === 0" class="text-center p-6 text-[var(--text-muted)] text-sm">
+                                No hay conversaciones en esta pestaña.
+                            </div>
+                            <div *ngFor="let conv of conversations" 
+                                 class="p-4 mb-2 rounded-xl cursor-pointer transition-all border border-transparent"
+                                 [ngClass]="selectedConversation?.id === conv.id ? 'neo-inset border-[var(--accent-color)]' : 'neo-btn'"
+                                 (click)="selectConversation(conv)">
+                                 
+                                 <div class="flex justify-between items-center mb-2">
+                                     <span class="flex items-center gap-1 text-xs font-bold uppercase tracking-wider" 
+                                           [class.text-green-500]="conv.plataforma === 'whatsapp'"
+                                           [class.text-blue-500]="conv.plataforma === 'messenger' || conv.plataforma === 'facebook'"
+                                           [class.text-pink-500]="conv.plataforma === 'instagram'">
+                                         <lucide-icon [name]="conv.plataforma === 'whatsapp' ? 'phone' : (conv.plataforma === 'instagram' ? 'instagram' : 'facebook')" [size]="14"></lucide-icon>
+                                         {{ conv.plataforma === 'messenger' ? 'FB' : (conv.plataforma | uppercase) }}
+                                     </span>
+                                     <span class="text-xs px-2 py-0.5 rounded-full neo-inset font-semibold"
+                                           [class.text-blue-500]="conv.estado === 'OPEN'"
+                                           [class.text-yellow-500]="conv.estado === 'ATTENDING'"
+                                           [class.text-gray-500]="conv.estado === 'CLOSE'">
+                                         {{ conv.estado }}
+                                     </span>
+                                 </div>
+                                 <div class="font-semibold truncate">{{ conv.user_name || 'Desconocido' }}</div>
+                                 <div class="text-[var(--text-muted)] text-xs mt-1">{{ conv.num_wpp }}</div>
+                                 <div class="text-[var(--accent-color)] text-xs mt-2 italic" *ngIf="conv.nombre_agente">Agente: {{ conv.nombre_agente }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="chat-messages" id="chat-messages-container">
-                        <div *ngIf="messages.length === 0" class="no-messages">
-                            No hay mensajes en esta conversación.
-                        </div>
-                        <div *ngFor="let msg of messages" 
-                             class="message-bubble"
-                             [class.sent]="msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)"
-                             [class.received]="msg.envia !== idEmpresa.toString() && (!selectedConversation || msg.envia !== selectedConversation.num_agente)">
-                             
-                            <!-- Render message text or multimedia here -->
-                            <div class="message-content">
-                                <ng-container *ngIf="msg.ruta_multimedia">
-                                    <div class="multimedia-container">
-                                        <!-- Image -->
-                                        <img *ngIf="isImage(msg.ruta_multimedia, msg.mensaje)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="chat-image" />
-                                        
-                                        <!-- Audio -->
-                                        <audio *ngIf="isAudio(msg.ruta_multimedia, msg.mensaje)" controls class="chat-audio">
-                                            <source [src]="getMediaUrl(msg.ruta_multimedia)">
-                                            Tu navegador no soporta el audio.
-                                        </audio>
-                                        
-                                        <!-- Video -->
-                                        <video *ngIf="isVideo(msg.ruta_multimedia, msg.mensaje)" controls class="chat-video">
-                                            <source [src]="getMediaUrl(msg.ruta_multimedia)">
-                                            Tu navegador no soporta el video.
-                                        </video>
-                                        
-                                        <!-- Document/Other -->
-                                        <a *ngIf="!isImage(msg.ruta_multimedia, msg.mensaje) && !isAudio(msg.ruta_multimedia, msg.mensaje) && !isVideo(msg.ruta_multimedia, msg.mensaje)" 
-                                           [href]="getMediaUrl(msg.ruta_multimedia)" target="_blank" class="chat-document">
-                                            📎 Ver Archivo Adjunto
-                                        </a>
-                                    </div>
-                                </ng-container>
-                                <div *ngIf="msg.mensaje && (!msg.ruta_multimedia || !msg.mensaje.startsWith('[Archivo Multimedia:'))" class="message-text">
-                                    {{ msg.mensaje }}
+                    <!-- Main: Active Chat Window -->
+                    <div class="flex-1 flex flex-col bg-[var(--bg-color)] bg-opacity-50" *ngIf="selectedConversation">
+                        <!-- header -->
+                        <div class="p-4 border-b border-[var(--text-muted)] border-opacity-20 flex justify-between items-center shrink-0 neo-box rounded-none">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full neo-inset flex items-center justify-center">
+                                    <lucide-icon name="users" [size]="20" class="text-[var(--text-muted)]"></lucide-icon>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold leading-tight">{{ selectedConversation.user_name || selectedConversation.num_wpp }}</h3>
+                                    <span class="text-xs text-[var(--text-muted)] capitalize">{{ selectedConversation.plataforma }}</span>
                                 </div>
                             </div>
-                            
-                            <div class="message-meta">
-                                <span class="message-time">{{ msg.created_at | date:'shortTime' }}</span>
-                                <i class="bubble-icon icon-whatsapp" *ngIf="selectedConversation.plataforma === 'whatsapp'">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                                    </svg>
-                                </i>
-                                <i class="bubble-icon icon-facebook" *ngIf="selectedConversation.plataforma === 'messenger' || selectedConversation.plataforma === 'facebook'">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2.04c-5.5 0-9.96 4.46-9.96 9.96 0 4.96 3.63 9.07 8.4 9.83v-6.95h-2.5v-2.88h2.5v-2.2c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.23 0-1.61.76-1.61 1.54v1.88h2.74l-.44 2.88h-2.3v6.95c4.77-.76 8.4-4.87 8.4-9.83 0-5.5-4.46-9.96-9.96-9.96z"/>
-                                    </svg>
-                                </i>
-                                <i class="bubble-icon icon-instagram" *ngIf="selectedConversation.plataforma === 'instagram'">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M7.75 2h8.5c3.17 0 5.75 2.58 5.75 5.75v8.5c0 3.17-2.58 5.75-5.75 5.75h-8.5c-3.17 0-5.75-2.58-5.75-5.75v-8.5c0-3.17 2.58-5.75 5.75-5.75zm0 1.9h8.5c2.12 0 3.85 1.73 3.85 3.85v8.5c0 2.12-1.73 3.85-3.85 3.85h-8.5c-2.12 0-3.85-1.73-3.85-3.85v-8.5c0-2.12 1.73-3.85 3.85-3.85zM12 6.8c-2.87 0-5.2 2.33-5.2 5.2s2.33 5.2 5.2 5.2 5.2-2.33 5.2-5.2-2.33-5.2-5.2-5.2zm0 1.9c1.82 0 3.3 1.48 3.3 3.3s-1.48 3.3-3.3 3.3-3.3-1.48-3.3-3.3 1.48-3.3 3.3-3.3zm5.3-2.6c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2.54-1.2 1.2-1.2 1.2.54 1.2 1.2z"/>
-                                    </svg>
-                                </i>
+                            <div class="flex gap-2">
+                                <button *ngIf="selectedConversation.estado === 'OPEN'" 
+                                        class="neo-btn px-4 py-2 bg-[var(--accent-color)] text-white hover:brightness-110 font-medium text-sm rounded-lg"
+                                        (click)="takeConversation()">
+                                    Tomar Conversación
+                                </button>
+                                <ng-container *ngIf="selectedConversation.estado === 'ATTENDING'">
+                                    <button class="neo-btn px-4 py-2 text-sm font-medium hover:text-yellow-500" (click)="changeState('OPEN')" title="Devolver a Nuevas">
+                                        Soltar
+                                    </button>
+                                    <button class="neo-btn px-4 py-2 text-sm font-medium hover:text-red-500" (click)="changeState('CLOSE')" title="Finalizar Conversación">
+                                        Cerrar Chat
+                                    </button>
+                                </ng-container>
                             </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="flex-1 overflow-y-auto p-6" id="chat-messages-container">
+                            <div *ngIf="messages.length === 0" class="text-center p-6 text-[var(--text-muted)] italic">
+                                No hay mensajes en esta conversación.
+                            </div>
+                            <div *ngFor="let msg of messages" class="mb-4 flex flex-col"
+                                 [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'items-end' : 'items-start'">
+                                 
+                                <div class="max-w-[75%] rounded-2xl p-4 neo-box shadow-md"
+                                     [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'bg-[var(--accent-color)] text-white shadow-[var(--accent-color)]/20' : ''">
+                                    
+                                    <ng-container *ngIf="msg.ruta_multimedia">
+                                        <div class="mb-2 overflow-hidden rounded-xl">
+                                            <img *ngIf="isImage(msg.ruta_multimedia, msg.mensaje)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="w-full h-auto object-cover max-h-64" />
+                                            <audio *ngIf="isAudio(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-10">
+                                                <source [src]="getMediaUrl(msg.ruta_multimedia)">
+                                            </audio>
+                                            <video *ngIf="isVideo(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-auto max-h-64">
+                                                <source [src]="getMediaUrl(msg.ruta_multimedia)">
+                                            </video>
+                                            <a *ngIf="!isImage(msg.ruta_multimedia, msg.mensaje) && !isAudio(msg.ruta_multimedia, msg.mensaje) && !isVideo(msg.ruta_multimedia, msg.mensaje)" 
+                                               [href]="getMediaUrl(msg.ruta_multimedia)" target="_blank" class="flex items-center gap-2 underline text-sm">
+                                                <lucide-icon name="paperclip" [size]="16"></lucide-icon> Archivo Adjunto
+                                            </a>
+                                        </div>
+                                    </ng-container>
+                                    <div *ngIf="msg.mensaje && (!msg.ruta_multimedia || !msg.mensaje.startsWith('[Archivo Multimedia:'))" class="text-sm whitespace-pre-wrap leading-relaxed">
+                                        {{ msg.mensaje }}
+                                    </div>
+                                </div>
+                                <div class="text-xs mt-2 px-1 flex items-center gap-1 opacity-60">
+                                    <span>{{ msg.created_at | date:'shortTime' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Input -->
+                        <div class="p-4 neo-inset border-t border-[var(--text-muted)] border-opacity-20 shrink-0" *ngIf="selectedConversation.estado === 'ATTENDING'">
+                            <div class="mb-2 flex items-center gap-2" *ngIf="selectedFile">
+                                <span class="bg-[var(--bg-color)] neo-box px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                                    <lucide-icon name="paperclip" [size]="14"></lucide-icon> {{ selectedFile.name }}
+                                    <button class="hover:text-red-500 ml-1 font-bold" (click)="removeFile()" [disabled]="isSending">✕</button>
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button class="neo-btn p-3 rounded-full hover:text-[var(--accent-color)] shrink-0" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
+                                    <lucide-icon name="paperclip" [size]="20"></lucide-icon>
+                                </button>
+                                <input type="file" #fileInput hidden (change)="onFileSelected($event)">
+
+                                <input type="text" 
+                                       class="flex-1 bg-transparent border-none outline-none text-[var(--text-color)] placeholder-[var(--text-muted)] neo-inset py-3 px-5 rounded-full"
+                                       placeholder="Escribe un mensaje..." 
+                                       [(ngModel)]="newMessageText" 
+                                       (keyup.enter)="sendMessage()"
+                                       [disabled]="isSending || selectedFile !== null">
+                                
+                                <button class="neo-btn p-3 rounded-full bg-[var(--accent-color)] text-white shrink-0 shadow-[var(--accent-color)]/30 hover:brightness-110" 
+                                        (click)="sendMessage()" 
+                                        [disabled]="(!newMessageText.trim() && !selectedFile) || isSending">
+                                    <lucide-icon [name]="isSending ? 'loader' : 'send'" [size]="20"></lucide-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 text-center text-[var(--text-muted)] italic neo-inset shrink-0" *ngIf="selectedConversation.estado !== 'ATTENDING'">
+                            Debe tomar la conversación para enviar mensajes.
                         </div>
                     </div>
                     
-                    <div class="chat-input-wrapper" *ngIf="selectedConversation.estado === 'ATTENDING'">
-                        <!-- File Preview Area -->
-                        <div class="file-preview-area" *ngIf="selectedFile">
-                            <span class="file-icon">📎</span>
-                            <span class="file-name">{{ selectedFile.name }}</span>
-                            <button class="remove-file-btn" (click)="removeFile()" [disabled]="isSending">✕</button>
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-[var(--bg-color)] bg-opacity-30" *ngIf="!selectedConversation">
+                        <div class="w-24 h-24 rounded-full neo-inset flex items-center justify-center mb-6 text-[var(--text-muted)] opacity-50">
+                            <lucide-icon name="message-circle" [size]="48"></lucide-icon>
                         </div>
-
-                        <div class="chat-input">
-                            <!-- Attach Button -->
-                            <button class="attach-btn" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                                </svg>
-                            </button>
-                            <input type="file" #fileInput hidden (change)="onFileSelected($event)">
-
-                            <input type="text" 
-                                   placeholder="Escribe un mensaje..." 
-                                   [(ngModel)]="newMessageText" 
-                                   (keyup.enter)="sendMessage()"
-                                   [disabled]="isSending || selectedFile !== null">
-                            <button class="send-btn" 
-                                    (click)="sendMessage()" 
-                                    [disabled]="(!newMessageText.trim() && !selectedFile) || isSending">
-                                {{ isSending ? 'Enviando...' : 'Enviar' }}
-                            </button>
-                        </div>
-                    </div>
-                    <div class="chat-input-disabled" *ngIf="selectedConversation.estado !== 'ATTENDING'">
-                        Debe tomar la conversación para responder.
+                        <p class="text-[var(--text-muted)] text-lg">Selecciona una conversación del panel lateral para comenzar.</p>
                     </div>
                 </div>
-                
-                <div class="chat-main empty-state" *ngIf="!selectedConversation">
-                    <p>Selecciona una conversación para ver los mensajes.</p>
-                </div>
-            </div>
-        </section>
+            </section>
         </ng-container>
 
-        <!-- --- USERS SECTION (ADMIN ONLY) --- -->
+        <!-- USERS SECTION -->
         <ng-container *ngIf="currentView === 'users' && userTipo === 'admin'">
-            <header class="page-header">
+            <header class="mb-8 flex justify-between items-end border-b border-[var(--text-muted)] border-opacity-20 pb-4">
                 <div>
-                    <h1>Gestión de Usuarios</h1>
-                    <p>Administra los usuarios del sistema y sus accesos.</p>
+                    <h1 class="text-3xl font-bold mb-2">Gestión de Usuarios</h1>
+                    <p class="text-[var(--text-muted)]">Administra los usuarios del sistema y sus accesos.</p>
                 </div>
-                <button class="primary-btn" (click)="openUserModal()">+ Añadir Usuario</button>
+                <button class="neo-btn bg-[var(--accent-color)] text-white px-6 py-3 font-semibold text-sm hover:brightness-110 flex items-center gap-2" (click)="openUserModal()">
+                    <lucide-icon name="users" [size]="18"></lucide-icon> Añadir Usuario
+                </button>
             </header>
 
-            <section class="table-container">
-                <div class="table-responsive">
-                    <table class="data-table">
+            <section class="neo-box p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full neo-table text-sm">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -348,78 +324,43 @@
                         <tbody>
                             <tr *ngFor="let user of usuarios">
                                 <td>{{ user.id }}</td>
-                                <td class="bold-cell">{{ user.nombre }}</td>
+                                <td class="font-bold">{{ user.nombre }}</td>
                                 <td>{{ user.usuario }}</td>
-                                <td><span class="badge" [ngClass]="user.tipo === 'admin' ? 'badge-admin' : 'badge-user'">{{ user.tipo | titlecase }}</span></td>
+                                <td>
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full uppercase"
+                                          [ngClass]="user.tipo === 'admin' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'">
+                                          {{ user.tipo }}
+                                    </span>
+                                </td>
                                 <td>{{ user.nombre_empresa || 'Ninguna (' + user.id_empresa + ')' }}</td>
                                 <td>
-                                    <button class="action-btn edit-btn" (click)="openUserModal(user)">Editar</button>
+                                    <button class="neo-btn px-4 py-2 text-xs font-bold text-[var(--accent-color)]" (click)="openUserModal(user)">Editar</button>
                                 </td>
                             </tr>
-                            <tr *ngIf="usuarios.length === 0" class="empty-row">
-                                <td colspan="6">Cargando usuarios...</td>
+                            <tr *ngIf="usuarios.length === 0">
+                                <td colspan="6" class="text-center italic py-6 opacity-60">Cargando usuarios...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-            
-            <!-- User Modal -->
-            <div class="modal-overlay" *ngIf="showUserModal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>{{ editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
-                        <button class="close-modal-btn" (click)="closeUserModal()">✕</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>Nombre:</label>
-                            <input type="text" [(ngModel)]="userForm.nombre" class="form-control" placeholder="Nombre completo">
-                        </div>
-                        <div class="form-group">
-                            <label>Usuario (Login):</label>
-                            <input type="text" [(ngModel)]="userForm.usuario" class="form-control" placeholder="Nombre de usuario">
-                        </div>
-                        <div class="form-group">
-                            <label>Contraseña: <small *ngIf="editingUserId">(Dejar en blanco para no cambiar)</small></label>
-                            <input type="password" [(ngModel)]="userForm.password" class="form-control" placeholder="Contraseña">
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo de Usuario:</label>
-                            <select [(ngModel)]="userForm.tipo" class="form-control">
-                                <option value="vendedor">Vendedor (Cliente)</option>
-                                <option value="soporte">Soporte</option>
-                                <option value="admin">Administrador Total</option>
-                            </select>
-                        </div>
-                        <div class="form-group" *ngIf="userForm.tipo !== 'admin'">
-                            <label>Empresa (Cliente) Asignada:</label>
-                            <select [(ngModel)]="userForm.id_empresa" class="form-control">
-                                <option *ngFor="let emp of empresas" [value]="emp.id">{{ emp.nombre_empresa }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" (click)="closeUserModal()">Cancelar</button>
-                        <button class="btn btn-primary" (click)="saveUser()">Guardar</button>
-                    </div>
-                </div>
-            </div>
         </ng-container>
 
-        <!-- --- CLIENTES SECTION (ADMIN ONLY) --- -->
+        <!-- CLIENTES SECTION -->
         <ng-container *ngIf="currentView === 'clientes' && userTipo === 'admin'">
-            <header class="page-header">
+            <header class="mb-8 flex justify-between items-end border-b border-[var(--text-muted)] border-opacity-20 pb-4">
                 <div>
-                    <h1>Configuración de Clientes</h1>
-                    <p>Administra las empresas clientes y sus notificaciones.</p>
+                    <h1 class="text-3xl font-bold mb-2">Configuración de Clientes</h1>
+                    <p class="text-[var(--text-muted)]">Administra las empresas clientes y sus integraciones (Meta, OpenAI, etc).</p>
                 </div>
-                <button class="primary-btn" (click)="openClienteModal()">+ Añadir Cliente</button>
+                <button class="neo-btn bg-[var(--accent-color)] text-white px-6 py-3 font-semibold text-sm hover:brightness-110 flex items-center gap-2" (click)="openClienteModal()">
+                    <lucide-icon name="settings" [size]="18"></lucide-icon> Registrar Cliente
+                </button>
             </header>
 
-            <section class="table-container">
-                <div class="table-responsive">
-                    <table class="data-table">
+            <section class="neo-box p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full neo-table text-sm">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -432,175 +373,180 @@
                         <tbody>
                             <tr *ngFor="let cliente of clientes">
                                 <td>{{ cliente.id }}</td>
-                                <td class="bold-cell">{{ cliente.nombre_empresa }}</td>
+                                <td class="font-bold text-lg">{{ cliente.nombre_empresa }}</td>
                                 <td>{{ cliente.numero_celular || 'N/A' }}</td>
-                                <td><span class="badge" [ngClass]="cliente.estado === 1 ? 'badge-user' : 'badge-admin'">{{ cliente.estado === 1 ? 'Activo' : 'Inactivo' }}</span></td>
                                 <td>
-                                    <button class="action-btn edit-btn" (click)="openClienteModal(cliente)">Editar / Configurar</button>
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full uppercase"
+                                          [ngClass]="cliente.estado === 1 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'">
+                                          {{ cliente.estado === 1 ? 'Activo' : 'Inactivo' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="neo-btn px-4 py-2 text-xs font-bold" (click)="openClienteModal(cliente)">Configurar</button>
                                 </td>
                             </tr>
-                            <tr *ngIf="clientes.length === 0" class="empty-row">
-                                <td colspan="5">Cargando clientes...</td>
+                            <tr *ngIf="clientes.length === 0">
+                                <td colspan="5" class="text-center italic py-6 opacity-60">Cargando clientes...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-            
-            <!-- Cliente Modal -->
-            <div class="modal-overlay" *ngIf="showClienteModal">
-                <div class="modal-content large-modal">
-                    <div class="modal-header">
-                        <h2>{{ editingClienteId ? 'Configurar Cliente' : 'Nuevo Cliente' }}</h2>
-                        <button class="close-modal-btn" (click)="closeClienteModal()">✕</button>
-                    </div>
-                    <div class="modal-body modal-scrollable">
-                        <!-- FILA 1 -->
-                        <div class="form-grid-2">
-                            <div class="form-group col">
-                                <label>Nombre de Empresa:</label>
-                                <input type="text" [(ngModel)]="clienteForm.nombre_empresa" class="form-control" placeholder="Ej: Kodizof">
-                            </div>
-                            <div class="form-group col">
-                                <label>Responsable:</label>
-                                <input type="text" [(ngModel)]="clienteForm.responsable" class="form-control" placeholder="Nombre completo">
-                            </div>
-                        </div>
+        </ng-container>
+    </main>
 
-                        <!-- FILA 2 -->
-                        <div class="form-grid-3">
-                            <div class="form-group col">
-                                <label>Token/ID Meta (WhatsApp):</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['id_meta'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_meta" class="form-control" placeholder="Token Meta">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_meta')"><span *ngIf="!visibleFields['id_meta']">👁️</span><span *ngIf="visibleFields['id_meta']">🙈</span></button>
-                                </div>
-                            </div>
-                            <div class="form-group col">
-                                <label>ID Facebook (fb_id):</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['fb_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.fb_id" class="form-control" placeholder="ID de la página">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('fb_id')"><span *ngIf="!visibleFields['fb_id']">👁️</span><span *ngIf="visibleFields['fb_id']">🙈</span></button>
-                                </div>
-                            </div>
-                            <div class="form-group col">
-                                <label>ID Instagram (ig_id):</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['ig_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.ig_id" class="form-control" placeholder="ID IG">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('ig_id')"><span *ngIf="!visibleFields['ig_id']">👁️</span><span *ngIf="visibleFields['ig_id']">🙈</span></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FILA 3 -->
-                        <div class="form-grid-3">
-                            <div class="form-group col">
-                                <label>ID TikTok:</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['id_tiktok'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_tiktok" class="form-control" placeholder="ID o Token">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_tiktok')"><span *ngIf="!visibleFields['id_tiktok']">👁️</span><span *ngIf="visibleFields['id_tiktok']">🙈</span></button>
-                                </div>
-                            </div>
-                            <div class="form-group col">
-                                <label>Token OpenAI:</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="form-control" placeholder="sk-...">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('id_openAI')"><span *ngIf="!visibleFields['id_openAI']">👁️</span><span *ngIf="visibleFields['id_openAI']">🙈</span></button>
-                                </div>
-                            </div>
-                            <div class="form-group col">
-                                <label>Número Celular (Bot):</label>
-                                <div class="input-with-icon">
-                                    <input [type]="visibleFields['numero_celular'] ? 'text' : 'password'" [(ngModel)]="clienteForm.numero_celular" class="form-control" placeholder="Ej: 573001234567">
-                                    <button class="eye-inline-btn" (click)="toggleVisibility('numero_celular')"><span *ngIf="!visibleFields['numero_celular']">👁️</span><span *ngIf="visibleFields['numero_celular']">🙈</span></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FILA 4 -->
-                        <div class="form-grid-2">
-                            <div class="form-group col">
-                                <label>Estado:</label>
-                                <select [(ngModel)]="clienteForm.estado" class="form-control">
-                                    <option [ngValue]="1">Activo</option>
-                                    <option [ngValue]="0">Inactivo</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border-color);" />
-
-                        <div style="margin-bottom: 1rem;">
-                            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color);">Notificaciones</h3>
-                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Configura quién recibe las notificaciones y alertas internamente. (Cifrado localmente priorizado en AES)</p>
-                        </div>
-                        
-                        <div class="notifications-list" style="max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
-                            <div *ngFor="let noti of clienteForm.notificaciones; let i = index" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-                                    <strong style="color: var(--accent-blue);">Destinatario {{i + 1}}</strong>
-                                    <button style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(220, 53, 69, 0.1);" title="Eliminar Destinatario" (click)="removeNotification(i)">✕</button>
-                                </div>
-                                <div class="form-grid-2">
-                                    <div class="form-group col">
-                                        <label>Nombre:</label>
-                                        <input type="text" [(ngModel)]="noti.nombre" class="form-control" placeholder="Nombre Destinatario">
-                                    </div>
-                                    <div class="form-group col">
-                                        <label>Descripción / Evento:</label>
-                                        <input type="text" [(ngModel)]="noti.descripcion" class="form-control" placeholder="Ej: recibe alertas">
-                                    </div>
-                                </div>
-                                <div class="form-grid-2" style="margin-bottom: 0;">
-                                    <div class="form-group col">
-                                        <label>Correo (Sensible):</label>
-                                        <div class="input-with-icon">
-                                            <input [type]="visibleFields['correo_'+i] ? 'email' : 'password'" [(ngModel)]="noti.correo" class="form-control" placeholder="correo@ejemplo.com">
-                                            <button class="eye-inline-btn" (click)="toggleVisibility('correo_'+i)"><span *ngIf="!visibleFields['correo_'+i]">👁️</span><span *ngIf="visibleFields['correo_'+i]">🙈</span></button>
-                                        </div>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label>Teléfono (Sensible):</label>
-                                        <div class="input-with-icon">
-                                            <input [type]="visibleFields['tel_'+i] ? 'text' : 'password'" [(ngModel)]="noti.telefono" class="form-control" placeholder="Ej: 57300...">
-                                            <button class="eye-inline-btn" (click)="toggleVisibility('tel_'+i)"><span *ngIf="!visibleFields['tel_'+i]">👁️</span><span *ngIf="visibleFields['tel_'+i]">🙈</span></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="primary-btn" style="width: 100%; margin-top: 0.5rem;" (click)="addNotification()">+ Agregar Destinatario</button>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" (click)="closeClienteModal()">Cancelar</button>
-                        <button class="btn btn-primary" (click)="saveCliente()">Guardar Cambios</button>
-                    </div>
+    <!-- Overlays & Modals -->
+    <!-- User Modal -->
+    <div *ngIf="showUserModal" class="fixed inset-0 neo-modal-backdrop flex justify-center items-center z-50 p-4">
+        <div class="neo-box p-8 w-full max-w-md animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">{{ editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+                <button class="neo-btn p-2 rounded-full hover:text-red-500" (click)="closeUserModal()"><lucide-icon name="x" [size]="18"></lucide-icon></button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 opacity-70">Nombre:</label>
+                    <input type="text" [(ngModel)]="userForm.nombre" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Nombre completo">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 opacity-70">Usuario (Login):</label>
+                    <input type="text" [(ngModel)]="userForm.usuario" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Nombre de usuario">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 opacity-70">Contraseña: <span class="font-normal italic" *ngIf="editingUserId">(Dejar en blanco para no cambiar)</span></label>
+                    <input type="password" [(ngModel)]="userForm.password" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Contraseña secreta">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 opacity-70">Tipo de Usuario:</label>
+                    <select [(ngModel)]="userForm.tipo" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none appearance-none">
+                        <option value="vendedor">Vendedor (Empleado)</option>
+                        <option value="soporte">Soporte</option>
+                        <option value="admin">Administrador Ppal</option>
+                    </select>
+                </div>
+                <div *ngIf="userForm.tipo !== 'admin'">
+                    <label class="block text-xs font-semibold mb-1 opacity-70">Empresa (Cliente Comercial):</label>
+                    <select [(ngModel)]="userForm.id_empresa" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none appearance-none">
+                        <option *ngFor="let emp of empresas" [value]="emp.id">{{ emp.nombre_empresa }}</option>
+                    </select>
                 </div>
             </div>
-        </ng-container>
-
-        <!-- Change Password Modal -->
-        <div class="modal-overlay" *ngIf="showPasswordModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Cambiar mi Contraseña</h2>
-                    <button class="close-modal-btn" (click)="closePasswordModal()">✕</button>
-                </div>
-                <div class="modal-body">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">
-                        Ingresa la nueva contraseña para tu cuenta de administrador.
-                    </p>
-                    <div class="form-group">
-                        <label>Nueva Contraseña:</label>
-                        <input type="password" [(ngModel)]="newAdminPassword" class="form-control" placeholder="Escribe aquí tu nueva contraseña">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" (click)="closePasswordModal()">Cancelar</button>
-                    <button class="btn btn-primary" (click)="saveAdminPassword()" [disabled]="!newAdminPassword.trim()">Actualizar</button>
-                </div>
+            <div class="flex justify-end gap-3 mt-8">
+                <button class="neo-btn px-6 py-3 font-semibold" (click)="closeUserModal()">Cancelar</button>
+                <button class="neo-btn px-6 py-3 font-semibold bg-[var(--accent-color)] text-white hover:brightness-110" (click)="saveUser()">Guardar</button>
             </div>
         </div>
+    </div>
 
-    </main>
+    <!-- Cliente Modal -->
+    <div *ngIf="showClienteModal" class="fixed inset-0 neo-modal-backdrop flex justify-center items-center z-50 p-4">
+        <div class="neo-box p-8 w-full max-w-5xl h-[90vh] flex flex-col animate-fade-in relative z-50">
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h2 class="text-2xl font-bold">{{ editingClienteId ? 'Configuración Avanzada de Cliente' : 'Empadronar Cliente' }}</h2>
+                <button class="neo-btn p-2 rounded-full hover:text-red-500" (click)="closeClienteModal()"><lucide-icon name="x" [size]="20"></lucide-icon></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-70">Empresa:</label>
+                        <input type="text" [(ngModel)]="clienteForm.nombre_empresa" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Ej: Acme Corp">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-70">Responsable:</label>
+                        <input type="text" [(ngModel)]="clienteForm.responsable" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Nombre completo">
+                    </div>
+                </div>
+
+                <div class="bg-[var(--bg-color)] neo-inset p-6 rounded-2xl border border-[var(--text-muted)] border-opacity-10">
+                    <h3 class="font-bold mb-4 text-sm flex items-center gap-2 text-[var(--accent-color)]"><lucide-icon name="layout-dashboard" [size]="16"></lucide-icon> Credenciales Redes Sociales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-70">Token Meta (WhatsApp):</label>
+                            <input [type]="visibleFields['id_meta'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_meta" class="w-full bg-transparent border border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-2 px-3 rounded-lg outline-none text-sm" placeholder="Token Meta">
+                            <button class="text-xs text-[var(--accent-color)] mt-1" (click)="toggleVisibility('id_meta')">Ver/Ocultar</button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-70">ID Facebook (Página):</label>
+                            <input [type]="visibleFields['fb_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.fb_id" class="w-full bg-transparent border border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-2 px-3 rounded-lg outline-none text-sm" placeholder="ID fb">
+                            <button class="text-xs text-[var(--accent-color)] mt-1" (click)="toggleVisibility('fb_id')">Ver/Ocultar</button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-70">ID Instagram:</label>
+                            <input [type]="visibleFields['ig_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.ig_id" class="w-full bg-transparent border border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-2 px-3 rounded-lg outline-none text-sm" placeholder="ID ig">
+                            <button class="text-xs text-[var(--accent-color)] mt-1" (click)="toggleVisibility('ig_id')">Ver/Ocultar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-70">Token OpenAI:</label>
+                        <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="sk-...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-70">Línea Móvil Bot (WPP):</label>
+                        <input type="text" [(ngModel)]="clienteForm.numero_celular" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none" placeholder="Ej: 57300...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-70">Estado Operativo:</label>
+                        <select [(ngModel)]="clienteForm.estado" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none appearance-none font-bold">
+                            <option [ngValue]="1">✅ Activo</option>
+                            <option [ngValue]="0">❌ Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="border-[var(--text-muted)] border-opacity-20 my-6">
+
+                <div>
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg">Reglas de Notificación Interna</h3>
+                            <p class="text-xs opacity-70 mt-1">Contactos que el Bot alertará durante escalar asesores.</p>
+                        </div>
+                        <button class="neo-btn px-4 py-2 text-xs font-bold flex items-center gap-1" (click)="addNotification()"><lucide-icon name="users" [size]="14"></lucide-icon> Añadir</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div *ngFor="let noti of clienteForm.notificaciones; let i = index" class="neo-inset p-4 rounded-2xl flex flex-col gap-4">
+                            <div class="flex justify-between items-center border-b border-[var(--text-muted)] border-opacity-10 pb-2">
+                                <span class="font-bold text-sm text-[var(--accent-color)]">Escalador #{{ i+1 }}</span>
+                                <button class="p-1 text-red-500 hover:bg-red-500 hover:bg-opacity-10 rounded-lg transition-all" (click)="removeNotification(i)"><lucide-icon name="x" [size]="16"></lucide-icon></button>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><input type="text" [(ngModel)]="noti.nombre" class="w-full bg-transparent border-b border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-1 outline-none text-sm" placeholder="Nombre"></div>
+                                <div><input type="text" [(ngModel)]="noti.descripcion" class="w-full bg-transparent border-b border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-1 outline-none text-sm" placeholder="Evento. Ej: Ventas"></div>
+                                <div><input type="email" [(ngModel)]="noti.correo" class="w-full bg-transparent border-b border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-1 outline-none text-sm" placeholder="Correo"></div>
+                                <div><input type="text" [(ngModel)]="noti.telefono" class="w-full bg-transparent border-b border-[var(--text-muted)] border-opacity-30 focus:border-[var(--accent-color)] py-1 outline-none text-sm" placeholder="Tel (+57...)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-[var(--text-muted)] border-opacity-20 shrink-0">
+                <button class="neo-btn px-6 py-3 font-semibold" (click)="closeClienteModal()">Descartar Cambios</button>
+                <button class="neo-btn px-8 py-3 font-semibold bg-[var(--accent-color)] text-white hover:brightness-110" (click)="saveCliente()">Guardar Integración</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div *ngIf="showPasswordModal" class="fixed inset-0 neo-modal-backdrop flex justify-center items-center z-50 p-4">
+        <div class="neo-box p-8 w-full max-w-sm animate-fade-in text-center">
+            <div class="w-16 h-16 rounded-full neo-inset mx-auto flex items-center justify-center text-[var(--accent-color)] mb-4">
+                <lucide-icon name="key-round" [size]="28"></lucide-icon>
+            </div>
+            <h2 class="text-xl font-bold mb-2">Renovar Credencial</h2>
+            <p class="text-sm opacity-70 mb-6">Ingresa una nueva contraseña segura para tu usuario administrador principal.</p>
+            
+            <input type="password" [(ngModel)]="newAdminPassword" class="w-full bg-transparent neo-inset py-3 px-4 rounded-xl outline-none text-center tracking-widest mb-6" placeholder="••••••••">
+            
+            <div class="flex justify-center gap-3">
+                <button class="neo-btn px-6 py-2 font-semibold text-sm" (click)="closePasswordModal()">Cancelar</button>
+                <button class="neo-btn px-6 py-2 font-semibold text-sm bg-[var(--accent-color)] text-white hover:brightness-110" [disabled]="!newAdminPassword.trim()" (click)="saveAdminPassword()">Actualizar y Salir</button>
+            </div>
+        </div>
+    </div>
 </div>
