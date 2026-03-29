@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -28,12 +28,18 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     // User Roles and Views
     userTipo: string = 'vendedor';
-    currentView: 'dashboard' | 'users' | 'clientes' = 'dashboard';
+    currentView: 'dashboard' | 'chat' | 'users' | 'clientes' = 'dashboard';
 
     // UI State
     isDarkMode: boolean = false;
     isMobileMenuOpen: boolean = false;
     isSidebarCollapsed: boolean = false;
+    isMobileSidebarOpen: boolean = false;
+    showMobileConversationList: boolean = true;
+
+    get isCollapsed(): boolean {
+        return this.isSidebarCollapsed && !this.isMobileSidebarOpen;
+    }
 
     toggleTheme() {
         this.isDarkMode = !this.isDarkMode;
@@ -51,8 +57,25 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     toggleSidebar() {
-        this.isSidebarCollapsed = !this.isSidebarCollapsed;
-        localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed.toString());
+        if (this.isMobileSidebarOpen) {
+            this.isMobileSidebarOpen = false;
+        } else {
+            this.isSidebarCollapsed = !this.isSidebarCollapsed;
+            localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed.toString());
+        }
+    }
+
+    toggleMobileSidebar() {
+        this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
+    }
+
+    closeMobileSidebar() {
+        this.isMobileSidebarOpen = false;
+    }
+
+    backToConversationList() {
+        this.showMobileConversationList = true;
+        this.selectedConversation = null;
     }
 
     // User management data
@@ -246,6 +269,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     selectConversation(conv: Conversation) {
         this.selectedConversation = conv;
+        this.showMobileConversationList = false;
         this.messages = [];
         this.chatService.getMessages(conv.id).subscribe({
             next: (data) => {
@@ -387,8 +411,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     // --- View Management Logic ---
 
-    setView(view: 'dashboard' | 'users' | 'clientes') {
+    setView(view: 'dashboard' | 'chat' | 'users' | 'clientes') {
         this.currentView = view;
+        this.closeMobileSidebar();
+        this.showMobileConversationList = true;
         if (view === 'users' && this.usuarios.length === 0) {
             this.loadUsers();
             this.loadEmpresas();

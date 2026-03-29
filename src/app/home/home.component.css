@@ -1,28 +1,17 @@
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* Modal Backdrop */
+/* ── Modal Backdrop ── */
 .saas-modal-backdrop {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 
-/* Tables */
-.saas-table th,
-.saas-table td {
+/* ── Tables ── */
+.saas-table th, .saas-table td {
   padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border-color);
 }
@@ -34,9 +23,59 @@
   letter-spacing: 0.05em;
   color: var(--text-muted);
 }
-.saas-table tbody tr:last-child td {
-  border-bottom: none;
+.saas-table tbody tr:last-child td { border-bottom: none; }
+.saas-table tbody tr:hover { background-color: var(--hover-bg); }
+
+/* ── Responsive Sidebar ── */
+.sidebar-base {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  z-index: 50;
+  width: 256px;
+  padding: 1.5rem 0.75rem;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease, width 0.2s ease, padding 0.2s ease;
 }
-.saas-table tbody tr:hover {
-  background-color: var(--hover-bg);
+
+.sidebar-base.mobile-open {
+  transform: translateX(0);
+}
+
+@media (min-width: 768px) {
+  .sidebar-base {
+    position: relative;
+    transform: translateX(0) !important;
+    z-index: 20;
+    flex-shrink: 0;
+    height: 100vh;
+  }
+  .sidebar-base.collapsed {
+    width: 64px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* ── Chat Panels (mobile: one at a time, desktop: side by side) ── */
+.chat-list-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.chat-message-panel {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.show-chat .chat-list-panel  { display: none; }
+.show-chat .chat-message-panel { display: flex; }
+
+@media (min-width: 768px) {
+  .chat-list-panel  { display: flex !important; width: 20rem; }
+  .chat-message-panel { display: flex !important; }
+  .show-chat .chat-list-panel { display: flex !important; }
 }

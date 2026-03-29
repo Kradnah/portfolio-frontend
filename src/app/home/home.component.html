@@ -1,47 +1,61 @@
 <div class="flex h-screen bg-[var(--page-bg)] text-[var(--text-color)] transition-colors duration-200 font-sans overflow-hidden">
 
-    <!-- Sidebar / Navigation -->
-    <aside [ngClass]="isSidebarCollapsed ? 'w-16 px-2' : 'w-64 px-3'"
-           class="flex-shrink-0 flex flex-col justify-between py-6 bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] h-screen z-20 transition-all duration-200 overflow-hidden">
+    <!-- Mobile sidebar backdrop -->
+    <div *ngIf="isMobileSidebarOpen"
+         class="fixed inset-0 bg-black/50 z-40 md:hidden"
+         (click)="closeMobileSidebar()"></div>
 
-        <!-- Logo Area -->
-        <div class="flex items-center mb-8" [ngClass]="isSidebarCollapsed ? 'flex-col gap-2' : 'gap-3'">
+    <!-- Sidebar -->
+    <aside class="sidebar-base flex flex-col justify-between bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] overflow-hidden"
+           [class.mobile-open]="isMobileSidebarOpen"
+           [class.collapsed]="isCollapsed">
+
+        <!-- Logo + Toggle -->
+        <div class="flex items-center mb-8" [ngClass]="isCollapsed ? 'flex-col gap-3' : 'gap-3'">
             <div class="p-2 bg-[var(--accent-soft)] rounded-lg shrink-0 text-[var(--accent-color)]">
                 <lucide-icon name="layout-dashboard" [size]="22"></lucide-icon>
             </div>
-            <span *ngIf="!isSidebarCollapsed" class="text-base font-bold tracking-tight text-[var(--text-color)] flex-1 overflow-hidden whitespace-nowrap">CRM Kodi</span>
+            <span *ngIf="!isCollapsed" class="text-base font-bold tracking-tight flex-1 overflow-hidden whitespace-nowrap">CRM Kodi</span>
             <button (click)="toggleSidebar()"
-                    class="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-muted)] transition-all shrink-0"
-                    [ngClass]="isSidebarCollapsed ? '' : 'ml-auto'"
-                    [title]="isSidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'">
-                <lucide-icon [name]="isSidebarCollapsed ? 'chevrons-right' : 'chevrons-left'" [size]="15"></lucide-icon>
+                    class="p-2 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-color)]/40 hover:text-[var(--accent-color)] text-[var(--text-muted)] transition-all shrink-0"
+                    [ngClass]="isCollapsed ? '' : 'ml-auto'"
+                    [title]="isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'">
+                <lucide-icon [name]="isCollapsed ? 'panel-left-open' : 'panel-left-close'" [size]="18"></lucide-icon>
             </button>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Navigation -->
         <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
             <button (click)="setView('dashboard')"
-                    [ngClass]="[currentView === 'dashboard' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    [ngClass]="[currentView === 'dashboard' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isCollapsed ? 'justify-center px-0' : 'px-3']"
                     class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
-                    [title]="isSidebarCollapsed ? 'Dashboard & Chat' : ''">
+                    [title]="isCollapsed ? 'Dashboard' : ''">
+                <lucide-icon name="layout-dashboard" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isCollapsed">Dashboard</span>
+            </button>
+
+            <button (click)="setView('chat')"
+                    [ngClass]="[currentView === 'chat' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isCollapsed ? 'justify-center px-0' : 'px-3']"
+                    class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
+                    [title]="isCollapsed ? 'Chat' : ''">
                 <lucide-icon name="message-circle" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">Dashboard & Chat</span>
+                <span *ngIf="!isCollapsed">Chat</span>
             </button>
 
             <button *ngIf="userTipo === 'admin'" (click)="setView('clientes')"
-                    [ngClass]="[currentView === 'clientes' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    [ngClass]="[currentView === 'clientes' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isCollapsed ? 'justify-center px-0' : 'px-3']"
                     class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
-                    [title]="isSidebarCollapsed ? 'Config. Clientes' : ''">
+                    [title]="isCollapsed ? 'Config. Clientes' : ''">
                 <lucide-icon name="settings" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">Config. Clientes</span>
+                <span *ngIf="!isCollapsed">Config. Clientes</span>
             </button>
 
             <button *ngIf="userTipo === 'admin'" (click)="setView('users')"
-                    [ngClass]="[currentView === 'users' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    [ngClass]="[currentView === 'users' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isCollapsed ? 'justify-center px-0' : 'px-3']"
                     class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
-                    [title]="isSidebarCollapsed ? 'Gestión Usuarios' : ''">
+                    [title]="isCollapsed ? 'Gestión Usuarios' : ''">
                 <lucide-icon name="users" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">Gestión Usuarios</span>
+                <span *ngIf="!isCollapsed">Gestión Usuarios</span>
             </button>
         </nav>
 
@@ -49,311 +63,337 @@
         <div class="flex flex-col gap-1 pt-4 mt-4 border-t border-[var(--border-color)]">
             <button (click)="toggleTheme()"
                     class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]"
-                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
-                    [title]="isSidebarCollapsed ? (isDarkMode ? 'Modo Claro' : 'Modo Oscuro') : ''">
+                    [ngClass]="isCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isCollapsed ? (isDarkMode ? 'Modo Claro' : 'Modo Oscuro') : ''">
                 <lucide-icon [name]="isDarkMode ? 'sun' : 'moon'" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">{{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}</span>
+                <span *ngIf="!isCollapsed">{{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}</span>
             </button>
             <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()"
                     class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]"
-                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
-                    [title]="isSidebarCollapsed ? 'Contraseña' : ''">
+                    [ngClass]="isCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isCollapsed ? 'Contraseña' : ''">
                 <lucide-icon name="key-round" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">Contraseña</span>
+                <span *ngIf="!isCollapsed">Contraseña</span>
             </button>
             <button (click)="logout()"
                     class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-red-500 hover:bg-red-500/10"
-                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
-                    [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
+                    [ngClass]="isCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isCollapsed ? 'Cerrar Sesión' : ''">
                 <lucide-icon name="log-out" [size]="18" class="shrink-0"></lucide-icon>
-                <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
+                <span *ngIf="!isCollapsed">Cerrar Sesión</span>
             </button>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col relative">
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden flex flex-col min-w-0">
 
-        <!-- DASHBOARD SECTION -->
+        <!-- Mobile Header -->
+        <header class="md:hidden flex-shrink-0 h-14 bg-[var(--sidebar-bg)] border-b border-[var(--border-color)] flex items-center px-4 gap-3 z-30">
+            <button (click)="toggleMobileSidebar()" class="p-2 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-muted)] transition-all">
+                <lucide-icon name="menu" [size]="22"></lucide-icon>
+            </button>
+            <span class="text-base font-bold flex-1">CRM Kodi</span>
+            <button (click)="toggleTheme()" class="p-2 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-muted)] transition-all">
+                <lucide-icon [name]="isDarkMode ? 'sun' : 'moon'" [size]="20"></lucide-icon>
+            </button>
+        </header>
+
+        <!-- ── DASHBOARD VIEW ── -->
         <ng-container *ngIf="currentView === 'dashboard'">
-            <header class="mb-7">
-                <h1 class="text-2xl font-bold mb-1">¡Bienvenido de nuevo!</h1>
-                <p class="text-[var(--text-muted)] text-sm">Aquí tienes un resumen de tus métricas de mensajería de hoy.</p>
-            </header>
+            <div class="flex-1 overflow-y-auto p-4 md:p-8">
+                <header class="mb-7">
+                    <h1 class="text-xl md:text-2xl font-bold mb-1">Dashboard</h1>
+                    <p class="text-[var(--text-muted)] text-sm">Resumen de métricas de mensajería de hoy.</p>
+                </header>
 
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="saas-card p-5 flex items-center gap-4">
-                    <div class="p-2.5 bg-blue-500 text-white rounded-lg shrink-0">
-                        <lucide-icon name="message-circle" [size]="20"></lucide-icon>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Conversaciones</h3>
-                        <span class="text-2xl font-bold">{{ totalConversaciones }}</span>
-                    </div>
-                </div>
-                <div class="saas-card p-5 flex items-center gap-4">
-                    <div class="p-2.5 bg-green-500 text-white rounded-lg shrink-0">
-                        <lucide-icon name="phone" [size]="20"></lucide-icon>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">WhatsApp</h3>
-                        <span class="text-2xl font-bold">{{ totalWppMensajes }}</span>
-                    </div>
-                </div>
-                <div class="saas-card p-5 flex items-center gap-4">
-                    <div class="p-2.5 bg-blue-600 text-white rounded-lg shrink-0">
-                        <lucide-icon name="facebook" [size]="20"></lucide-icon>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Facebook</h3>
-                        <span class="text-2xl font-bold">{{ totalFbMensajes }}</span>
-                    </div>
-                </div>
-                <div class="saas-card p-5 flex items-center gap-4">
-                    <div class="p-2.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white rounded-lg shrink-0">
-                        <lucide-icon name="instagram" [size]="20"></lucide-icon>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Instagram</h3>
-                        <span class="text-2xl font-bold">{{ totalIgMensajes }}</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="saas-card p-6 mb-6">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4 pb-3 border-b border-[var(--border-color)]">Desglose por Cliente</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full saas-table text-sm">
-                        <thead>
-                            <tr>
-                                <th>Empresa</th>
-                                <th>Total Convs</th>
-                                <th class="text-green-600">Total WPP</th>
-                                <th class="text-green-600 opacity-70">Env WPP</th>
-                                <th class="text-green-600 opacity-70">Rec WPP</th>
-                                <th class="text-blue-600">Total FB</th>
-                                <th class="text-blue-600 opacity-70">Env FB</th>
-                                <th class="text-blue-600 opacity-70">Rec FB</th>
-                                <th class="text-pink-600">Total IG</th>
-                                <th class="text-pink-600 opacity-70">Env IG</th>
-                                <th class="text-pink-600 opacity-70">Rec IG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let row of reporteConsolidado">
-                                <td class="font-semibold">{{ row.nombre_empresa }}</td>
-                                <td class="font-bold">{{ row.total_conversaciones }}</td>
-                                <td class="text-green-600 font-medium">{{ row.total_mensajes_wpp }}</td>
-                                <td class="text-green-600 opacity-70">{{ row.wpp_enviados }}</td>
-                                <td class="text-green-600 opacity-70">{{ row.wpp_recibidos }}</td>
-                                <td class="text-blue-600 font-medium">{{ row.total_mensajes_fb }}</td>
-                                <td class="text-blue-600 opacity-70">{{ row.fb_enviados }}</td>
-                                <td class="text-blue-600 opacity-70">{{ row.fb_recibidos }}</td>
-                                <td class="text-pink-600 font-medium">{{ row.total_mensajes_ig }}</td>
-                                <td class="text-pink-600 opacity-70">{{ row.ig_enviados }}</td>
-                                <td class="text-pink-600 opacity-70">{{ row.ig_recibidos }}</td>
-                            </tr>
-                            <tr *ngIf="reporteConsolidado.length === 0">
-                                <td colspan="11" class="text-center italic text-[var(--text-muted)] py-4">No hay información disponible por el momento.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- CHAT SECTION -->
-            <section class="saas-card overflow-hidden flex flex-col h-[700px] max-h-[70vh]">
-                <div class="flex h-full">
-                    <!-- Sidebar: Conversation List -->
-                    <div class="w-80 border-r border-[var(--border-color)] flex flex-col">
-                        <div class="flex p-3 gap-1 border-b border-[var(--border-color)] shrink-0 bg-[var(--card-bg)]">
-                            <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
-                                    [ngClass]="activeTab === 'OPEN' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
-                                    (click)="setTab('OPEN')">Nuevas</button>
-                            <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
-                                    [ngClass]="activeTab === 'ATTENDING' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
-                                    (click)="setTab('ATTENDING')">Atendiendo</button>
-                            <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
-                                    [ngClass]="activeTab === 'CLOSE' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
-                                    (click)="setTab('CLOSE')">Cerradas</button>
+                <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                    <div class="saas-card p-4 md:p-5 flex items-center gap-3 md:gap-4">
+                        <div class="p-2 md:p-2.5 bg-blue-500 text-white rounded-lg shrink-0">
+                            <lucide-icon name="message-circle" [size]="18"></lucide-icon>
                         </div>
-
-                        <div class="flex-1 overflow-y-auto p-2">
-                            <div *ngIf="conversations.length === 0" class="text-center p-6 text-[var(--text-muted)] text-sm">
-                                No hay conversaciones en esta pestaña.
-                            </div>
-                            <div *ngFor="let conv of conversations"
-                                 class="p-3 mb-1.5 rounded-lg cursor-pointer transition-all border"
-                                 [ngClass]="selectedConversation?.id === conv.id ? 'bg-[var(--accent-soft)] border-[var(--accent-color)]/30' : 'border-transparent hover:bg-[var(--hover-bg)]'"
-                                 (click)="selectConversation(conv)">
-
-                                <div class="flex justify-between items-center mb-1.5">
-                                    <span class="flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
-                                          [class.text-green-600]="conv.plataforma === 'whatsapp'"
-                                          [class.text-blue-600]="conv.plataforma === 'messenger' || conv.plataforma === 'facebook'"
-                                          [class.text-pink-600]="conv.plataforma === 'instagram'">
-                                        <lucide-icon [name]="conv.plataforma === 'whatsapp' ? 'phone' : (conv.plataforma === 'instagram' ? 'instagram' : 'facebook')" [size]="12"></lucide-icon>
-                                        {{ conv.plataforma === 'messenger' ? 'FB' : (conv.plataforma | uppercase) }}
-                                    </span>
-                                    <span class="text-xs px-2 py-0.5 rounded-full font-semibold"
-                                          [ngClass]="conv.estado === 'OPEN' ? 'bg-blue-500/10 text-blue-600' : conv.estado === 'ATTENDING' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-slate-500/10 text-[var(--text-muted)]'">
-                                        {{ conv.estado }}
-                                    </span>
-                                </div>
-                                <div class="font-semibold text-sm truncate">{{ conv.user_name || 'Desconocido' }}</div>
-                                <div class="text-[var(--text-muted)] text-xs mt-0.5">{{ conv.num_wpp }}</div>
-                                <div class="text-[var(--accent-color)] text-xs mt-1 font-medium" *ngIf="conv.nombre_agente">{{ conv.nombre_agente }}</div>
-                            </div>
+                        <div class="min-w-0">
+                            <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5 truncate">Convs.</h3>
+                            <span class="text-xl md:text-2xl font-bold">{{ totalConversaciones }}</span>
                         </div>
                     </div>
-
-                    <!-- Main: Active Chat Window -->
-                    <div class="flex-1 flex flex-col bg-[var(--page-bg)]" *ngIf="selectedConversation">
-                        <!-- Header -->
-                        <div class="p-4 border-b border-[var(--border-color)] flex justify-between items-center shrink-0 bg-[var(--card-bg)]">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full bg-[var(--hover-bg)] flex items-center justify-center shrink-0">
-                                    <lucide-icon name="users" [size]="18" class="text-[var(--text-muted)]"></lucide-icon>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-sm leading-tight">{{ selectedConversation.user_name || selectedConversation.num_wpp }}</h3>
-                                    <span class="text-xs text-[var(--text-muted)] capitalize">{{ selectedConversation.plataforma }}</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button *ngIf="selectedConversation.estado === 'OPEN'"
-                                        class="px-4 py-2 bg-[var(--accent-color)] text-white hover:brightness-110 font-medium text-sm rounded-lg transition-all"
-                                        (click)="takeConversation()">
-                                    Tomar Conversación
-                                </button>
-                                <ng-container *ngIf="selectedConversation.estado === 'ATTENDING'">
-                                    <button class="saas-btn px-4 py-2 text-sm font-medium hover:text-yellow-600" (click)="changeState('OPEN')" title="Devolver a Nuevas">
-                                        Soltar
-                                    </button>
-                                    <button class="saas-btn px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10" (click)="changeState('CLOSE')" title="Finalizar Conversación">
-                                        Cerrar Chat
-                                    </button>
-                                </ng-container>
-                            </div>
+                    <div class="saas-card p-4 md:p-5 flex items-center gap-3 md:gap-4">
+                        <div class="p-2 md:p-2.5 bg-green-500 text-white rounded-lg shrink-0">
+                            <lucide-icon name="phone" [size]="18"></lucide-icon>
                         </div>
-
-                        <!-- Messages -->
-                        <div class="flex-1 overflow-y-auto p-5" id="chat-messages-container">
-                            <div *ngIf="messages.length === 0" class="text-center p-6 text-[var(--text-muted)] italic text-sm">
-                                No hay mensajes en esta conversación.
-                            </div>
-                            <div *ngFor="let msg of messages" class="mb-3 flex flex-col"
-                                 [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'items-end' : 'items-start'">
-
-                                <div class="max-w-[75%] rounded-2xl p-3.5 text-sm"
-                                     [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--card-bg)] border border-[var(--border-color)]'">
-
-                                    <ng-container *ngIf="msg.ruta_multimedia">
-                                        <div class="mb-2 overflow-hidden rounded-xl">
-                                            <img *ngIf="isImage(msg.ruta_multimedia, msg.mensaje)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="w-full h-auto object-cover max-h-64" />
-                                            <audio *ngIf="isAudio(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-10">
-                                                <source [src]="getMediaUrl(msg.ruta_multimedia)">
-                                            </audio>
-                                            <video *ngIf="isVideo(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-auto max-h-64">
-                                                <source [src]="getMediaUrl(msg.ruta_multimedia)">
-                                            </video>
-                                            <a *ngIf="!isImage(msg.ruta_multimedia, msg.mensaje) && !isAudio(msg.ruta_multimedia, msg.mensaje) && !isVideo(msg.ruta_multimedia, msg.mensaje)"
-                                               [href]="getMediaUrl(msg.ruta_multimedia)" target="_blank" class="flex items-center gap-2 underline text-sm">
-                                                <lucide-icon name="paperclip" [size]="16"></lucide-icon> Archivo Adjunto
-                                            </a>
-                                        </div>
-                                    </ng-container>
-                                    <div *ngIf="msg.mensaje && (!msg.ruta_multimedia || !msg.mensaje.startsWith('[Archivo Multimedia:'))" class="whitespace-pre-wrap leading-relaxed">
-                                        {{ msg.mensaje }}
-                                    </div>
-                                </div>
-                                <div class="text-xs mt-1.5 px-1 opacity-50">
-                                    <span>{{ msg.created_at | date:'shortTime' }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Input -->
-                        <div class="p-4 border-t border-[var(--border-color)] bg-[var(--card-bg)] shrink-0" *ngIf="selectedConversation.estado === 'ATTENDING'">
-                            <div class="mb-2 flex items-center gap-2" *ngIf="selectedFile">
-                                <span class="bg-[var(--hover-bg)] border border-[var(--border-color)] px-3 py-1 rounded-full text-xs flex items-center gap-2">
-                                    <lucide-icon name="paperclip" [size]="14"></lucide-icon> {{ selectedFile.name }}
-                                    <button class="hover:text-red-500 ml-1 font-bold" (click)="removeFile()" [disabled]="isSending">✕</button>
-                                </span>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <button class="saas-btn p-2.5 rounded-lg hover:text-[var(--accent-color)] shrink-0" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
-                                    <lucide-icon name="paperclip" [size]="18"></lucide-icon>
-                                </button>
-                                <input type="file" #fileInput hidden (change)="onFileSelected($event)">
-
-                                <input type="text"
-                                       class="flex-1 saas-input py-2.5 px-4 text-sm outline-none"
-                                       placeholder="Escribe un mensaje..."
-                                       [(ngModel)]="newMessageText"
-                                       (keyup.enter)="sendMessage()"
-                                       [disabled]="isSending || selectedFile !== null">
-
-                                <button class="p-2.5 rounded-lg bg-[var(--accent-color)] text-white shrink-0 hover:brightness-110 transition-all disabled:opacity-40"
-                                        (click)="sendMessage()"
-                                        [disabled]="(!newMessageText.trim() && !selectedFile) || isSending">
-                                    <lucide-icon [name]="isSending ? 'loader' : 'send'" [size]="18"></lucide-icon>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-5 text-center text-[var(--text-muted)] text-sm bg-[var(--card-bg)] border-t border-[var(--border-color)] shrink-0" *ngIf="selectedConversation.estado !== 'ATTENDING'">
-                            Debe tomar la conversación para enviar mensajes.
+                        <div class="min-w-0">
+                            <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5 truncate">WhatsApp</h3>
+                            <span class="text-xl md:text-2xl font-bold">{{ totalWppMensajes }}</span>
                         </div>
                     </div>
-
-                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-[var(--page-bg)]" *ngIf="!selectedConversation">
-                        <div class="w-20 h-20 rounded-full bg-[var(--hover-bg)] flex items-center justify-center mb-4 text-[var(--text-muted)]">
-                            <lucide-icon name="message-circle" [size]="40"></lucide-icon>
+                    <div class="saas-card p-4 md:p-5 flex items-center gap-3 md:gap-4">
+                        <div class="p-2 md:p-2.5 bg-blue-600 text-white rounded-lg shrink-0">
+                            <lucide-icon name="facebook" [size]="18"></lucide-icon>
                         </div>
-                        <p class="text-[var(--text-muted)] text-sm text-center">Selecciona una conversación del panel lateral para comenzar.</p>
+                        <div class="min-w-0">
+                            <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5 truncate">Facebook</h3>
+                            <span class="text-xl md:text-2xl font-bold">{{ totalFbMensajes }}</span>
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <div class="saas-card p-4 md:p-5 flex items-center gap-3 md:gap-4">
+                        <div class="p-2 md:p-2.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white rounded-lg shrink-0">
+                            <lucide-icon name="instagram" [size]="18"></lucide-icon>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-0.5 truncate">Instagram</h3>
+                            <span class="text-xl md:text-2xl font-bold">{{ totalIgMensajes }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="saas-card p-4 md:p-6">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4 pb-3 border-b border-[var(--border-color)]">Desglose por Cliente</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full saas-table text-sm">
+                            <thead>
+                                <tr>
+                                    <th>Empresa</th>
+                                    <th>Convs</th>
+                                    <th class="text-green-600">WPP</th>
+                                    <th class="text-green-600 opacity-70 hidden md:table-cell">Env</th>
+                                    <th class="text-green-600 opacity-70 hidden md:table-cell">Rec</th>
+                                    <th class="text-blue-600">FB</th>
+                                    <th class="text-blue-600 opacity-70 hidden md:table-cell">Env</th>
+                                    <th class="text-blue-600 opacity-70 hidden md:table-cell">Rec</th>
+                                    <th class="text-pink-600">IG</th>
+                                    <th class="text-pink-600 opacity-70 hidden md:table-cell">Env</th>
+                                    <th class="text-pink-600 opacity-70 hidden md:table-cell">Rec</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of reporteConsolidado">
+                                    <td class="font-semibold">{{ row.nombre_empresa }}</td>
+                                    <td class="font-bold">{{ row.total_conversaciones }}</td>
+                                    <td class="text-green-600 font-medium">{{ row.total_mensajes_wpp }}</td>
+                                    <td class="text-green-600 opacity-70 hidden md:table-cell">{{ row.wpp_enviados }}</td>
+                                    <td class="text-green-600 opacity-70 hidden md:table-cell">{{ row.wpp_recibidos }}</td>
+                                    <td class="text-blue-600 font-medium">{{ row.total_mensajes_fb }}</td>
+                                    <td class="text-blue-600 opacity-70 hidden md:table-cell">{{ row.fb_enviados }}</td>
+                                    <td class="text-blue-600 opacity-70 hidden md:table-cell">{{ row.fb_recibidos }}</td>
+                                    <td class="text-pink-600 font-medium">{{ row.total_mensajes_ig }}</td>
+                                    <td class="text-pink-600 opacity-70 hidden md:table-cell">{{ row.ig_enviados }}</td>
+                                    <td class="text-pink-600 opacity-70 hidden md:table-cell">{{ row.ig_recibidos }}</td>
+                                </tr>
+                                <tr *ngIf="reporteConsolidado.length === 0">
+                                    <td colspan="11" class="text-center italic text-[var(--text-muted)] py-4">No hay información disponible.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </ng-container>
 
-        <!-- USERS SECTION -->
-        <ng-container *ngIf="currentView === 'users' && userTipo === 'admin'">
-            <header class="mb-6 flex justify-between items-end border-b border-[var(--border-color)] pb-4">
-                <div>
-                    <h1 class="text-2xl font-bold mb-1">Gestión de Usuarios</h1>
-                    <p class="text-[var(--text-muted)] text-sm">Administra los usuarios del sistema y sus accesos.</p>
-                </div>
-                <button class="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-semibold text-sm hover:brightness-110 flex items-center gap-2 transition-all" (click)="openUserModal()">
-                    <lucide-icon name="users" [size]="16"></lucide-icon> Añadir Usuario
-                </button>
-            </header>
+        <!-- ── CHAT VIEW ── -->
+        <ng-container *ngIf="currentView === 'chat'">
+            <div class="flex-1 flex flex-col min-h-0 md:p-6 md:pb-6">
+                <section class="saas-card overflow-hidden flex flex-col flex-1 min-h-0 rounded-none md:rounded-xl border-0 md:border">
 
-            <section class="saas-card p-6">
-                <div class="overflow-x-auto">
+                    <div class="flex h-full min-h-0" [class.show-chat]="!showMobileConversationList">
+
+                        <!-- Conversation List Panel -->
+                        <div class="chat-list-panel border-r border-[var(--border-color)] md:w-80">
+
+                            <!-- Tabs -->
+                            <div class="flex p-3 gap-1 border-b border-[var(--border-color)] shrink-0 bg-[var(--card-bg)]">
+                                <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
+                                        [ngClass]="activeTab === 'OPEN' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
+                                        (click)="setTab('OPEN')">Nuevas</button>
+                                <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
+                                        [ngClass]="activeTab === 'ATTENDING' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
+                                        (click)="setTab('ATTENDING')">Atendiendo</button>
+                                <button class="flex-1 py-2 text-xs font-semibold rounded-md transition-all text-center"
+                                        [ngClass]="activeTab === 'CLOSE' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'"
+                                        (click)="setTab('CLOSE')">Cerradas</button>
+                            </div>
+
+                            <!-- Conversations -->
+                            <div class="flex-1 overflow-y-auto p-2">
+                                <div *ngIf="conversations.length === 0" class="text-center p-6 text-[var(--text-muted)] text-sm">
+                                    No hay conversaciones en esta pestaña.
+                                </div>
+                                <div *ngFor="let conv of conversations"
+                                     class="p-3 mb-1.5 rounded-lg cursor-pointer transition-all border"
+                                     [ngClass]="selectedConversation?.id === conv.id ? 'bg-[var(--accent-soft)] border-[var(--accent-color)]/30' : 'border-transparent hover:bg-[var(--hover-bg)]'"
+                                     (click)="selectConversation(conv)">
+
+                                    <div class="flex justify-between items-center mb-1.5">
+                                        <span class="flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
+                                              [class.text-green-600]="conv.plataforma === 'whatsapp'"
+                                              [class.text-blue-600]="conv.plataforma === 'messenger' || conv.plataforma === 'facebook'"
+                                              [class.text-pink-600]="conv.plataforma === 'instagram'">
+                                            <lucide-icon [name]="conv.plataforma === 'whatsapp' ? 'phone' : (conv.plataforma === 'instagram' ? 'instagram' : 'facebook')" [size]="12"></lucide-icon>
+                                            {{ conv.plataforma === 'messenger' ? 'FB' : (conv.plataforma | uppercase) }}
+                                        </span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-semibold"
+                                              [ngClass]="conv.estado === 'OPEN' ? 'bg-blue-500/10 text-blue-600' : conv.estado === 'ATTENDING' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-slate-500/10 text-[var(--text-muted)]'">
+                                            {{ conv.estado }}
+                                        </span>
+                                    </div>
+                                    <div class="font-semibold text-sm truncate">{{ conv.user_name || 'Desconocido' }}</div>
+                                    <div class="text-[var(--text-muted)] text-xs mt-0.5">{{ conv.num_wpp }}</div>
+                                    <div class="text-[var(--accent-color)] text-xs mt-1 font-medium" *ngIf="conv.nombre_agente">{{ conv.nombre_agente }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Message Panel -->
+                        <div class="chat-message-panel">
+
+                            <!-- No conversation selected (desktop only) -->
+                            <div *ngIf="!selectedConversation" class="flex-1 flex flex-col items-center justify-center p-8 bg-[var(--page-bg)]">
+                                <div class="w-20 h-20 rounded-full bg-[var(--hover-bg)] flex items-center justify-center mb-4 text-[var(--text-muted)]">
+                                    <lucide-icon name="message-circle" [size]="40"></lucide-icon>
+                                </div>
+                                <p class="text-[var(--text-muted)] text-sm text-center">Selecciona una conversación para comenzar.</p>
+                            </div>
+
+                            <!-- Active conversation -->
+                            <ng-container *ngIf="selectedConversation">
+
+                                <!-- Chat Header -->
+                                <div class="p-3 md:p-4 border-b border-[var(--border-color)] flex justify-between items-center shrink-0 bg-[var(--card-bg)]">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <!-- Back button (mobile only) -->
+                                        <button class="md:hidden p-1.5 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-muted)] shrink-0 transition-all" (click)="backToConversationList()">
+                                            <lucide-icon name="arrow-left" [size]="20"></lucide-icon>
+                                        </button>
+                                        <div class="w-9 h-9 rounded-full bg-[var(--hover-bg)] flex items-center justify-center shrink-0">
+                                            <lucide-icon name="users" [size]="18" class="text-[var(--text-muted)]"></lucide-icon>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h3 class="font-semibold text-sm leading-tight truncate">{{ selectedConversation.user_name || selectedConversation.num_wpp }}</h3>
+                                            <span class="text-xs text-[var(--text-muted)] capitalize">{{ selectedConversation.plataforma }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 shrink-0 ml-2">
+                                        <button *ngIf="selectedConversation.estado === 'OPEN'"
+                                                class="px-3 py-1.5 bg-[var(--accent-color)] text-white hover:brightness-110 font-medium text-xs rounded-lg transition-all"
+                                                (click)="takeConversation()">
+                                            Tomar
+                                        </button>
+                                        <ng-container *ngIf="selectedConversation.estado === 'ATTENDING'">
+                                            <button class="saas-btn px-3 py-1.5 text-xs font-medium hover:text-yellow-600" (click)="changeState('OPEN')">Soltar</button>
+                                            <button class="saas-btn px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10" (click)="changeState('CLOSE')">Cerrar</button>
+                                        </ng-container>
+                                    </div>
+                                </div>
+
+                                <!-- Messages -->
+                                <div class="flex-1 overflow-y-auto p-4 md:p-5 bg-[var(--page-bg)]" id="chat-messages-container">
+                                    <div *ngIf="messages.length === 0" class="text-center p-6 text-[var(--text-muted)] italic text-sm">
+                                        No hay mensajes en esta conversación.
+                                    </div>
+                                    <div *ngFor="let msg of messages" class="mb-3 flex flex-col"
+                                         [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'items-end' : 'items-start'">
+
+                                        <div class="max-w-[85%] md:max-w-[75%] rounded-2xl p-3 md:p-3.5 text-sm"
+                                             [ngClass]="(msg.envia === idEmpresa.toString() || (selectedConversation && msg.envia === selectedConversation.num_agente)) ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--card-bg)] border border-[var(--border-color)]'">
+
+                                            <ng-container *ngIf="msg.ruta_multimedia">
+                                                <div class="mb-2 overflow-hidden rounded-xl">
+                                                    <img *ngIf="isImage(msg.ruta_multimedia, msg.mensaje)" [src]="getMediaUrl(msg.ruta_multimedia)" alt="Imagen de chat" class="w-full h-auto object-cover max-h-64" />
+                                                    <audio *ngIf="isAudio(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-10">
+                                                        <source [src]="getMediaUrl(msg.ruta_multimedia)">
+                                                    </audio>
+                                                    <video *ngIf="isVideo(msg.ruta_multimedia, msg.mensaje)" controls class="w-full h-auto max-h-48 md:max-h-64">
+                                                        <source [src]="getMediaUrl(msg.ruta_multimedia)">
+                                                    </video>
+                                                    <a *ngIf="!isImage(msg.ruta_multimedia, msg.mensaje) && !isAudio(msg.ruta_multimedia, msg.mensaje) && !isVideo(msg.ruta_multimedia, msg.mensaje)"
+                                                       [href]="getMediaUrl(msg.ruta_multimedia)" target="_blank" class="flex items-center gap-2 underline text-sm">
+                                                        <lucide-icon name="paperclip" [size]="16"></lucide-icon> Archivo Adjunto
+                                                    </a>
+                                                </div>
+                                            </ng-container>
+                                            <div *ngIf="msg.mensaje && (!msg.ruta_multimedia || !msg.mensaje.startsWith('[Archivo Multimedia:'))" class="whitespace-pre-wrap leading-relaxed">
+                                                {{ msg.mensaje }}
+                                            </div>
+                                        </div>
+                                        <div class="text-xs mt-1.5 px-1 opacity-50">
+                                            <span>{{ msg.created_at | date:'shortTime' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Message Input -->
+                                <div class="p-3 md:p-4 border-t border-[var(--border-color)] bg-[var(--card-bg)] shrink-0" *ngIf="selectedConversation.estado === 'ATTENDING'">
+                                    <div class="mb-2 flex items-center gap-2" *ngIf="selectedFile">
+                                        <span class="bg-[var(--hover-bg)] border border-[var(--border-color)] px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                                            <lucide-icon name="paperclip" [size]="14"></lucide-icon> {{ selectedFile.name }}
+                                            <button class="hover:text-red-500 ml-1 font-bold" (click)="removeFile()" [disabled]="isSending">✕</button>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button class="saas-btn p-2.5 rounded-lg hover:text-[var(--accent-color)] shrink-0" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
+                                            <lucide-icon name="paperclip" [size]="18"></lucide-icon>
+                                        </button>
+                                        <input type="file" #fileInput hidden (change)="onFileSelected($event)">
+                                        <input type="text"
+                                               class="flex-1 saas-input py-2.5 px-4 text-sm outline-none"
+                                               placeholder="Escribe un mensaje..."
+                                               [(ngModel)]="newMessageText"
+                                               (keyup.enter)="sendMessage()"
+                                               [disabled]="isSending || selectedFile !== null">
+                                        <button class="p-2.5 rounded-lg bg-[var(--accent-color)] text-white shrink-0 hover:brightness-110 transition-all disabled:opacity-40"
+                                                (click)="sendMessage()"
+                                                [disabled]="(!newMessageText.trim() && !selectedFile) || isSending">
+                                            <lucide-icon [name]="isSending ? 'loader' : 'send'" [size]="18"></lucide-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-4 text-center text-[var(--text-muted)] text-sm bg-[var(--card-bg)] border-t border-[var(--border-color)] shrink-0" *ngIf="selectedConversation.estado !== 'ATTENDING'">
+                                    Debe tomar la conversación para enviar mensajes.
+                                </div>
+                            </ng-container>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+        </ng-container>
+
+        <!-- ── USERS VIEW ── -->
+        <ng-container *ngIf="currentView === 'users' && userTipo === 'admin'">
+            <div class="flex-1 overflow-y-auto p-4 md:p-8">
+                <header class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 border-b border-[var(--border-color)] pb-4">
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold mb-1">Gestión de Usuarios</h1>
+                        <p class="text-[var(--text-muted)] text-sm">Administra los usuarios del sistema y sus accesos.</p>
+                    </div>
+                    <button class="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-semibold text-sm hover:brightness-110 flex items-center gap-2 transition-all w-full sm:w-auto justify-center" (click)="openUserModal()">
+                        <lucide-icon name="users" [size]="16"></lucide-icon> Añadir Usuario
+                    </button>
+                </header>
+
+                <section class="saas-card overflow-x-auto">
                     <table class="w-full saas-table text-sm">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th class="hidden md:table-cell">ID</th>
                                 <th>Nombre</th>
-                                <th>Usuario</th>
+                                <th class="hidden sm:table-cell">Usuario</th>
                                 <th>Tipo</th>
-                                <th>Empresa Asignada</th>
+                                <th class="hidden md:table-cell">Empresa</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let user of usuarios">
-                                <td class="text-[var(--text-muted)]">{{ user.id }}</td>
+                                <td class="text-[var(--text-muted)] hidden md:table-cell">{{ user.id }}</td>
                                 <td class="font-semibold">{{ user.nombre }}</td>
-                                <td>{{ user.usuario }}</td>
+                                <td class="hidden sm:table-cell">{{ user.usuario }}</td>
                                 <td>
                                     <span class="px-2.5 py-1 text-xs font-semibold rounded-full uppercase"
                                           [ngClass]="user.tipo === 'admin' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-600'">
                                         {{ user.tipo }}
                                     </span>
                                 </td>
-                                <td class="text-[var(--text-muted)]">{{ user.nombre_empresa || 'Ninguna (' + user.id_empresa + ')' }}</td>
+                                <td class="text-[var(--text-muted)] hidden md:table-cell">{{ user.nombre_empresa || 'Ninguna' }}</td>
                                 <td>
                                     <button class="saas-btn px-3 py-1.5 text-xs font-semibold text-[var(--accent-color)]" (click)="openUserModal(user)">Editar</button>
                                 </td>
@@ -363,39 +403,39 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </section>
+                </section>
+            </div>
         </ng-container>
 
-        <!-- CLIENTES SECTION -->
+        <!-- ── CLIENTES VIEW ── -->
         <ng-container *ngIf="currentView === 'clientes' && userTipo === 'admin'">
-            <header class="mb-6 flex justify-between items-end border-b border-[var(--border-color)] pb-4">
-                <div>
-                    <h1 class="text-2xl font-bold mb-1">Configuración de Clientes</h1>
-                    <p class="text-[var(--text-muted)] text-sm">Administra las empresas clientes y sus integraciones (Meta, OpenAI, etc).</p>
-                </div>
-                <button class="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-semibold text-sm hover:brightness-110 flex items-center gap-2 transition-all" (click)="openClienteModal()">
-                    <lucide-icon name="settings" [size]="16"></lucide-icon> Registrar Cliente
-                </button>
-            </header>
+            <div class="flex-1 overflow-y-auto p-4 md:p-8">
+                <header class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 border-b border-[var(--border-color)] pb-4">
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold mb-1">Configuración de Clientes</h1>
+                        <p class="text-[var(--text-muted)] text-sm">Administra las empresas clientes y sus integraciones.</p>
+                    </div>
+                    <button class="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-semibold text-sm hover:brightness-110 flex items-center gap-2 transition-all w-full sm:w-auto justify-center" (click)="openClienteModal()">
+                        <lucide-icon name="settings" [size]="16"></lucide-icon> Registrar Cliente
+                    </button>
+                </header>
 
-            <section class="saas-card p-6">
-                <div class="overflow-x-auto">
+                <section class="saas-card overflow-x-auto">
                     <table class="w-full saas-table text-sm">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th class="hidden md:table-cell">ID</th>
                                 <th>Empresa</th>
-                                <th>Teléfono</th>
+                                <th class="hidden sm:table-cell">Teléfono</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let cliente of clientes">
-                                <td class="text-[var(--text-muted)]">{{ cliente.id }}</td>
+                                <td class="text-[var(--text-muted)] hidden md:table-cell">{{ cliente.id }}</td>
                                 <td class="font-semibold">{{ cliente.nombre_empresa }}</td>
-                                <td class="text-[var(--text-muted)]">{{ cliente.numero_celular || 'N/A' }}</td>
+                                <td class="text-[var(--text-muted)] hidden sm:table-cell">{{ cliente.numero_celular || 'N/A' }}</td>
                                 <td>
                                     <span class="px-2.5 py-1 text-xs font-semibold rounded-full uppercase"
                                           [ngClass]="cliente.estado === 1 ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-500'">
@@ -403,7 +443,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="saas-btn px-3 py-1.5 text-xs font-semibold" (click)="openClienteModal(cliente)">Configurar</button>
+                                    <button class="saas-btn px-3 py-1.5 text-xs font-semibold" (click)="openClienteModal(cliente)">Config.</button>
                                 </td>
                             </tr>
                             <tr *ngIf="clientes.length === 0">
@@ -411,16 +451,17 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </section>
+                </section>
+            </div>
         </ng-container>
+
     </main>
 
-    <!-- Overlays & Modals -->
+    <!-- ── MODALS ── -->
 
     <!-- User Modal -->
     <div *ngIf="showUserModal" class="fixed inset-0 saas-modal-backdrop flex justify-center items-center z-50 p-4">
-        <div class="saas-card bg-[var(--card-bg)] p-7 w-full max-w-md animate-fade-in">
+        <div class="saas-card bg-[var(--card-bg)] p-6 md:p-7 w-full max-w-md animate-fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold">{{ editingUserId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
                 <button class="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-all text-[var(--text-muted)]" (click)="closeUserModal()">
@@ -451,7 +492,7 @@
                     </select>
                 </div>
                 <div *ngIf="userForm.tipo !== 'admin'">
-                    <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Empresa (Cliente Comercial)</label>
+                    <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Empresa</label>
                     <select [(ngModel)]="userForm.id_empresa" class="saas-input w-full py-2.5 px-3 outline-none appearance-none">
                         <option *ngFor="let emp of empresas" [value]="emp.id">{{ emp.nombre_empresa }}</option>
                     </select>
@@ -466,16 +507,16 @@
 
     <!-- Cliente Modal -->
     <div *ngIf="showClienteModal" class="fixed inset-0 saas-modal-backdrop flex justify-center items-center z-50 p-4">
-        <div class="saas-card bg-[var(--card-bg)] p-7 w-full max-w-5xl h-[90vh] flex flex-col animate-fade-in relative z-50">
+        <div class="saas-card bg-[var(--card-bg)] p-6 md:p-7 w-full max-w-5xl h-[95vh] md:h-[90vh] flex flex-col animate-fade-in">
             <div class="flex justify-between items-center mb-6 shrink-0">
-                <h2 class="text-xl font-bold">{{ editingClienteId ? 'Configuración Avanzada de Cliente' : 'Empadronar Cliente' }}</h2>
+                <h2 class="text-lg md:text-xl font-bold">{{ editingClienteId ? 'Configuración de Cliente' : 'Empadronar Cliente' }}</h2>
                 <button class="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-all text-[var(--text-muted)]" (click)="closeClienteModal()">
                     <lucide-icon name="x" [size]="18"></lucide-icon>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="flex-1 overflow-y-auto pr-1 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Empresa</label>
                         <input type="text" [(ngModel)]="clienteForm.nombre_empresa" class="saas-input w-full py-2.5 px-3 outline-none" placeholder="Ej: Acme Corp">
@@ -486,18 +527,18 @@
                     </div>
                 </div>
 
-                <div class="border border-[var(--border-color)] rounded-xl p-5 bg-[var(--page-bg)]">
+                <div class="border border-[var(--border-color)] rounded-xl p-4 md:p-5 bg-[var(--page-bg)]">
                     <h3 class="font-semibold mb-4 text-sm flex items-center gap-2 text-[var(--accent-color)]">
                         <lucide-icon name="layout-dashboard" [size]="15"></lucide-icon> Credenciales Redes Sociales
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Token Meta (WhatsApp)</label>
+                            <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Token Meta (WA)</label>
                             <input [type]="visibleFields['id_meta'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_meta" class="saas-input w-full py-2.5 px-3 outline-none text-sm" placeholder="Token Meta">
                             <button class="text-xs text-[var(--accent-color)] mt-1 hover:underline" (click)="toggleVisibility('id_meta')">Ver/Ocultar</button>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">ID Facebook (Página)</label>
+                            <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">ID Facebook</label>
                             <input [type]="visibleFields['fb_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.fb_id" class="saas-input w-full py-2.5 px-3 outline-none text-sm" placeholder="ID fb">
                             <button class="text-xs text-[var(--accent-color)] mt-1 hover:underline" (click)="toggleVisibility('fb_id')">Ver/Ocultar</button>
                         </div>
@@ -509,13 +550,13 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Token OpenAI</label>
                         <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="saas-input w-full py-2.5 px-3 outline-none" placeholder="sk-...">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Línea Móvil Bot (WPP)</label>
+                        <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Línea Móvil Bot (WA)</label>
                         <input type="text" [(ngModel)]="clienteForm.numero_celular" class="saas-input w-full py-2.5 px-3 outline-none" placeholder="Ej: 57300...">
                     </div>
                     <div>
@@ -533,13 +574,12 @@
                     <div class="flex justify-between items-end mb-4">
                         <div>
                             <h3 class="font-semibold text-sm">Reglas de Notificación Interna</h3>
-                            <p class="text-xs text-[var(--text-muted)] mt-0.5">Contactos que el Bot alertará durante escalar asesores.</p>
+                            <p class="text-xs text-[var(--text-muted)] mt-0.5">Contactos que el Bot alertará al escalar asesores.</p>
                         </div>
                         <button class="saas-btn px-3 py-1.5 text-xs font-semibold flex items-center gap-1" (click)="addNotification()">
                             <lucide-icon name="users" [size]="13"></lucide-icon> Añadir
                         </button>
                     </div>
-
                     <div class="space-y-3">
                         <div *ngFor="let noti of clienteForm.notificaciones; let i = index" class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--page-bg)] flex flex-col gap-3">
                             <div class="flex justify-between items-center pb-2 border-b border-[var(--border-color)]">
@@ -550,7 +590,7 @@
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div><input type="text" [(ngModel)]="noti.nombre" class="saas-input w-full py-2 px-3 text-sm outline-none" placeholder="Nombre"></div>
-                                <div><input type="text" [(ngModel)]="noti.descripcion" class="saas-input w-full py-2 px-3 text-sm outline-none" placeholder="Evento. Ej: Ventas"></div>
+                                <div><input type="text" [(ngModel)]="noti.descripcion" class="saas-input w-full py-2 px-3 text-sm outline-none" placeholder="Evento"></div>
                                 <div><input type="email" [(ngModel)]="noti.correo" class="saas-input w-full py-2 px-3 text-sm outline-none" placeholder="Correo"></div>
                                 <div><input type="text" [(ngModel)]="noti.telefono" class="saas-input w-full py-2 px-3 text-sm outline-none" placeholder="Tel (+57...)"></div>
                             </div>
@@ -560,7 +600,7 @@
             </div>
 
             <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-[var(--border-color)] shrink-0">
-                <button class="saas-btn px-5 py-2.5 font-medium text-sm" (click)="closeClienteModal()">Descartar Cambios</button>
+                <button class="saas-btn px-5 py-2.5 font-medium text-sm" (click)="closeClienteModal()">Descartar</button>
                 <button class="px-6 py-2.5 rounded-lg font-semibold text-sm bg-[var(--accent-color)] text-white hover:brightness-110 transition-all" (click)="saveCliente()">Guardar Integración</button>
             </div>
         </div>
@@ -573,14 +613,13 @@
                 <lucide-icon name="key-round" [size]="24"></lucide-icon>
             </div>
             <h2 class="text-lg font-bold mb-1">Renovar Credencial</h2>
-            <p class="text-sm text-[var(--text-muted)] mb-6">Ingresa una nueva contraseña segura para tu usuario administrador principal.</p>
-
+            <p class="text-sm text-[var(--text-muted)] mb-6">Ingresa una nueva contraseña para tu usuario administrador.</p>
             <input type="password" [(ngModel)]="newAdminPassword" class="saas-input w-full py-3 px-4 text-center tracking-widest mb-6 outline-none" placeholder="••••••••">
-
             <div class="flex justify-center gap-3">
                 <button class="saas-btn px-5 py-2.5 font-medium text-sm" (click)="closePasswordModal()">Cancelar</button>
                 <button class="px-5 py-2.5 rounded-lg font-semibold text-sm bg-[var(--accent-color)] text-white hover:brightness-110 transition-all disabled:opacity-50" [disabled]="!newAdminPassword.trim()" (click)="saveAdminPassword()">Actualizar y Salir</button>
             </div>
         </div>
     </div>
+
 </div>
