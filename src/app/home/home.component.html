@@ -1,52 +1,72 @@
 <div class="flex h-screen bg-[var(--page-bg)] text-[var(--text-color)] transition-colors duration-200 font-sans overflow-hidden">
 
     <!-- Sidebar / Navigation -->
-    <aside class="w-64 flex-shrink-0 flex flex-col justify-between py-6 px-3 bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] h-screen z-20">
+    <aside [ngClass]="isSidebarCollapsed ? 'w-16 px-2' : 'w-64 px-3'"
+           class="flex-shrink-0 flex flex-col justify-between py-6 bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] h-screen z-20 transition-all duration-200 overflow-hidden">
+
         <!-- Logo Area -->
-        <div class="flex items-center gap-3 mb-8 px-2">
+        <div class="flex items-center mb-8" [ngClass]="isSidebarCollapsed ? 'flex-col gap-2' : 'gap-3'">
             <div class="p-2 bg-[var(--accent-soft)] rounded-lg shrink-0 text-[var(--accent-color)]">
                 <lucide-icon name="layout-dashboard" [size]="22"></lucide-icon>
             </div>
-            <h2 class="text-base font-bold tracking-tight text-[var(--text-color)] flex-1 overflow-hidden whitespace-nowrap">CRM Kodi</h2>
+            <span *ngIf="!isSidebarCollapsed" class="text-base font-bold tracking-tight text-[var(--text-color)] flex-1 overflow-hidden whitespace-nowrap">CRM Kodi</span>
+            <button (click)="toggleSidebar()"
+                    class="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-muted)] transition-all shrink-0"
+                    [ngClass]="isSidebarCollapsed ? '' : 'ml-auto'"
+                    [title]="isSidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'">
+                <lucide-icon [name]="isSidebarCollapsed ? 'chevrons-right' : 'chevrons-left'" [size]="15"></lucide-icon>
+            </button>
         </div>
 
         <!-- Navigation Links -->
         <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
             <button (click)="setView('dashboard')"
-                    [ngClass]="currentView === 'dashboard' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]'"
-                    class="flex items-center gap-3 px-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full">
-                <lucide-icon name="message-circle" [size]="18"></lucide-icon>
-                <span>Dashboard & Chat</span>
+                    [ngClass]="[currentView === 'dashboard' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
+                    [title]="isSidebarCollapsed ? 'Dashboard & Chat' : ''">
+                <lucide-icon name="message-circle" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Dashboard & Chat</span>
             </button>
 
             <button *ngIf="userTipo === 'admin'" (click)="setView('clientes')"
-                    [ngClass]="currentView === 'clientes' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]'"
-                    class="flex items-center gap-3 px-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full">
-                <lucide-icon name="settings" [size]="18"></lucide-icon>
-                <span>Config. Clientes</span>
+                    [ngClass]="[currentView === 'clientes' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
+                    [title]="isSidebarCollapsed ? 'Config. Clientes' : ''">
+                <lucide-icon name="settings" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Config. Clientes</span>
             </button>
 
             <button *ngIf="userTipo === 'admin'" (click)="setView('users')"
-                    [ngClass]="currentView === 'users' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]'"
-                    class="flex items-center gap-3 px-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full">
-                <lucide-icon name="users" [size]="18"></lucide-icon>
-                <span>Gestión Usuarios</span>
+                    [ngClass]="[currentView === 'users' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]', isSidebarCollapsed ? 'justify-center px-0' : 'px-3']"
+                    class="flex items-center gap-3 py-2.5 text-left font-medium text-sm transition-all rounded-lg w-full"
+                    [title]="isSidebarCollapsed ? 'Gestión Usuarios' : ''">
+                <lucide-icon name="users" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Gestión Usuarios</span>
             </button>
         </nav>
 
         <!-- Bottom Actions -->
         <div class="flex flex-col gap-1 pt-4 mt-4 border-t border-[var(--border-color)]">
-            <button (click)="toggleTheme()" class="flex items-center gap-3 px-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]">
-                <lucide-icon [name]="isDarkMode ? 'sun' : 'moon'" [size]="18"></lucide-icon>
-                {{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}
+            <button (click)="toggleTheme()"
+                    class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]"
+                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isSidebarCollapsed ? (isDarkMode ? 'Modo Claro' : 'Modo Oscuro') : ''">
+                <lucide-icon [name]="isDarkMode ? 'sun' : 'moon'" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">{{ isDarkMode ? 'Modo Claro' : 'Modo Oscuro' }}</span>
             </button>
-            <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()" class="flex items-center gap-3 px-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]">
-                <lucide-icon name="key-round" [size]="18"></lucide-icon>
-                Contraseña
+            <button *ngIf="userTipo === 'admin'" (click)="openPasswordModal()"
+                    class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]"
+                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isSidebarCollapsed ? 'Contraseña' : ''">
+                <lucide-icon name="key-round" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Contraseña</span>
             </button>
-            <button (click)="logout()" class="flex items-center gap-3 px-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-red-500 hover:bg-red-500/10">
-                <lucide-icon name="log-out" [size]="18"></lucide-icon>
-                Cerrar Sesión
+            <button (click)="logout()"
+                    class="flex items-center gap-3 py-2.5 font-medium text-sm transition-all rounded-lg w-full text-red-500 hover:bg-red-500/10"
+                    [ngClass]="isSidebarCollapsed ? 'justify-center px-0' : 'px-3'"
+                    [title]="isSidebarCollapsed ? 'Cerrar Sesión' : ''">
+                <lucide-icon name="log-out" [size]="18" class="shrink-0"></lucide-icon>
+                <span *ngIf="!isSidebarCollapsed">Cerrar Sesión</span>
             </button>
         </div>
     </aside>

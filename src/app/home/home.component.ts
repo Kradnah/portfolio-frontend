@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -33,6 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     // UI State
     isDarkMode: boolean = false;
     isMobileMenuOpen: boolean = false;
+    isSidebarCollapsed: boolean = false;
 
     toggleTheme() {
         this.isDarkMode = !this.isDarkMode;
@@ -47,6 +48,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     toggleMobileMenu() {
         this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    }
+
+    toggleSidebar() {
+        this.isSidebarCollapsed = !this.isSidebarCollapsed;
+        localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed.toString());
     }
 
     // User management data
@@ -119,6 +125,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.userTipo === 'admin') {
             this.loadUsers();
             this.loadEmpresas();
+        }
+
+        // Initialize Sidebar state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            this.isSidebarCollapsed = true;
         }
 
         // Initialize Theme from localStorage
