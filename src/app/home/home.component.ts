@@ -544,12 +544,12 @@ export class HomeComponent implements OnInit, OnDestroy {
                 nombre_empresa: cliente.nombre_empresa,
                 responsable: cliente.responsable || '',
                 id_meta: this.cryptoService.decrypt(cliente.id_meta || ''),
-                fb_id: this.cryptoService.decrypt(cliente.fb_id || ''),
-                ig_id: this.cryptoService.decrypt(cliente.ig_id || ''),
+                fb_id: cliente.fb_id || '',
+                ig_id: cliente.ig_id || '',
                 id_tiktok: this.cryptoService.decrypt(cliente.id_tiktok || ''),
                 id_openAI: this.cryptoService.decrypt(cliente.id_openAI || ''),
                 prompt_id: this.cryptoService.decrypt(cliente.prompt_id || ''),
-                numero_celular: this.cryptoService.decrypt(cliente.numero_celular || ''),
+                numero_celular: cliente.numero_celular || '',
                 estado: cliente.estado,
                 notificaciones: notif
             };
@@ -589,8 +589,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     saveCliente() {
         const dataToSave = { ...this.clienteForm };
         dataToSave.notificaciones = this.cryptoService.encryptNotifications(dataToSave.notificaciones);
-        // Encriptar todos los campos sensibles (credenciales/tokens)
-        const sensitiveFields = ['id_meta', 'fb_id', 'ig_id', 'id_tiktok', 'id_openAI', 'prompt_id', 'numero_celular'];
+        // Encriptar solo campos sensibles que NO se usan como claves de relación en vistas SQL
+        // NO encriptar: numero_celular, fb_id, ig_id (se usan en JOINs de vistas del dashboard)
+        const sensitiveFields = ['id_meta', 'id_tiktok', 'id_openAI', 'prompt_id'];
         for (const field of sensitiveFields) {
             if (dataToSave[field]) {
                 dataToSave[field] = this.cryptoService.encrypt(dataToSave[field]);
