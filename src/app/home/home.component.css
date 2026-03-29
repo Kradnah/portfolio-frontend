@@ -1,39 +1,42 @@
-/* Archivo CSS de HomeComponent simplificado. 
-   La mayor parte del diseño ahora utiliza Tailwind CSS y utilidades Neumorphism globales en styles.css.
-*/
-
-/* Personalización del Scrollbar para que luzca limpio */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted); 
-  border-radius: 4px;
+  background: var(--border-color);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color); 
+  background: var(--text-muted);
 }
 
-/* Modales Neumorphism Background */
-.neo-modal-backdrop {
-  background: rgba(0, 0, 0, 0.4);
+/* Modal Backdrop */
+.saas-modal-backdrop {
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
 
-/* Tablas Responsivas limpias */
-.neo-table th, .neo-table td {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(150, 150, 150, 0.2);
+/* Tables */
+.saas-table th,
+.saas-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
-.neo-table th {
+.saas-table th {
   text-align: left;
   font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
 }
-.neo-table tbody tr:hover {
-  background: rgba(150, 150, 150, 0.1);
+.saas-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.saas-table tbody tr:hover {
+  background-color: var(--hover-bg);
 }
