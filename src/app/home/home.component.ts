@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -63,6 +63,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.isSidebarCollapsed = !this.isSidebarCollapsed;
             localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed.toString());
         }
+        this.cdr.detectChanges();
     }
 
     toggleMobileSidebar() {

@@ -54,6 +54,32 @@
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
+
+  /* Collapse nav/bottom buttons: center icons, remove padding */
+  .sidebar-base.collapsed nav button,
+  .sidebar-base.collapsed .sidebar-bottom button {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Hide text labels smoothly */
+  .sidebar-base.collapsed .sidebar-label {
+    max-width: 0;
+    opacity: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+}
+
+/* Sidebar label: animated width + opacity transition */
+.sidebar-label {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+  opacity: 1;
+  flex-shrink: 0;
+  transition: max-width 0.2s ease, opacity 0.15s ease, margin 0.2s ease;
 }
 
 /* ── Chat Panels (mobile: one at a time, desktop: side by side) ── */
