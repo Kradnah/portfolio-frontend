@@ -123,6 +123,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         ig_id: '',
         id_tiktok: '',
         id_openAI: '',
+        prompt_id: '',
         numero_celular: '',
         estado: 1,
         notificaciones: []
@@ -542,12 +543,13 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.clienteForm = {
                 nombre_empresa: cliente.nombre_empresa,
                 responsable: cliente.responsable || '',
-                id_meta: cliente.id_meta || '',
-                fb_id: cliente.fb_id || '',
-                ig_id: cliente.ig_id || '',
-                id_tiktok: cliente.id_tiktok || '',
-                id_openAI: cliente.id_openAI || '',
-                numero_celular: cliente.numero_celular || '',
+                id_meta: this.cryptoService.decrypt(cliente.id_meta || ''),
+                fb_id: this.cryptoService.decrypt(cliente.fb_id || ''),
+                ig_id: this.cryptoService.decrypt(cliente.ig_id || ''),
+                id_tiktok: this.cryptoService.decrypt(cliente.id_tiktok || ''),
+                id_openAI: this.cryptoService.decrypt(cliente.id_openAI || ''),
+                prompt_id: this.cryptoService.decrypt(cliente.prompt_id || ''),
+                numero_celular: this.cryptoService.decrypt(cliente.numero_celular || ''),
                 estado: cliente.estado,
                 notificaciones: notif
             };
@@ -561,6 +563,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                 ig_id: '',
                 id_tiktok: '',
                 id_openAI: '',
+                prompt_id: '',
                 numero_celular: '',
                 estado: 1,
                 notificaciones: []
@@ -586,7 +589,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     saveCliente() {
         const dataToSave = { ...this.clienteForm };
         dataToSave.notificaciones = this.cryptoService.encryptNotifications(dataToSave.notificaciones);
-
+        // Encriptar todos los campos sensibles (credenciales/tokens)
+        const sensitiveFields = ['id_meta', 'fb_id', 'ig_id', 'id_tiktok', 'id_openAI', 'prompt_id', 'numero_celular'];
+        for (const field of sensitiveFields) {
+            if (dataToSave[field]) {
+                dataToSave[field] = this.cryptoService.encrypt(dataToSave[field]);
+            }
+        }
         if (this.editingClienteId) {
             this.clientesService.updateCliente(this.editingClienteId, dataToSave).subscribe({
                 next: () => {

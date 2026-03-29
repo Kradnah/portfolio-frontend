@@ -547,11 +547,20 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Token OpenAI</label>
-                        <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="saas-input w-full py-2.5 px-3 outline-none" placeholder="sk-...">
+                        <input [type]="visibleFields['id_openAI'] ? 'text' : 'password'" [(ngModel)]="clienteForm.id_openAI" class="saas-input w-full py-2.5 px-3 outline-none text-sm" placeholder="sk-...">
+                        <button class="text-xs text-[var(--accent-color)] mt-1 hover:underline" (click)="toggleVisibility('id_openAI')">Ver/Ocultar</button>
                     </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Prompt ID (Asistente IA)</label>
+                        <input [type]="visibleFields['prompt_id'] ? 'text' : 'password'" [(ngModel)]="clienteForm.prompt_id" class="saas-input w-full py-2.5 px-3 outline-none text-sm" placeholder="asst_...">
+                        <button class="text-xs text-[var(--accent-color)] mt-1 hover:underline" (click)="toggleVisibility('prompt_id')">Ver/Ocultar</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)] uppercase tracking-wider">Línea Móvil Bot (WA)</label>
                         <input type="text" [(ngModel)]="clienteForm.numero_celular" class="saas-input w-full py-2.5 px-3 outline-none" placeholder="Ej: 57300...">
