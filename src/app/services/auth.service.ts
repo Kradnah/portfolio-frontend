@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 
 @Injectable({
     providedIn: 'root'
@@ -11,6 +11,8 @@ export class AuthService {
     private router = inject(Router);
     private backendUrl = 'https://api.kodizof.com/auth';
     private autoLogoutTimer: any;
+
+    readonly sessionExpired$ = new Subject<string>();
 
     constructor() {
         if (this.isLoggedIn()) {
@@ -50,8 +52,7 @@ export class AuthService {
             if (timeUntilLogout > 0) {
                 if (this.autoLogoutTimer) clearTimeout(this.autoLogoutTimer);
                 this.autoLogoutTimer = setTimeout(() => {
-                    alert('Tu sesión ha expirado por seguridad (45 mins). Por favor, inicia sesión nuevamente para continuar enviado mensajes al CRM.');
-                    this.logout();
+                    this.sessionExpired$.next('Tu sesión ha expirado por seguridad (45 min). Por favor, inicia sesión nuevamente.');
                 }, timeUntilLogout);
             } else {
                 // Ya pasaron 45 min desde que se creó el token
@@ -61,8 +62,7 @@ export class AuthService {
             // Fallback genérico a 45 minutos desde que carga la página
             if (this.autoLogoutTimer) clearTimeout(this.autoLogoutTimer);
             this.autoLogoutTimer = setTimeout(() => {
-                alert('Tu sesión ha expirado por seguridad (45 mins). Por favor, inicia sesión nuevamente.');
-                this.logout();
+                this.sessionExpired$.next('Tu sesión ha expirado por seguridad (45 min). Por favor, inicia sesión nuevamente.');
             }, logoutDuration);
         }
     }

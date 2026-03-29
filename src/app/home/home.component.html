@@ -603,6 +603,26 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 items-end pointer-events-none">
+        <div *ngFor="let toast of toasts"
+             class="pointer-events-auto flex items-start gap-3 px-4 py-3.5 rounded-xl border shadow-lg text-sm font-medium max-w-sm w-full animate-fade-in"
+             [ngClass]="{
+                'bg-white border-green-200 text-green-800 dark:bg-[#1e293b] dark:border-green-800 dark:text-green-300': toast.type === 'success',
+                'bg-white border-red-200 text-red-700 dark:bg-[#1e293b] dark:border-red-800 dark:text-red-300': toast.type === 'error',
+                'bg-white border-amber-200 text-amber-800 dark:bg-[#1e293b] dark:border-amber-700 dark:text-amber-300': toast.type === 'warning'
+             }">
+            <lucide-icon
+                [name]="toast.type === 'success' ? 'check-circle' : toast.type === 'error' ? 'x-circle' : 'alert-triangle'"
+                [size]="18"
+                class="shrink-0 mt-0.5"></lucide-icon>
+            <span class="flex-1 leading-snug">{{ toast.message }}</span>
+            <button (click)="dismissToast(toast.id)" class="shrink-0 opacity-50 hover:opacity-100 transition-opacity ml-1">
+                <lucide-icon name="x" [size]="14"></lucide-icon>
+            </button>
+        </div>
+    </div>
+
     <!-- Password Modal -->
     <div *ngIf="showPasswordModal" class="fixed inset-0 saas-modal-backdrop flex justify-center items-center z-50 p-4">
         <div class="saas-card bg-[var(--card-bg)] p-7 w-full max-w-sm animate-fade-in text-center">

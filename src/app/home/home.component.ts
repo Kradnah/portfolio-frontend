@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -36,6 +36,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     isSidebarCollapsed: boolean = false;
     isMobileSidebarOpen: boolean = false;
     showMobileConversationList: boolean = true;
+
+    // Toast notifications
+    toasts: { id: number; message: string; type: 'success' | 'error' | 'warning' }[] = [];
+    private toastCounter = 0;
+
+    showToast(message: string, type: 'success' | 'error' | 'warning' = 'success', duration = 4000) {
+        const id = ++this.toastCounter;
+        this.toasts.push({ id, message, type });
+        this.cdr.detectChanges();
+        setTimeout(() => this.dismissToast(id), duration);
+    }
+
+    dismissToast(id: number) {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.cdr.detectChanges();
+    }
 
     get isCollapsed(): boolean {
         return this.isSidebarCollapsed && !this.isMobileSidebarOpen;
@@ -134,6 +150,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     messages: Message[] = [];
     wsSubscription: Subscription | null = null;
     dashboardWsSubscription: Subscription | null = null;
+    sessionExpiredSubscription: Subscription | null = null;
     refreshInterval: any;
     newMessageText: string = '';
     isSending: boolean = false;
@@ -174,6 +191,12 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.loadConversations();
             this.cdr.detectChanges();
         }, 1000);
+
+        // Suscribirse a sesión expirada
+        this.sessionExpiredSubscription = this.authService.sessionExpired$.subscribe(msg => {
+            this.showToast(msg, 'warning', 5000);
+            setTimeout(() => this.authService.logout(), 5000);
+        });
 
         // Suscribirse al WebSocket del Dashboard para actualizaciones en tiempo real
         this.chatService.connectToDashboard();
@@ -226,6 +249,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
         if (this.dashboardWsSubscription) {
             this.dashboardWsSubscription.unsubscribe();
+        }
+        if (this.sessionExpiredSubscription) {
+            this.sessionExpiredSubscription.unsubscribe();
         }
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
@@ -596,13 +622,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (userInfo && userInfo.sub) {
             this.userService.updateUser(userInfo.sub, { password: this.newAdminPassword }).subscribe({
                 next: () => {
-                    alert('Contraseña actualizada exitosamente. Por favor, inicia sesión de nuevo.');
                     this.closePasswordModal();
-                    this.logout();
+                    this.showToast('Contraseña actualizada. Cerrando sesión...', 'success', 3000);
+                    setTimeout(() => this.logout(), 3000);
                 },
                 error: (err) => {
                     console.error("Error updating password", err);
-                    alert('Error al actualizar la contraseña');
+                    this.showToast('Error al actualizar la contraseña', 'error');
                 }
             });
         }
