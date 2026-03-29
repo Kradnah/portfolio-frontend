@@ -11,24 +11,15 @@
            [class.collapsed]="isCollapsed">
 
         <!-- Logo + Toggle -->
-        <div class="flex items-center gap-3 mb-8">
+        <div class="sidebar-logo-row flex items-center gap-3 mb-8">
             <div class="p-2 bg-[var(--accent-soft)] rounded-lg shrink-0 text-[var(--accent-color)]">
                 <lucide-icon name="layout-dashboard" [size]="22"></lucide-icon>
             </div>
             <span class="sidebar-label text-base font-bold tracking-tight text-[var(--text-color)]">CRM Kodi</span>
-
-            <!-- Expanded: labeled button -->
-            <button *ngIf="!isCollapsed" (click)="toggleSidebar()"
-                    class="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-color)]/40 hover:text-[var(--accent-color)] text-[var(--text-muted)] text-xs font-semibold transition-all shrink-0"
-                    title="Colapsar sidebar">
-                <span>Colapsar</span>
-                <lucide-icon name="chevrons-left" [size]="13"></lucide-icon>
-            </button>
-            <!-- Collapsed: icon-only button -->
-            <button *ngIf="isCollapsed" (click)="toggleSidebar()"
-                    class="mx-auto p-2 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-color)]/40 hover:text-[var(--accent-color)] text-[var(--text-muted)] transition-all"
-                    title="Expandir sidebar">
-                <lucide-icon name="chevrons-right" [size]="18"></lucide-icon>
+            <button (click)="toggleSidebar()"
+                    class="sidebar-toggle ml-auto p-2 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-color)]/40 hover:text-[var(--accent-color)] text-[var(--text-muted)] transition-all shrink-0"
+                    [title]="isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'">
+                <lucide-icon [name]="isCollapsed ? 'chevrons-right' : 'chevrons-left'" [size]="18"></lucide-icon>
             </button>
         </div>
 
