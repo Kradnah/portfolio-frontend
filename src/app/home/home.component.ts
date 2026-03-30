@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -156,6 +156,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     newMessageText: string = '';
     isSending: boolean = false;
     selectedFile: File | null = null;
+
+    // User Info Panel
+    showUserInfoPanel: boolean = false;
+    isEditingUserInfo: boolean = false;
+    isSavingUserInfo: boolean = false;
+    userInfoData: { user_name: string; data_recordar: any } = { user_name: '', data_recordar: {} };
+    editUserName: string = '';
+    editDataRecordar: { interes: string; objetivo: string; ubicacion: string; notas: string } = { interes: '', objetivo: '', ubicacion: '', notas: '' };
 
     ngOnInit() {
         const userInfo = this.authService.getCurrentUser();
@@ -310,6 +318,80 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         // Conectar WebSocket siempre que se seleccione una conversación
         this.chatService.connectToConversation(conv.id);
+
+        // Cargar datos del usuario
+        this.loadUserData(conv.id);
+    }
+
+    loadUserData(convId: number) {
+        this.showUserInfoPanel = false;
+        this.isEditingUserInfo = false;
+        this.chatService.getUserData(convId).subscribe({
+            next: (data) => {
+                this.userInfoData = {
+                    user_name: data.user_name || '',
+                    data_recordar: data.data_recordar || {}
+                };
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Error loading user data', err)
+        });
+    }
+
+    toggleUserInfoPanel() {
+        this.showUserInfoPanel = !this.showUserInfoPanel;
+        if (this.showUserInfoPanel) {
+            this.isEditingUserInfo = false;
+        }
+    }
+
+    startEditingUserInfo() {
+        this.isEditingUserInfo = true;
+        this.editUserName = this.userInfoData.user_name;
+        const dr = this.userInfoData.data_recordar || {};
+        this.editDataRecordar = {
+            interes: dr.interes || '',
+            objetivo: dr.objetivo || '',
+            ubicacion: dr.ubicacion || '',
+            notas: dr.notas || ''
+        };
+    }
+
+    cancelEditingUserInfo() {
+        this.isEditingUserInfo = false;
+    }
+
+    saveUserInfo() {
+        if (!this.selectedConversation || this.isSavingUserInfo) return;
+        this.isSavingUserInfo = true;
+        const payload = {
+            user_name: this.editUserName.trim(),
+            data_recordar: { ...this.userInfoData.data_recordar, ...this.editDataRecordar }
+        };
+        this.chatService.updateUserData(this.selectedConversation.id, payload).subscribe({
+            next: () => {
+                this.userInfoData.user_name = payload.user_name;
+                this.userInfoData.data_recordar = payload.data_recordar;
+                this.isEditingUserInfo = false;
+                this.isSavingUserInfo = false;
+                this.showToast('Información del usuario actualizada', 'success');
+                this.loadConversations();
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error saving user data', err);
+                this.isSavingUserInfo = false;
+                this.showToast('Error al guardar la información', 'error');
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    getUserInfoEntries(): { key: string; value: string }[] {
+        const dr = this.userInfoData.data_recordar || {};
+        return Object.entries(dr)
+            .filter(([_, v]) => v)
+            .map(([k, v]) => ({ key: k, value: String(v) }));
     }
 
     takeConversation() {
