@@ -8,7 +8,8 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader, Smile } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader, Smile, FileText, Search, Plus, Trash2, Image, Film, FileCheck } from 'lucide-angular';
+import { PlantillasService, Plantilla } from '../services/plantillas.service';
 
 @Component({
     selector: 'app-home',
@@ -24,11 +25,33 @@ export class HomeComponent implements OnInit, OnDestroy {
     userService = inject(UserService);
     clientesService = inject(ClientesService);
     cryptoService = inject(CryptoService);
+    plantillasService = inject(PlantillasService);
     private cdr = inject(ChangeDetectorRef);
 
     // User Roles and Views
     userTipo: string = 'vendedor';
-    currentView: 'dashboard' | 'chat' | 'users' | 'clientes' = 'dashboard';
+    currentView: 'dashboard' | 'chat' | 'users' | 'clientes' | 'plantillas' = 'dashboard';
+
+    // Plantillas management
+    plantillas: Plantilla[] = [];
+    showPlantillaModal: boolean = false;
+    editingPlantillaId: number | null = null;
+    plantillaForm: any = { nombre: '', descripcion: '', mensaje_final: '', id_cliente: null, estado: 1 };
+    plantillaFile: File | null = null;
+    plantillaFilePreviewUrl: string | null = null;
+    plantillaRemoveFile: boolean = false;
+
+    // Template picker (chat)
+    showTemplatePicker: boolean = false;
+    templateSearch: string = '';
+    activeTemplates: Plantilla[] = [];
+    filteredTemplates: Plantilla[] = [];
+    selectedTemplateMediaUrl: string | null = null;
+    selectedTemplateMediaType: string | null = null;
+
+    // File preview (chat input)
+    selectedFilePreviewUrl: string | null = null;
+    selectedFileType: 'image' | 'video' | 'other' | null = null;
 
     // UI State
     isDarkMode: boolean = false;
@@ -452,17 +475,37 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     sendMessage() {
         if (!this.selectedConversation || this.isSending) return;
-        if (!this.newMessageText.trim() && !this.selectedFile) return;
-        
+        if (!this.newMessageText.trim() && !this.selectedFile && !this.selectedTemplateMediaUrl) return;
+
         this.showEmojiPicker = false;
+        this.showTemplatePicker = false;
         this.isSending = true;
-        
-        if (this.selectedFile) {
-            // Send Media
+
+        if (this.selectedTemplateMediaUrl) {
+            // Send template (media URL + texto como caption)
+            const text = this.newMessageText.trim();
+            const mediaUrl = this.selectedTemplateMediaUrl;
+            const mediaType = this.selectedTemplateMediaType || 'image/jpeg';
+            this.newMessageText = '';
+            this.clearTemplate();
+
+            this.chatService.sendTemplateMessage(this.selectedConversation.id, text, mediaUrl, mediaType).subscribe({
+                next: () => { this.isSending = false; this.cdr.detectChanges(); },
+                error: (err) => {
+                    console.error("Error sending template", err);
+                    this.isSending = false;
+                    this.newMessageText = text;
+                    this.cdr.detectChanges();
+                }
+            });
+        } else if (this.selectedFile) {
+            // Send Media file (upload directo)
             this.chatService.sendMediaMessage(this.selectedConversation.id, this.selectedFile).subscribe({
-                next: (res) => {
+                next: () => {
                     this.isSending = false;
                     this.selectedFile = null;
+                    this.selectedFilePreviewUrl = null;
+                    this.selectedFileType = null;
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
@@ -477,14 +520,11 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.newMessageText = '';
 
             this.chatService.sendMessage(this.selectedConversation.id, textToSend).subscribe({
-                next: (res) => {
-                    this.isSending = false;
-                    this.cdr.detectChanges();
-                },
+                next: () => { this.isSending = false; this.cdr.detectChanges(); },
                 error: (err) => {
                     console.error("Error sending message", err);
                     this.isSending = false;
-                    this.newMessageText = textToSend; 
+                    this.newMessageText = textToSend;
                     this.cdr.detectChanges();
                 }
             });
@@ -493,13 +533,35 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     onFileSelected(event: any) {
         if (event.target.files && event.target.files.length > 0) {
-            this.selectedFile = event.target.files[0];
+            const file = event.target.files[0];
+            this.selectedFile = file;
+            this.clearTemplate();
+            if (file.type.startsWith('image/')) {
+                this.selectedFileType = 'image';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.selectedFilePreviewUrl = e.target?.result as string;
+                    this.cdr.detectChanges();
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                this.selectedFileType = 'video';
+                this.selectedFilePreviewUrl = URL.createObjectURL(file);
+            } else {
+                this.selectedFileType = 'other';
+                this.selectedFilePreviewUrl = null;
+            }
             this.cdr.detectChanges();
         }
     }
 
     removeFile() {
+        if (this.selectedFilePreviewUrl && this.selectedFileType === 'video') {
+            URL.revokeObjectURL(this.selectedFilePreviewUrl);
+        }
         this.selectedFile = null;
+        this.selectedFilePreviewUrl = null;
+        this.selectedFileType = null;
         this.cdr.detectChanges();
     }
 
@@ -559,7 +621,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     // --- View Management Logic ---
 
-    setView(view: 'dashboard' | 'chat' | 'users' | 'clientes') {
+    setView(view: 'dashboard' | 'chat' | 'users' | 'clientes' | 'plantillas') {
         this.currentView = view;
         this.closeMobileSidebar();
         this.showMobileConversationList = true;
@@ -568,6 +630,9 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.loadEmpresas();
         } else if (view === 'clientes' && this.clientes.length === 0) {
             this.loadClientes();
+        } else if (view === 'plantillas') {
+            this.loadPlantillas();
+            if (this.userTipo === 'admin') this.loadEmpresas();
         }
     }
 
@@ -766,5 +831,146 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     logout() {
         this.authService.logout();
+    }
+
+    // --- Plantillas Management ---
+
+    loadPlantillas() {
+        this.plantillasService.getPlantillas().subscribe({
+            next: (data) => { this.plantillas = data; this.cdr.detectChanges(); },
+            error: (err) => console.error('Error loading plantillas', err)
+        });
+    }
+
+    openPlantillaModal(p?: Plantilla) {
+        if (p) {
+            this.editingPlantillaId = p.id;
+            this.plantillaForm = { nombre: p.nombre, descripcion: p.descripcion || '', mensaje_final: p.mensaje_final || '', id_cliente: p.id_cliente, estado: p.estado };
+            this.plantillaFilePreviewUrl = p.ruta_multimedia ? this.plantillasService.getMediaUrl(p.ruta_multimedia) : null;
+        } else {
+            this.editingPlantillaId = null;
+            this.plantillaForm = { nombre: '', descripcion: '', mensaje_final: '', id_cliente: this.userTipo === 'admin' ? null : this.idEmpresa, estado: 1 };
+            this.plantillaFilePreviewUrl = null;
+        }
+        this.plantillaFile = null;
+        this.plantillaRemoveFile = false;
+        this.showPlantillaModal = true;
+    }
+
+    closePlantillaModal() {
+        this.showPlantillaModal = false;
+        this.editingPlantillaId = null;
+        this.plantillaFile = null;
+        this.plantillaFilePreviewUrl = null;
+    }
+
+    onPlantillaFileSelected(event: any) {
+        if (event.target.files && event.target.files.length > 0) {
+            this.plantillaFile = event.target.files[0];
+            this.plantillaRemoveFile = false;
+            const reader = new FileReader();
+            reader.onload = (e) => { this.plantillaFilePreviewUrl = e.target?.result as string; this.cdr.detectChanges(); };
+            reader.readAsDataURL(this.plantillaFile!);
+            this.cdr.detectChanges();
+        }
+    }
+
+    removePlantillaFile() {
+        this.plantillaFile = null;
+        this.plantillaFilePreviewUrl = null;
+        this.plantillaRemoveFile = true;
+        this.cdr.detectChanges();
+    }
+
+    savePlantilla() {
+        const fd = new FormData();
+        fd.append('nombre', this.plantillaForm.nombre);
+        if (this.plantillaForm.descripcion) fd.append('descripcion', this.plantillaForm.descripcion);
+        if (this.plantillaForm.mensaje_final) fd.append('mensaje_final', this.plantillaForm.mensaje_final);
+        fd.append('estado', this.plantillaForm.estado.toString());
+        if (this.userTipo === 'admin' && this.plantillaForm.id_cliente) fd.append('id_cliente', this.plantillaForm.id_cliente.toString());
+        if (this.plantillaFile) fd.append('file', this.plantillaFile);
+        if (this.plantillaRemoveFile) fd.append('remove_file', 'true');
+
+        if (this.editingPlantillaId) {
+            this.plantillasService.updatePlantilla(this.editingPlantillaId, fd).subscribe({
+                next: () => { this.loadPlantillas(); this.closePlantillaModal(); this.showToast('Plantilla actualizada', 'success'); },
+                error: () => this.showToast('Error al actualizar la plantilla', 'error')
+            });
+        } else {
+            this.plantillasService.createPlantilla(fd).subscribe({
+                next: () => { this.loadPlantillas(); this.closePlantillaModal(); this.showToast('Plantilla creada', 'success'); },
+                error: () => this.showToast('Error al crear la plantilla', 'error')
+            });
+        }
+    }
+
+    deletePlantilla(id: number) {
+        if (!confirm('¿Eliminar esta plantilla? Esta acción no se puede deshacer.')) return;
+        this.plantillasService.deletePlantilla(id).subscribe({
+            next: () => { this.loadPlantillas(); this.showToast('Plantilla eliminada', 'success'); },
+            error: () => this.showToast('Error al eliminar la plantilla', 'error')
+        });
+    }
+
+    isPlantillaImage(tipo: string | null): boolean {
+        return !!tipo && tipo.startsWith('image/');
+    }
+
+    isPlantillaVideo(tipo: string | null): boolean {
+        return !!tipo && tipo.startsWith('video/');
+    }
+
+    /** Para el modal: ¿el preview actual es una imagen? */
+    isPlantillaPreviewImage(): boolean {
+        if (this.plantillaFile) return this.plantillaFile.type.startsWith('image/');
+        if (this.plantillaFilePreviewUrl) return /\.(jpg|jpeg|png|gif|webp)/i.test(this.plantillaFilePreviewUrl);
+        return false;
+    }
+
+    /** Para el modal: ¿el preview actual es un video? */
+    isPlantillaPreviewVideo(): boolean {
+        if (this.plantillaFile) return this.plantillaFile.type.startsWith('video/');
+        if (this.plantillaFilePreviewUrl) return /\.(mp4|mov|webm|avi)/i.test(this.plantillaFilePreviewUrl);
+        return false;
+    }
+
+    // --- Template Picker (chat) ---
+
+    toggleTemplatePicker() {
+        this.showTemplatePicker = !this.showTemplatePicker;
+        if (this.showTemplatePicker) {
+            this.templateSearch = '';
+            this.plantillasService.getPlantillasActivas().subscribe({
+                next: (data) => { this.activeTemplates = data; this.filteredTemplates = data; this.cdr.detectChanges(); },
+                error: (err) => console.error('Error loading active templates', err)
+            });
+        }
+    }
+
+    filterTemplates() {
+        const q = this.templateSearch.toLowerCase();
+        this.filteredTemplates = this.activeTemplates.filter(t =>
+            t.nombre.toLowerCase().includes(q) || (t.descripcion || '').toLowerCase().includes(q)
+        );
+    }
+
+    selectTemplate(t: Plantilla) {
+        this.newMessageText = t.mensaje_final || '';
+        if (t.ruta_multimedia) {
+            this.selectedTemplateMediaUrl = this.plantillasService.getMediaUrl(t.ruta_multimedia);
+            this.selectedTemplateMediaType = t.tipo_archivo || 'image/jpeg';
+            this.removeFile();
+        } else {
+            this.selectedTemplateMediaUrl = null;
+            this.selectedTemplateMediaType = null;
+        }
+        this.showTemplatePicker = false;
+        this.cdr.detectChanges();
+    }
+
+    clearTemplate() {
+        this.selectedTemplateMediaUrl = null;
+        this.selectedTemplateMediaType = null;
     }
 }

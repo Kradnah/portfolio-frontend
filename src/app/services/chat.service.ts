@@ -96,6 +96,14 @@ export class ChatService {
     return this.http.put<any>(`${webhookApiUrl}/conversations/${idConversacion}/user-data`, userData);
   }
 
+  sendTemplateMessage(convId: number, text: string, mediaUrl?: string, mediaType?: string): Observable<any> {
+    const webhookApiUrl = 'https://webhook.kodizof.com/api';
+    const body: any = { conv_id: convId, text };
+    if (mediaUrl) body.media_url = mediaUrl;
+    if (mediaType) body.media_type = mediaType;
+    return this.http.post<any>(`${webhookApiUrl}/messages/send-template`, body);
+  }
+
   connectToConversation(idConversacion: number) {
     this.disconnect(); // Ensure previous connection is closed
 

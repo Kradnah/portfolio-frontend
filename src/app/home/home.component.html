@@ -41,6 +41,14 @@
                 <span class="sidebar-label">Chat</span>
             </button>
 
+            <button (click)="setView('plantillas')"
+                    [ngClass]="currentView === 'plantillas' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]'"
+                    class="flex items-center gap-3 px-3 py-2.5 text-left font-medium text-sm transition-colors rounded-lg w-full"
+                    title="Plantillas">
+                <lucide-icon name="file-text" [size]="18" class="shrink-0"></lucide-icon>
+                <span class="sidebar-label">Plantillas</span>
+            </button>
+
             <button *ngIf="userTipo === 'admin'" (click)="setView('clientes')"
                     [ngClass]="currentView === 'clientes' ? 'bg-[var(--accent-soft)] text-[var(--accent-color)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-color)]'"
                     class="flex items-center gap-3 px-3 py-2.5 text-left font-medium text-sm transition-colors rounded-lg w-full"
@@ -389,27 +397,98 @@
 
                                 <!-- Message Input -->
                                 <div class="p-3 md:p-4 border-t border-[var(--border-color)] bg-[var(--card-bg)] shrink-0" *ngIf="selectedConversation.estado === 'ATTENDING'">
-                                    <div class="mb-2 flex items-center gap-2" *ngIf="selectedFile">
-                                        <span class="bg-[var(--hover-bg)] border border-[var(--border-color)] px-3 py-1 rounded-full text-xs flex items-center gap-2">
-                                            <lucide-icon name="paperclip" [size]="14"></lucide-icon> {{ selectedFile.name }}
-                                            <button class="hover:text-red-500 ml-1 font-bold" (click)="removeFile()" [disabled]="isSending">✕</button>
-                                        </span>
+
+                                    <!-- Vista previa: archivo adjunto regular -->
+                                    <div class="mb-2" *ngIf="selectedFile">
+                                        <div class="relative inline-flex items-start group">
+                                            <!-- Preview imagen -->
+                                            <img *ngIf="selectedFileType === 'image' && selectedFilePreviewUrl"
+                                                 [src]="selectedFilePreviewUrl"
+                                                 class="max-h-32 max-w-[200px] rounded-lg border border-[var(--border-color)] object-cover" />
+                                            <!-- Preview video -->
+                                            <video *ngIf="selectedFileType === 'video' && selectedFilePreviewUrl"
+                                                   [src]="selectedFilePreviewUrl"
+                                                   class="max-h-32 max-w-[200px] rounded-lg border border-[var(--border-color)]"
+                                                   controls muted></video>
+                                            <!-- Chip para otros (PDF, etc.) -->
+                                            <span *ngIf="selectedFileType === 'other'"
+                                                  class="bg-[var(--hover-bg)] border border-[var(--border-color)] px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                                                <lucide-icon name="file-check" [size]="14"></lucide-icon> {{ selectedFile.name }}
+                                            </span>
+                                            <button class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow"
+                                                    (click)="removeFile()" [disabled]="isSending">✕</button>
+                                        </div>
                                     </div>
+
+                                    <!-- Vista previa: plantilla seleccionada -->
+                                    <div class="mb-2" *ngIf="selectedTemplateMediaUrl">
+                                        <div class="relative inline-flex items-start group">
+                                            <img *ngIf="isPlantillaImage(selectedTemplateMediaType)"
+                                                 [src]="selectedTemplateMediaUrl"
+                                                 class="max-h-32 max-w-[200px] rounded-lg border border-[var(--accent-color)]/40 object-cover" />
+                                            <video *ngIf="isPlantillaVideo(selectedTemplateMediaType)"
+                                                   [src]="selectedTemplateMediaUrl"
+                                                   class="max-h-32 max-w-[200px] rounded-lg border border-[var(--accent-color)]/40"
+                                                   controls muted></video>
+                                            <span *ngIf="!isPlantillaImage(selectedTemplateMediaType) && !isPlantillaVideo(selectedTemplateMediaType)"
+                                                  class="bg-[var(--accent-soft)] border border-[var(--accent-color)]/30 px-3 py-1 rounded-full text-xs flex items-center gap-2 text-[var(--accent-color)]">
+                                                <lucide-icon name="file-check" [size]="14"></lucide-icon> Archivo adjunto de plantilla
+                                            </span>
+                                            <button class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow"
+                                                    (click)="clearTemplate()" [disabled]="isSending">✕</button>
+                                        </div>
+                                    </div>
+
                                     <div class="flex items-center gap-2 relative">
+                                        <!-- Adjuntar archivo -->
                                         <button class="saas-btn p-2.5 rounded-lg hover:text-[var(--accent-color)] shrink-0" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
                                             <lucide-icon name="paperclip" [size]="18"></lucide-icon>
                                         </button>
                                         <input type="file" #fileInput hidden (change)="onFileSelected($event)">
+
+                                        <!-- Selector de plantillas -->
+                                        <button class="saas-btn p-2.5 rounded-lg shrink-0 transition-all"
+                                                [ngClass]="showTemplatePicker ? 'text-[var(--accent-color)] bg-[var(--accent-soft)]' : 'hover:text-[var(--accent-color)]'"
+                                                (click)="toggleTemplatePicker()" [disabled]="isSending" title="Plantillas">
+                                            <lucide-icon name="file-text" [size]="18"></lucide-icon>
+                                        </button>
+
+                                        <!-- Emoji -->
                                         <button class="saas-btn p-2.5 rounded-lg shrink-0 transition-all"
                                                 [ngClass]="showEmojiPicker ? 'text-[var(--accent-color)] bg-[var(--accent-soft)]' : 'hover:text-[var(--accent-color)]'"
                                                 (click)="toggleEmojiPicker()" [disabled]="isSending" title="Emojis">
                                             <lucide-icon name="smile" [size]="18"></lucide-icon>
                                         </button>
 
+                                        <!-- Template Picker Popup -->
+                                        <div *ngIf="showTemplatePicker" class="absolute bottom-full left-0 mb-2 z-50 animate-fade-in w-80">
+                                            <div class="saas-card bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-xl overflow-hidden">
+                                                <div class="p-2 border-b border-[var(--border-color)] flex items-center gap-2">
+                                                    <lucide-icon name="search" [size]="14" class="text-[var(--text-muted)] shrink-0"></lucide-icon>
+                                                    <input type="text" [(ngModel)]="templateSearch" (ngModelChange)="filterTemplates()"
+                                                           class="flex-1 bg-transparent outline-none text-sm placeholder:text-[var(--text-muted)]"
+                                                           placeholder="Buscar plantilla...">
+                                                </div>
+                                                <div class="max-h-60 overflow-y-auto">
+                                                    <button *ngFor="let t of filteredTemplates"
+                                                            class="w-full text-left px-3 py-2.5 hover:bg-[var(--hover-bg)] transition-colors border-b border-[var(--border-color)] last:border-0"
+                                                            (click)="selectTemplate(t)">
+                                                        <div class="flex items-center gap-2 mb-0.5">
+                                                            <lucide-icon [name]="t.ruta_multimedia ? (isPlantillaImage(t.tipo_archivo) ? 'image' : isPlantillaVideo(t.tipo_archivo) ? 'film' : 'file-check') : 'file-text'" [size]="13" class="text-[var(--accent-color)] shrink-0"></lucide-icon>
+                                                            <span class="font-semibold text-sm">{{ t.nombre }}</span>
+                                                        </div>
+                                                        <p class="text-xs text-[var(--text-muted)] line-clamp-1 pl-5">{{ t.mensaje_final || t.descripcion || 'Sin mensaje' }}</p>
+                                                    </button>
+                                                    <div *ngIf="filteredTemplates.length === 0" class="text-center text-[var(--text-muted)] text-xs py-6">
+                                                        No hay plantillas activas.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Emoji Picker Popup -->
                                         <div *ngIf="showEmojiPicker" class="emoji-picker-popup absolute bottom-full left-8 mb-2 z-50 animate-fade-in">
                                             <div class="saas-card bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-xl w-72 md:w-80 overflow-hidden">
-                                                <!-- Category Tabs -->
                                                 <div class="flex border-b border-[var(--border-color)] overflow-x-auto px-1 pt-1 gap-0.5 bg-[var(--page-bg)]">
                                                     <button *ngFor="let cat of emojiCategories"
                                                             class="px-2 py-1.5 text-base shrink-0 rounded-t-lg transition-all"
@@ -418,7 +497,6 @@
                                                         {{ cat.icon }}
                                                     </button>
                                                 </div>
-                                                <!-- Emoji Grid -->
                                                 <div class="p-2 h-48 overflow-y-auto">
                                                     <div class="grid grid-cols-8 gap-0.5">
                                                         <button *ngFor="let emoji of getActiveEmojis()"
@@ -436,11 +514,11 @@
                                                placeholder="Escribe un mensaje..."
                                                [(ngModel)]="newMessageText"
                                                (keyup.enter)="sendMessage()"
-                                               (focus)="showEmojiPicker = false"
+                                               (focus)="showEmojiPicker = false; showTemplatePicker = false"
                                                [disabled]="isSending || selectedFile !== null">
                                         <button class="p-2.5 rounded-lg bg-[var(--accent-color)] text-white shrink-0 hover:brightness-110 transition-all disabled:opacity-40"
                                                 (click)="sendMessage()"
-                                                [disabled]="(!newMessageText.trim() && !selectedFile) || isSending">
+                                                [disabled]="(!newMessageText.trim() && !selectedFile && !selectedTemplateMediaUrl) || isSending">
                                             <lucide-icon [name]="isSending ? 'loader' : 'send'" [size]="18"></lucide-icon>
                                         </button>
                                     </div>
@@ -452,6 +530,65 @@
                         </div>
 
                     </div>
+                </section>
+            </div>
+        </ng-container>
+
+        <!-- ── PLANTILLAS VIEW ── -->
+        <ng-container *ngIf="currentView === 'plantillas'">
+            <div class="flex-1 overflow-y-auto p-4 md:p-8">
+                <header class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 border-b border-[var(--border-color)] pb-4">
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold mb-1">Plantillas de Mensajes</h1>
+                        <p class="text-[var(--text-muted)] text-sm">Crea y gestiona plantillas reutilizables para el chat.</p>
+                    </div>
+                    <button class="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-semibold text-sm hover:brightness-110 flex items-center gap-2 transition-all w-full sm:w-auto justify-center" (click)="openPlantillaModal()">
+                        <lucide-icon name="plus" [size]="16"></lucide-icon> Nueva Plantilla
+                    </button>
+                </header>
+
+                <section class="saas-card overflow-x-auto">
+                    <table class="w-full saas-table text-sm">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="hidden sm:table-cell">Descripción</th>
+                                <th class="hidden md:table-cell">Mensaje</th>
+                                <th>Archivo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let p of plantillas">
+                                <td class="font-semibold">{{ p.nombre }}</td>
+                                <td class="text-[var(--text-muted)] hidden sm:table-cell max-w-[160px] truncate">{{ p.descripcion || '—' }}</td>
+                                <td class="text-[var(--text-muted)] hidden md:table-cell max-w-[200px] truncate">{{ p.mensaje_final || '—' }}</td>
+                                <td>
+                                    <span *ngIf="p.ruta_multimedia" class="flex items-center gap-1 text-[var(--accent-color)]">
+                                        <lucide-icon [name]="isPlantillaImage(p.tipo_archivo) ? 'image' : isPlantillaVideo(p.tipo_archivo) ? 'film' : 'file-check'" [size]="15"></lucide-icon>
+                                        <span class="hidden sm:inline text-xs">{{ isPlantillaImage(p.tipo_archivo) ? 'Imagen' : isPlantillaVideo(p.tipo_archivo) ? 'Video' : 'PDF' }}</span>
+                                    </span>
+                                    <span *ngIf="!p.ruta_multimedia" class="text-[var(--text-muted)]">—</span>
+                                </td>
+                                <td>
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full uppercase"
+                                          [ngClass]="p.estado === 1 ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-500'">
+                                        {{ p.estado === 1 ? 'Activa' : 'Inactiva' }}
+                                    </span>
+                                </td>
+                                <td class="flex items-center gap-1">
+                                    <button class="saas-btn px-3 py-1.5 text-xs font-semibold text-[var(--accent-color)]" (click)="openPlantillaModal(p)">Editar</button>
+                                    <button class="saas-btn px-2 py-1.5 text-xs text-red-500 hover:bg-red-500/10" (click)="deletePlantilla(p.id)">
+                                        <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="plantillas.length === 0">
+                                <td colspan="6" class="text-center text-[var(--text-muted)] py-8">No hay plantillas. Crea la primera.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </section>
             </div>
         </ng-container>
@@ -710,6 +847,83 @@
             <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-[var(--border-color)] shrink-0">
                 <button class="saas-btn px-5 py-2.5 font-medium text-sm" (click)="closeClienteModal()">Descartar</button>
                 <button class="px-6 py-2.5 rounded-lg font-semibold text-sm bg-[var(--accent-color)] text-white hover:brightness-110 transition-all" (click)="saveCliente()">Guardar Integración</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Plantilla -->
+    <div *ngIf="showPlantillaModal" class="fixed inset-0 saas-modal-backdrop flex justify-center items-center z-50 p-4">
+        <div class="saas-card bg-[var(--card-bg)] p-6 w-full max-w-lg animate-fade-in flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between mb-5 shrink-0">
+                <h2 class="text-lg font-bold">{{ editingPlantillaId ? 'Editar Plantilla' : 'Nueva Plantilla' }}</h2>
+                <button class="saas-btn p-1.5 rounded-lg" (click)="closePlantillaModal()">
+                    <lucide-icon name="x" [size]="16"></lucide-icon>
+                </button>
+            </div>
+            <div class="flex flex-col gap-4 overflow-y-auto flex-1">
+                <!-- Nombre -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1 uppercase tracking-wide">Nombre *</label>
+                    <input type="text" [(ngModel)]="plantillaForm.nombre" class="saas-input w-full py-2.5 px-3 text-sm outline-none" placeholder="Ej: Seguimiento postventa">
+                </div>
+                <!-- Descripción -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1 uppercase tracking-wide">Descripción</label>
+                    <input type="text" [(ngModel)]="plantillaForm.descripcion" class="saas-input w-full py-2.5 px-3 text-sm outline-none" placeholder="Uso breve de la plantilla">
+                </div>
+                <!-- Mensaje -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1 uppercase tracking-wide">Mensaje</label>
+                    <textarea [(ngModel)]="plantillaForm.mensaje_final" rows="4" class="saas-input w-full py-2.5 px-3 text-sm outline-none resize-none" placeholder="Texto que se cargará en el chat..."></textarea>
+                </div>
+                <!-- Empresa (solo admin) -->
+                <div *ngIf="userTipo === 'admin'">
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1 uppercase tracking-wide">Empresa</label>
+                    <select [(ngModel)]="plantillaForm.id_cliente" class="saas-input w-full py-2.5 px-3 text-sm outline-none">
+                        <option [ngValue]="null">— Seleccionar empresa —</option>
+                        <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre_empresa }}</option>
+                    </select>
+                </div>
+                <!-- Estado -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1 uppercase tracking-wide">Estado</label>
+                    <select [(ngModel)]="plantillaForm.estado" class="saas-input w-full py-2.5 px-3 text-sm outline-none">
+                        <option [ngValue]="1">Activa</option>
+                        <option [ngValue]="0">Inactiva</option>
+                    </select>
+                </div>
+                <!-- Archivo multimedia -->
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-2 uppercase tracking-wide">Archivo Multimedia (opcional)</label>
+                    <!-- Preview del archivo -->
+                    <div *ngIf="plantillaFilePreviewUrl" class="mb-2 relative inline-flex">
+                        <img *ngIf="isPlantillaPreviewImage()"
+                             [src]="plantillaFilePreviewUrl" class="max-h-32 max-w-full rounded-lg border border-[var(--border-color)] object-cover" />
+                        <video *ngIf="isPlantillaPreviewVideo()"
+                               [src]="plantillaFilePreviewUrl" class="max-h-32 max-w-full rounded-lg border border-[var(--border-color)]"
+                               controls muted></video>
+                        <span *ngIf="!isPlantillaPreviewImage() && !isPlantillaPreviewVideo()"
+                              class="bg-[var(--hover-bg)] border border-[var(--border-color)] px-3 py-2 rounded-lg text-xs flex items-center gap-2">
+                            <lucide-icon name="file-check" [size]="14"></lucide-icon> {{ plantillaFile?.name || 'Archivo adjunto' }}
+                        </span>
+                        <button class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow"
+                                (click)="removePlantillaFile()">✕</button>
+                    </div>
+                    <input type="file" #plantillaFileInput hidden accept="image/*,video/*,.pdf" (change)="onPlantillaFileSelected($event)">
+                    <button class="saas-btn px-3 py-2 text-xs flex items-center gap-2 hover:text-[var(--accent-color)]" (click)="plantillaFileInput.click()">
+                        <lucide-icon name="paperclip" [size]="14"></lucide-icon>
+                        {{ plantillaFilePreviewUrl ? 'Cambiar archivo' : 'Adjuntar imagen / video / PDF' }}
+                    </button>
+                    <p class="text-xs text-[var(--text-muted)] mt-1">Máx. 25 MB — JPG, PNG, GIF, WebP, MP4, MOV, PDF</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-[var(--border-color)] shrink-0">
+                <button class="saas-btn px-5 py-2.5 font-medium text-sm" (click)="closePlantillaModal()">Cancelar</button>
+                <button class="px-6 py-2.5 rounded-lg font-semibold text-sm bg-[var(--accent-color)] text-white hover:brightness-110 transition-all disabled:opacity-50"
+                        [disabled]="!plantillaForm.nombre.trim()"
+                        (click)="savePlantilla()">
+                    {{ editingPlantillaId ? 'Guardar Cambios' : 'Crear Plantilla' }}
+                </button>
             </div>
         </div>
     </div>
