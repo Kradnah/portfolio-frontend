@@ -395,16 +395,48 @@
                                             <button class="hover:text-red-500 ml-1 font-bold" (click)="removeFile()" [disabled]="isSending">✕</button>
                                         </span>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 relative">
                                         <button class="saas-btn p-2.5 rounded-lg hover:text-[var(--accent-color)] shrink-0" (click)="fileInput.click()" [disabled]="isSending" title="Adjuntar archivo">
                                             <lucide-icon name="paperclip" [size]="18"></lucide-icon>
                                         </button>
                                         <input type="file" #fileInput hidden (change)="onFileSelected($event)">
+                                        <button class="saas-btn p-2.5 rounded-lg shrink-0 transition-all"
+                                                [ngClass]="showEmojiPicker ? 'text-[var(--accent-color)] bg-[var(--accent-soft)]' : 'hover:text-[var(--accent-color)]'"
+                                                (click)="toggleEmojiPicker()" [disabled]="isSending" title="Emojis">
+                                            <lucide-icon name="smile" [size]="18"></lucide-icon>
+                                        </button>
+
+                                        <!-- Emoji Picker Popup -->
+                                        <div *ngIf="showEmojiPicker" class="emoji-picker-popup absolute bottom-full left-8 mb-2 z-50 animate-fade-in">
+                                            <div class="saas-card bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-xl w-72 md:w-80 overflow-hidden">
+                                                <!-- Category Tabs -->
+                                                <div class="flex border-b border-[var(--border-color)] overflow-x-auto px-1 pt-1 gap-0.5 bg-[var(--page-bg)]">
+                                                    <button *ngFor="let cat of emojiCategories"
+                                                            class="px-2 py-1.5 text-base shrink-0 rounded-t-lg transition-all"
+                                                            [ngClass]="activeEmojiCategory === cat.key ? 'bg-[var(--card-bg)] border border-[var(--border-color)] border-b-transparent -mb-px' : 'hover:bg-[var(--hover-bg)] opacity-60 hover:opacity-100'"
+                                                            (click)="activeEmojiCategory = cat.key" [title]="cat.label">
+                                                        {{ cat.icon }}
+                                                    </button>
+                                                </div>
+                                                <!-- Emoji Grid -->
+                                                <div class="p-2 h-48 overflow-y-auto">
+                                                    <div class="grid grid-cols-8 gap-0.5">
+                                                        <button *ngFor="let emoji of getActiveEmojis()"
+                                                                class="w-8 h-8 flex items-center justify-center text-xl rounded-lg hover:bg-[var(--hover-bg)] transition-colors cursor-pointer"
+                                                                (click)="insertEmoji(emoji)">
+                                                            {{ emoji }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <input type="text"
                                                class="flex-1 saas-input py-2.5 px-4 text-sm outline-none"
                                                placeholder="Escribe un mensaje..."
                                                [(ngModel)]="newMessageText"
                                                (keyup.enter)="sendMessage()"
+                                               (focus)="showEmojiPicker = false"
                                                [disabled]="isSending || selectedFile !== null">
                                         <button class="p-2.5 rounded-lg bg-[var(--accent-color)] text-white shrink-0 hover:brightness-110 transition-all disabled:opacity-40"
                                                 (click)="sendMessage()"

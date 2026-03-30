@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader, Smile } from 'lucide-angular';
 
 @Component({
     selector: 'app-home',
@@ -164,6 +164,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     userInfoData: { user_name: string; data_recordar: any } = { user_name: '', data_recordar: {} };
     editUserName: string = '';
     editDataRecordar: { interes: string; objetivo: string; ubicacion: string; notas: string } = { interes: '', objetivo: '', ubicacion: '', notas: '' };
+
+    // Emoji Picker
+    showEmojiPicker: boolean = false;
+    activeEmojiCategory: string = 'caritas';
+    emojiCategories = [
+        { key: 'caritas', label: 'Caritas', icon: '😀' },
+        { key: 'manos', label: 'Manos', icon: '👋' },
+        { key: 'corazones', label: 'Corazones', icon: '❤️' },
+        { key: 'animales', label: 'Animales', icon: '🐶' },
+        { key: 'comida', label: 'Comida', icon: '🍕' },
+        { key: 'viajes', label: 'Viajes', icon: '✈️' },
+        { key: 'objetos', label: 'Objetos', icon: '💡' },
+        { key: 'simbolos', label: 'Símbolos', icon: '✅' }
+    ];
+    emojiMap: { [key: string]: string[] } = {
+        caritas: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],
+        manos: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','👀','👁️','👅','👄'],
+        corazones: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫶','💏','💑','❤️‍🔥','❤️‍🩹'],
+        animales: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪰','🪲','🪳','🦟','🦗','🐢','🐍','🦎','🦂','🦀','🦞','🦐','🦑','🐙','🐠','🐟','🐡','🐬','🦈','🐳','🐋','🐊','🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🦙','🦒','🐘','🦣','🦏','🦛','🐿️','🦫','🦔','🐇','🐁','🐀','🐈','🐩','🐕','🦮'],
+        comida: ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','☕','🫖','🍵','🧃','🥤','🧋','🍶','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🫗'],
+        viajes: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍️','🛺','🚲','🛴','🚍','🚘','🚖','✈️','🛩️','🛫','🛬','🪂','💺','🚀','🛸','🚁','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','🗼','🏰','🏯','🏟️','🎡','🎢','🎠','⛲','⛱️','🏖️','🏝️','🏜️','🌋','⛰️','🏔️','🗻','🏕️','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🗽','⛪','🕌','🛕','🕍','⛩️','🕋'],
+        objetos: ['💡','🔦','🕯️','📱','💻','⌨️','🖥️','🖨️','🖱️','🖲️','💾','💿','📀','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭','⏱️','⏲️','⏰','🕰️','⌛','⏳','📡','🔋','🪫','🔌','💰','🪙','💴','💵','💶','💷','💸','💳','🧾','✉️','📧','📨','📩','📮','📪','📫','📬','📭','📦','📝','📄','📃','📑','📊','📈','📉','🗒️','🗓️','📆','📅','🗑️','📁','📂','🗂️','🗃️','🗳️','🔒','🔓','🔑','🗝️'],
+        simbolos: ['✅','❌','❓','❗','‼️','⁉️','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔸','🔹','🔶','🔷','💠','🔘','🔲','🔳','⬛','⬜','◾','◽','▪️','▫️','🏁','🚩','🏴','🏳️','🏳️‍🌈','⚠️','♻️','🔰','💮','🔱','⭐','🌟','💫','✨','⚡','🔥','💥','❄️','🌊','🎵','🎶','💤','🆗','🆕','🆙','🆒','🆓','🆔','ℹ️','🈳','🔣','🔤','🔡','🔠','🔢','#️⃣','*️⃣','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🏧','🚮','🚰','♿','🚹','🚺','🚻','🚼','🛗']
+    };
 
     ngOnInit() {
         const userInfo = this.authService.getCurrentUser();
@@ -430,6 +454,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (!this.selectedConversation || this.isSending) return;
         if (!this.newMessageText.trim() && !this.selectedFile) return;
         
+        this.showEmojiPicker = false;
         this.isSending = true;
         
         if (this.selectedFile) {
@@ -476,6 +501,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     removeFile() {
         this.selectedFile = null;
         this.cdr.detectChanges();
+    }
+
+    toggleEmojiPicker() {
+        this.showEmojiPicker = !this.showEmojiPicker;
+    }
+
+    insertEmoji(emoji: string) {
+        this.newMessageText += emoji;
+        this.cdr.detectChanges();
+    }
+
+    getActiveEmojis(): string[] {
+        return this.emojiMap[this.activeEmojiCategory] || [];
     }
 
     scrollToBottom() {
