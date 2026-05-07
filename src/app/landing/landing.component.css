@@ -1,0 +1,532 @@
+/* ─── Brutalist palette ─── */
+:host {
+  display: block;
+  --lime:   #B8FF00;
+  --blue:   #3B35E8;
+  --pink:   #FF0090;
+  --yellow: #FFE500;
+  font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ─── Page shell ─── */
+.page {
+  min-height: 100vh;
+  background-color: #fff;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ──────────────────────────
+   NAVBAR — pestañas con borde
+────────────────────────── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 24px 40px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
+}
+
+.nav-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 10px;
+}
+.nav-tabs li a {
+  display: inline-block;
+  padding: 10px 22px;
+  background: #fff;
+  border: 2px solid #000;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.nav-tabs li a:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 #000;
+}
+
+.nav-btn {
+  background: var(--pink);
+  color: #fff;
+  border: 2.5px solid #000;
+  padding: 12px 30px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.nav-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+.nav-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* ──────────────────────────
+   ESCENA HERO — composición libre
+────────────────────────── */
+.scene {
+  flex: 1;
+  position: relative;
+  margin: 0 40px 40px;
+  min-height: 620px;
+}
+
+/* X marks helper */
+.xm {
+  font-size: 16px;
+  font-weight: 900;
+  color: #000;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   BANNER VERTICAL IZQUIERDO
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+.brand-tag {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 200px;
+  height: 460px;
+  z-index: 5;
+}
+.brand-tag-inner {
+  width: 100%;
+  height: 100%;
+  background: var(--lime);
+  border: 2.5px solid #000;
+  border-bottom: none;
+  position: relative;
+  box-shadow: 6px 6px 0 #000;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px 0;
+}
+.brand-tag-tip {
+  width: 200px;
+  height: 64px;
+  background: var(--lime);
+  border-left: 2.5px solid #000;
+  border-right: 2.5px solid #000;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  margin-top: -2px;
+  filter: drop-shadow(6px 6px 0 #000);
+}
+.brand-vtext {
+  font-size: 32px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 0.95;
+  color: #000;
+  letter-spacing: -0.01em;
+}
+.brand-x-cluster {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px;
+  margin-top: 28px;
+  width: max-content;
+}
+.brand-diamond {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+}
+.brand-diamond svg { width: 100%; height: auto; }
+
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   PANEL CENTRAL VERDE
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+.hero-panel {
+  position: absolute;
+  top: 30px;
+  left: 170px;
+  right: 240px;
+  height: 470px;
+  background: var(--lime);
+  border: 2.5px solid #000;
+  box-shadow: 8px 8px 0 #000;
+  z-index: 6;
+  padding: 36px 50px;
+  overflow: hidden;
+}
+
+/* Rayas diagonales esquina superior izquierda */
+.hp-stripes {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  width: 90px;
+  height: 18px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #000 0,
+    #000 3px,
+    transparent 3px,
+    transparent 9px
+  );
+}
+
+/* Sparkles dispersos */
+.sp { position: absolute; display: block; }
+.sp-a { top: 60px; left: 240px; width: 22px; height: 22px; }
+.sp-b { top: 26px; right: 130px; width: 16px; height: 16px; transform: rotate(20deg); }
+.sp-c { top: 90px; left: 320px; width: 14px; height: 14px; }
+
+/* Cuadrado pink decorativo */
+.hp-pink-square {
+  position: absolute;
+  top: 50px;
+  right: 110px;
+  width: 36px;
+  height: 36px;
+  background: var(--pink);
+  border: 2px solid #000;
+}
+
+/* Flechas decorativas */
+.hp-arrows {
+  position: absolute;
+  top: 110px;
+  right: 130px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #000;
+}
+
+/* Headline */
+.hp-headline {
+  position: relative;
+  margin-top: 30px;
+}
+.h-just {
+  font-size: clamp(46px, 6vw, 78px);
+  font-weight: 900;
+  font-style: italic;
+  margin: 0;
+  line-height: 0.95;
+  color: #000;
+}
+.h-come-bg {
+  display: inline-block;
+  background: #000;
+  padding: 4px 18px 8px;
+  margin-top: 6px;
+  transform: skewX(-2deg);
+}
+.h-come {
+  font-size: clamp(40px, 5.4vw, 68px);
+  font-weight: 900;
+  font-style: italic;
+  margin: 0;
+  line-height: 1;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.hp-body {
+  margin: 22px 0 0 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #000;
+}
+
+/* X row + triangulos */
+.hp-x-row {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+}
+.hp-x-row .xm { font-size: 22px; }
+
+.hp-down-tri {
+  position: absolute;
+  right: 220px;
+  bottom: 110px;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #000;
+  text-align: center;
+}
+
+/* Visit Now */
+.visit-btn {
+  position: absolute;
+  bottom: 32px;
+  left: 50px;
+  background: var(--yellow);
+  color: #000;
+  border: 2.5px solid #000;
+  padding: 14px 36px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 #000;
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.visit-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 #000;
+}
+.visit-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   ZONA DERECHA — hexágono 3D
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+.right-zone {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 320px;
+  height: 460px;
+  z-index: 7;
+}
+
+.circles {
+  position: absolute;
+  top: 30px;
+  right: 20px;
+  width: 70px;
+  height: 70px;
+}
+.circles span {
+  position: absolute;
+  border: 1.5px solid #000;
+  border-radius: 50%;
+}
+.circles span:nth-child(1) { inset: 0; }
+.circles span:nth-child(2) { inset: 8px; }
+.circles span:nth-child(3) { inset: 16px; }
+.circles span:nth-child(4) { inset: 24px; }
+.circles span:nth-child(5) { inset: 30px; background: #000; }
+
+.rt-xrow {
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  display: flex;
+  gap: 8px;
+}
+.rt-xrow .xm { font-size: 13px; }
+
+.hex3d {
+  position: absolute;
+  top: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 240px;
+}
+.hex3d svg { width: 100%; height: 100%; }
+
+.rt-burst {
+  position: absolute;
+  top: 200px;
+  right: 0;
+  width: 50px;
+  height: 50px;
+}
+
+.rt-mini-diamond {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  width: 50px;
+}
+.rt-mini-diamond svg { width: 100%; height: auto; }
+
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   FONDO — bloques de color
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+.bg-blue-tall {
+  position: absolute;
+  top: -10px;
+  left: 200px;
+  width: 100px;
+  height: 130px;
+  background: var(--blue);
+  border: 2.5px solid #000;
+  z-index: 3;
+}
+
+.bg-pink-bot-left {
+  position: absolute;
+  bottom: 10px;
+  left: 230px;
+  width: 130px;
+  height: 80px;
+  background: var(--pink);
+  border: 2.5px solid #000;
+  box-shadow: 5px 5px 0 #000;
+  z-index: 4;
+}
+
+.bg-stripes-bot {
+  position: absolute;
+  bottom: 30px;
+  left: 360px;
+  width: 230px;
+  height: 24px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #000 0,
+    #000 4px,
+    transparent 4px,
+    transparent 12px
+  );
+  z-index: 4;
+}
+
+.bg-black-bot-right {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 320px;
+  height: 56px;
+  background: #000;
+  border: 2.5px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 24px;
+  z-index: 5;
+}
+.bg-black-bot-right .dot {
+  width: 8px;
+  height: 8px;
+  background: #fff;
+}
+
+/* Sparkles azules sobre fondo */
+.bl-sparkles {
+  position: absolute;
+  bottom: 100px;
+  left: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  z-index: 8;
+}
+.bl-sparkles svg:nth-child(1) { width: 28px; height: 28px; fill: var(--blue); }
+.bl-sparkles svg:nth-child(2) { width: 20px; height: 20px; fill: var(--blue); }
+.bl-sparkles svg:nth-child(3) { width: 18px; height: 18px; fill: var(--blue); }
+.bl-sparkles svg:nth-child(4) { width: 14px; height: 14px; fill: var(--blue); }
+
+.dot-grid {
+  position: absolute;
+  bottom: 110px;
+  left: 360px;
+  display: grid;
+  grid-template-columns: repeat(4, 4px);
+  gap: 6px;
+  z-index: 4;
+}
+.dot-grid span {
+  width: 4px;
+  height: 4px;
+  background: #000;
+  border-radius: 50%;
+}
+
+/* ──────────────────────────
+   RESPONSIVE
+────────────────────────── */
+@media (max-width: 900px) {
+  .navbar {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .nav-tabs { gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav-tabs li a { padding: 8px 14px; font-size: 12px; }
+  .nav-btn { padding: 10px 20px; font-size: 12px; }
+
+  .scene {
+    margin: 0 16px 24px;
+    min-height: 1100px;
+  }
+  .brand-tag {
+    position: relative;
+    width: 100%;
+    height: auto;
+    top: 0; left: 0;
+    margin-bottom: 16px;
+  }
+  .brand-tag-inner {
+    height: 220px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+  }
+  .brand-tag-tip { display: none; }
+  .brand-vtext { font-size: 26px; }
+  .brand-diamond {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    width: 80px;
+  }
+  .brand-x-cluster { margin-top: 0; }
+
+  .hero-panel {
+    position: relative;
+    top: 0; left: 0; right: 0;
+    height: auto;
+    min-height: 460px;
+    padding: 28px 24px 100px;
+  }
+  .hp-stripes, .sp, .hp-pink-square, .hp-arrows, .hp-down-tri {
+    display: none;
+  }
+
+  .right-zone {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    margin-top: 16px;
+    top: 0; right: 0;
+  }
+  .hex3d { width: 200px; height: 200px; top: 50px; }
+
+  .bg-blue-tall, .bg-pink-bot-left, .bg-stripes-bot,
+  .bg-black-bot-right, .bl-sparkles, .dot-grid {
+    display: none;
+  }
+}
