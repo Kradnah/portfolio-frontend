@@ -2,33 +2,37 @@
 
 @layer base {
   :root {
-    --page-bg: #f1f5f9;
+    /* Brutalist palette (matched with landing) */
+    --lime: #B8FF00;
+    --pink: #FF0090;
+    --blue: #3B35E8;
+    --yellow: #FFE500;
+
+    /* Surfaces */
+    --page-bg: #ffffff;
     --sidebar-bg: #ffffff;
     --card-bg: #ffffff;
-    --input-bg: #f8fafc;
-    --hover-bg: #f1f5f9;
-    --border-color: #e2e8f0;
-    --border-hover: #cbd5e1;
-    --text-color: #0f172a;
-    --text-muted: #64748b;
-    --accent-color: #2563eb;
-    --accent-soft: #eff6ff;
-    --accent-ring: rgba(37, 99, 235, 0.15);
-  }
+    --input-bg: #ffffff;
+    --hover-bg: #f4f4f4;
 
-  .dark {
-    --page-bg: #0f172a;
-    --sidebar-bg: #1e293b;
-    --card-bg: #1e293b;
-    --input-bg: #0f172a;
-    --hover-bg: rgba(255, 255, 255, 0.05);
-    --border-color: #334155;
-    --border-hover: #475569;
-    --text-color: #f1f5f9;
-    --text-muted: #94a3b8;
-    --accent-color: #3b82f6;
-    --accent-soft: rgba(59, 130, 246, 0.12);
-    --accent-ring: rgba(59, 130, 246, 0.2);
+    /* Borders & shadows */
+    --border-color: #000000;
+    --border-hover: #000000;
+    --shadow-hard: 4px 4px 0 #000;
+    --shadow-hard-sm: 2px 2px 0 #000;
+    --shadow-hard-lg: 6px 6px 0 #000;
+
+    /* Text */
+    --text-color: #000000;
+    --text-muted: #4a4a4a;
+
+    /* Accents */
+    --accent-color: #000000;
+    --accent-soft: #B8FF00;
+    --accent-ring: rgba(184, 255, 0, 0.45);
+
+    /* Page background grid (used by .grid-bg) */
+    --grid-line: rgba(0, 0, 0, 0.07);
   }
 
   html, body {
@@ -38,45 +42,104 @@
     height: 100%;
     background-color: var(--page-bg);
     color: var(--text-color);
-    transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
   }
 }
 
 @layer utilities {
+  /* ── Brutalist surface ── */
   .saas-card {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    border: 2.5px solid #000;
+    border-radius: 0;
+    box-shadow: var(--shadow-hard);
   }
 
+  /* ── Brutalist input ── */
   .saas-input {
     background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
+    border: 2px solid #000;
+    border-radius: 0;
     color: var(--text-color);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
 
   .saas-input:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px var(--accent-ring);
     outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-sm);
   }
 
+  /* ── Brutalist button (secondary / neutral) ── */
   .saas-btn {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    transition: all 0.15s ease;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    font-weight: 700;
+    box-shadow: var(--shadow-hard-sm);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
 
   .saas-btn:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--border-hover);
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard);
   }
 
   .saas-btn:active {
-    background-color: var(--hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 #000;
+  }
+
+  /* ── Brutalist primary button (pink) ── */
+  .saas-btn-primary {
+    background-color: var(--pink);
+    color: #fff;
+    border: 2.5px solid #000;
+    border-radius: 0;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: var(--shadow-hard);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .saas-btn-primary:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-lg);
+  }
+  .saas-btn-primary:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+  .saas-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  /* ── Brutalist accent button (lime) ── */
+  .saas-btn-accent {
+    background-color: var(--lime);
+    color: #000;
+    border: 2.5px solid #000;
+    border-radius: 0;
+    font-weight: 800;
+    box-shadow: var(--shadow-hard);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .saas-btn-accent:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-lg);
+  }
+  .saas-btn-accent:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  /* ── Page grid background (matches landing) ── */
+  .grid-bg {
+    background-color: #fff;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }

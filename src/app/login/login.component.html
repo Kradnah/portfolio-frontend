@@ -1,53 +1,64 @@
-<div class="min-h-screen bg-[var(--page-bg)] text-[var(--text-color)] flex items-center justify-center p-4 transition-colors duration-200 font-sans">
+<div class="grid-bg min-h-screen flex items-center justify-center p-4 font-sans text-black">
 
-    <div class="w-full max-w-sm saas-card bg-[var(--card-bg)] p-8 md:p-10 animate-fade-in">
+    <div class="w-full max-w-sm saas-card p-8 md:p-10 animate-fade-in relative">
+
+        <!-- Decorative pink square (top-right) -->
+        <div class="absolute -top-3 -right-3 w-7 h-7 bg-[var(--pink)] border-[2.5px] border-black"></div>
+
+        <!-- Decorative lime square (bottom-left) -->
+        <div class="absolute -bottom-3 -left-3 w-7 h-7 bg-[var(--lime)] border-[2.5px] border-black"></div>
+
         <!-- Logo Header -->
-        <div class="mx-auto w-14 h-14 mb-6 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center text-[var(--accent-color)]">
+        <div
+            class="mx-auto w-14 h-14 mb-6 bg-[var(--lime)] border-[2.5px] border-black flex items-center justify-center text-black shadow-[3px_3px_0_#000]">
             <lucide-icon name="layout-dashboard" [size]="28"></lucide-icon>
         </div>
 
-        <h2 class="text-2xl font-bold mb-1 tracking-tight text-center">Bienvenido a Julian Lizcano</h2>
-        <p class="text-[var(--text-muted)] mb-8 text-sm text-center">Ingresa tus credenciales para continuar</p>
+        <h2 class="text-2xl font-extrabold mb-1 tracking-tight text-center uppercase">Bienvenido a mi portafolio</h2>
+        <p class="text-[var(--text-muted)] mb-8 text-sm text-center font-medium">Ingresa tus credenciales para continuar
+        </p>
 
         <!-- Error Banner -->
-        <div *ngIf="errorMessage" class="mb-5 p-3.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium flex items-center gap-2 animate-fade-in">
+        <div *ngIf="errorMessage"
+            class="mb-5 p-3.5 bg-[var(--pink)] text-white border-[2px] border-black shadow-[3px_3px_0_#000] text-sm font-bold flex items-center gap-2 animate-fade-in">
             <lucide-icon name="x" [size]="15"></lucide-icon> {{ errorMessage }}
         </div>
 
         <!-- Form -->
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5 text-left">
             <div>
-                <label for="username" class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Usuario</label>
+                <label for="username"
+                    class="block text-xs font-extrabold text-black uppercase tracking-wider mb-1.5">Usuario</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black">
                         <lucide-icon name="users" [size]="16"></lucide-icon>
                     </div>
                     <input type="text" id="username" formControlName="username"
-                           class="saas-input w-full py-2.5 pl-10 pr-4 outline-none"
-                           placeholder="Ingresa tu usuario">
+                        class="saas-input w-full py-2.5 pl-10 pr-4" placeholder="Ingresa tu usuario">
                 </div>
             </div>
 
             <div>
-                <label for="password" class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Contraseña</label>
+                <label for="password"
+                    class="block text-xs font-extrabold text-black uppercase tracking-wider mb-1.5">Contraseña</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black">
                         <lucide-icon name="key-round" [size]="16"></lucide-icon>
                     </div>
                     <input type="password" id="password" formControlName="password"
-                           class="saas-input w-full py-2.5 pl-10 pr-4 outline-none tracking-widest"
-                           placeholder="••••••••">
+                        class="saas-input w-full py-2.5 pl-10 pr-4 tracking-widest" placeholder="••••••••">
                 </div>
             </div>
 
             <button type="submit" [disabled]="loginForm.invalid || isSubmitting"
-                    class="mt-2 w-full py-3 rounded-lg bg-[var(--accent-color)] text-white font-semibold flex items-center justify-center gap-2 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                <lucide-icon [name]="isSubmitting ? 'sun' : 'layout-dashboard'" [size]="18" [class.animate-spin]="isSubmitting"></lucide-icon>
+                class="saas-btn-primary mt-2 w-full py-3 flex items-center justify-center gap-2">
+                <lucide-icon [name]="isSubmitting ? 'loader' : 'layout-dashboard'" [size]="18"
+                    [class.animate-spin]="isSubmitting"></lucide-icon>
                 {{ isSubmitting ? 'Verificando...' : 'Iniciar Sesión' }}
             </button>
         </form>
 
-        <div class="mt-8 text-xs text-[var(--text-muted)] text-center">
+        <div class="mt-8 text-xs text-[var(--text-muted)] text-center font-medium">
             &copy; 2026 Julian Lizcano CRM. Todos los derechos reservados.
         </div>
     </div>

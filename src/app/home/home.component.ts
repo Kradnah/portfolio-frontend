@@ -8,7 +8,7 @@ import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
 import { ClientesService } from '../services/clientes.service';
 import { CryptoService } from '../services/crypto.service';
-import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, Sun, Moon, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader, Smile, FileText, Search, Plus, Trash2, Image, Film, FileCheck } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Settings, LogOut, KeyRound, MessageCircle, Facebook, Instagram, Phone, X, Paperclip, Send, Menu, ChevronsLeft, ChevronsRight, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Info, Edit, Save, Loader, Smile, FileText, Search, Plus, Trash2, Image, Film, FileCheck } from 'lucide-angular';
 import { PlantillasService, Plantilla } from '../services/plantillas.service';
 
 @Component({
@@ -54,7 +54,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     selectedFileType: 'image' | 'video' | 'other' | null = null;
 
     // UI State
-    isDarkMode: boolean = false;
     isMobileMenuOpen: boolean = false;
     isSidebarCollapsed: boolean = false;
     isMobileSidebarOpen: boolean = false;
@@ -78,17 +77,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     get isCollapsed(): boolean {
         return this.isSidebarCollapsed && !this.isMobileSidebarOpen;
-    }
-
-    toggleTheme() {
-        this.isDarkMode = !this.isDarkMode;
-        if (this.isDarkMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
     }
 
     toggleMobileMenu() {
@@ -227,13 +215,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         // Initialize Sidebar state from localStorage
         if (localStorage.getItem('sidebarCollapsed') === 'true') {
             this.isSidebarCollapsed = true;
-        }
-
-        // Initialize Theme from localStorage
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            this.isDarkMode = true;
-            document.documentElement.classList.add('dark');
         }
 
         this.loadDashboardData();
