@@ -13,7 +13,20 @@
       "mcp__chrome-devtools__take_screenshot",
       "Bash(curl -s http://localhost:4200)",
       "mcp__chrome-devtools__evaluate_script",
-      "mcp__chrome-devtools__list_console_messages"
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(npm start *)",
+      "Bash(curl *)",
+      "Bash(npm run *)",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__close_page",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(cp \"/c/Users/Julian Lizcano/Desktop/SVGs Portfolio/Agrupar.svg\" \"/d/Server/PortFolio/client/public/svgs/\")",
+      "Bash(cp \"/c/Users/Julian Lizcano/Desktop/SVGs Portfolio/Curva.svg\" \"/d/Server/PortFolio/client/public/svgs/\")",
+      "Bash(cp \"/c/Users/Julian Lizcano/Desktop/SVGs Portfolio/Polilínea.svg\" \"/d/Server/PortFolio/client/public/svgs/polilinea.svg\")",
+      "Bash(cp \"/c/Users/Julian Lizcano/Desktop/SVGs Portfolio/cuboFoto.svg\" \"/d/Server/PortFolio/client/public/svgs/\")",
+      "Bash(cp \"/c/Users/Julian Lizcano/Desktop/SVGs Portfolio/diamond1.svg\" \"/d/Server/PortFolio/client/public/svgs/\")"
     ]
   }
 }

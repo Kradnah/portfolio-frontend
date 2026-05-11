@@ -1,15 +1,16 @@
 /* ─── Brutalist palette ─── */
 :host {
   display: block;
-  --lime:   #B8FF00;
-  --blue:   #3B35E8;
-  --pink:   #FF0090;
+  --lime: #B8FF00;
+  --blue: #3B35E8;
+  --pink: #FF0090;
   --yellow: #FFE500;
   font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* ─── Page shell ─── */
 .page {
+  position: relative;
   min-height: 100vh;
   background-color: #fff;
   background-image:
@@ -19,6 +20,231 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   CAPA A · Bloques de fondo
+   (todos absolutos sobre la página)
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Franja negra superior — full width */
+.bg-black-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: #131313;
+}
+
+/* (escalón eliminado — el bg-blue-big ahora arranca debajo de la franja negra full-width) */
+.bg-black-top-step {
+  display: none;
+}
+
+/* Franja negra inferior delgada (full-width) */
+.bg-black-bot {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: #131313;
+}
+
+/* Bloque azul gigante izquierdo (con margen blanco al borde + borde + sombra) */
+.bg-blue-big {
+  position: absolute;
+  top: 28px;
+  left: 16px;
+  width: 26%;
+  bottom: 8%;
+  background-image: url('/svgs/rectangulo.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border: 2.5px solid #000;
+  box-shadow: 8px 8px 0 #000;
+}
+
+/* Rosa cuadrado top-right (detrás del botón Register) */
+.bg-pink-tr {
+  position: absolute;
+  top: 14px;
+  right: 30px;
+  width: 140px;
+  height: 80px;
+  background: var(--pink);
+}
+
+/* Bloque azul al noroeste del hexágono (asoma a la izq y arriba del hex) */
+.bg-blue-hex {
+  position: absolute;
+  top: 22%;
+  right: 14.5%;
+  width: 8%;
+  height: 11%;
+  background: var(--blue);
+  border: 2.5px solid #000;
+}
+
+/* Rosa pequeño sobre el azul-hex (esquina superior izq, asoma fuera del hex) */
+.bg-pink-hex {
+  position: absolute;
+  top: 23.5%;
+  right: 18%;
+  width: 2.8%;
+  height: 4.5%;
+  background: var(--pink);
+  border: 2px solid #000;
+}
+
+/* Rayas diagonales centro-bajo (encima de la franja negra larga) */
+.bg-stripes-mid {
+  position: absolute;
+  bottom: 8%;
+  left: 28%;
+  width: 18%;
+  height: 32px;
+  background: repeating-linear-gradient(-45deg,
+      #000 0,
+      #000 4px,
+      transparent 4px,
+      transparent 12px);
+  z-index: 3;
+}
+
+/* Cuadradito rosa centro-bajo (sobresale por encima de la franja negra) */
+.bg-pink-square-mid {
+  position: absolute;
+  bottom: 4%;
+  left: 33%;
+  width: 50px;
+  height: 80px;
+  background: var(--pink);
+  border: 2px solid #000;
+  z-index: 4;
+}
+
+/* Matriz 4x4 de puntos (sobre fondo blanco, por encima de la franja negra) */
+.bg-dot-grid {
+  position: absolute;
+  bottom: 13%;
+  left: 41%;
+  display: grid;
+  grid-template-columns: repeat(4, 4px);
+  gap: 8px;
+  z-index: 3;
+}
+
+.bg-dot-grid span {
+  width: 4px;
+  height: 4px;
+  background: #000;
+  border-radius: 50%;
+}
+
+/* Bloque rosa grande bottom-left con sombra (sobre la franja negra) */
+.bg-pink-bl {
+  position: absolute;
+  bottom: 6%;
+  left: 14%;
+  width: 13%;
+  height: 60px;
+  background: var(--pink);
+  border: 2.5px solid #000;
+  box-shadow: 6px 6px 0 #000;
+  z-index: 4;
+}
+
+/* Franja negra larga inferior (con puntos blancos al final) */
+.bg-black-bot-long {
+  position: absolute;
+  bottom: 4%;
+  left: 14%;
+  right: 0;
+  height: 50px;
+  background: #131313;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 22px;
+  z-index: 2;
+}
+
+.bg-black-bot-long .bdot {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+/* Bloque rosa bottom-right (sobresale por encima de la franja negra) */
+.bg-pink-br {
+  position: absolute;
+  bottom: 4%;
+  right: 0;
+  width: 95px;
+  height: 65px;
+  background: var(--pink);
+  z-index: 3;
+}
+
+/* ─── Adornos extra de fondo ─── */
+/* Rayas diagonales pequeñas top-right cerca de la nav */
+.bg-stripes-tr {
+  position: absolute;
+  top: 38px;
+  right: 200px;
+  width: 60px;
+  height: 14px;
+  background: repeating-linear-gradient(-45deg,
+      #000 0,
+      #000 3px,
+      transparent 3px,
+      transparent 9px);
+  z-index: 2;
+}
+
+/* Patrón de puntos esquina top-right */
+.bg-dot-grid-tr {
+  position: absolute;
+  top: 110px;
+  right: 36px;
+  display: grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 7px;
+  z-index: 2;
+}
+
+.bg-dot-grid-tr span {
+  width: 4px;
+  height: 4px;
+  background: #000;
+  border-radius: 50%;
+}
+
+/* Cluster de X en la franja superior libre entre nav y panel */
+.bg-x-cluster-top {
+  position: absolute;
+  top: 100px;
+  left: 32%;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 4px 8px;
+  z-index: 2;
+}
+
+.bg-x-cluster-top .xm {
+  font-size: 13px;
+  color: #fff;
 }
 
 /* ──────────────────────────
@@ -42,6 +268,7 @@
   padding: 0;
   gap: 10px;
 }
+
 .nav-tabs li a {
   display: inline-block;
   padding: 10px 22px;
@@ -54,6 +281,7 @@
   letter-spacing: 0.02em;
   transition: transform 0.1s, box-shadow 0.1s;
 }
+
 .nav-tabs li a:hover {
   transform: translate(-2px, -2px);
   box-shadow: 3px 3px 0 #000;
@@ -62,22 +290,21 @@
 .nav-btn {
   background: var(--pink);
   color: #fff;
-  border: 2.5px solid #000;
-  padding: 12px 30px;
+  border: none;
+  padding: 14px 34px;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
   letter-spacing: 0.06em;
-  box-shadow: 4px 4px 0 #000;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: filter 0.15s;
 }
+
 .nav-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 #000;
+  filter: brightness(1.1);
 }
+
 .nav-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
+  filter: brightness(0.95);
 }
 
 /* ──────────────────────────
@@ -87,7 +314,8 @@
   flex: 1;
   position: relative;
   margin: 0 40px 40px;
-  min-height: 620px;
+  min-height: 720px;
+  z-index: 2;
 }
 
 /* X marks helper */
@@ -100,77 +328,85 @@
 }
 
 /* ░░░░░░░░░░░░░░░░░░░░░░░░░░
-   BANNER VERTICAL IZQUIERDO
+   BANNER VERTICAL IZQUIERDO (polilinea SVG)
 ░░░░░░░░░░░░░░░░░░░░░░░░░░ */
 .brand-tag {
   position: absolute;
   top: -10px;
-  left: 0;
-  width: 200px;
-  height: 460px;
+  left: 20px;
+  width: 240px;
+  height: 600px;
   z-index: 5;
 }
-.brand-tag-inner {
+
+.brand-tag-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  background: var(--lime);
-  border: 2.5px solid #000;
-  border-bottom: none;
+  filter: drop-shadow(8px 8px 0 #000);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.brand-tag-content {
   position: relative;
-  box-shadow: 6px 6px 0 #000;
+  z-index: 2;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 28px 22px 0;
+  padding: 28px 30px 0;
 }
-.brand-tag-tip {
-  width: 200px;
-  height: 64px;
-  background: var(--lime);
-  border-left: 2.5px solid #000;
-  border-right: 2.5px solid #000;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  margin-top: -2px;
-  filter: drop-shadow(6px 6px 0 #000);
-}
+
 .brand-vtext {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 900;
   font-style: italic;
   line-height: 0.95;
   color: #000;
   letter-spacing: -0.01em;
 }
+
 .brand-x-cluster {
   display: grid;
   grid-template-columns: repeat(2, auto);
   gap: 6px;
-  margin-top: 28px;
+  margin-top: 36px;
   width: max-content;
 }
+
+/* Sparkle dentro del brand-tag */
+.brand-sparkle {
+  position: absolute;
+  top: 110px;
+  right: 28px;
+  width: 22px;
+  height: 22px;
+  fill: #000;
+}
+
 .brand-diamond {
   position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 110px;
+  bottom: 70px;
+  left: 22px;
+  width: 250px;
+  height: auto;
+  display: block;
 }
-.brand-diamond svg { width: 100%; height: auto; }
 
 /* ░░░░░░░░░░░░░░░░░░░░░░░░░░
    PANEL CENTRAL VERDE
 ░░░░░░░░░░░░░░░░░░░░░░░░░░ */
 .hero-panel {
   position: absolute;
-  top: 30px;
-  left: 170px;
-  right: 240px;
-  height: 470px;
+  top: 80px;
+  left: 300px;
+  right: 100px;
+  height: 760px;
   background: var(--lime);
-  border: 2.5px solid #000;
-  box-shadow: 8px 8px 0 #000;
   z-index: 6;
   padding: 36px 50px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Rayas diagonales esquina superior izquierda */
@@ -180,20 +416,64 @@
   left: 32px;
   width: 90px;
   height: 18px;
-  background: repeating-linear-gradient(
-    -45deg,
-    #000 0,
-    #000 3px,
-    transparent 3px,
-    transparent 9px
-  );
+  background: repeating-linear-gradient(-45deg,
+      #000 0,
+      #000 3px,
+      transparent 3px,
+      transparent 9px);
 }
 
 /* Sparkles dispersos */
-.sp { position: absolute; display: block; }
-.sp-a { top: 60px; left: 240px; width: 22px; height: 22px; }
-.sp-b { top: 26px; right: 130px; width: 16px; height: 16px; transform: rotate(20deg); }
-.sp-c { top: 90px; left: 320px; width: 14px; height: 14px; }
+.sp {
+  position: absolute;
+  display: block;
+}
+
+.sp-a {
+  top: 60px;
+  left: 240px;
+  width: 22px;
+  height: 22px;
+}
+
+.sp-b {
+  top: 26px;
+  right: 130px;
+  width: 16px;
+  height: 16px;
+  transform: rotate(20deg);
+}
+
+.sp-c {
+  top: 90px;
+  left: 320px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Sparkles extra dispersos en el panel */
+.sp-d {
+  bottom: 240px;
+  left: 60px;
+  width: 18px;
+  height: 18px;
+  transform: rotate(15deg);
+}
+
+.sp-e {
+  bottom: 140px;
+  left: 240px;
+  width: 12px;
+  height: 12px;
+}
+
+.sp-f {
+  top: 360px;
+  left: 70px;
+  width: 14px;
+  height: 14px;
+  transform: rotate(-10deg);
+}
 
 /* Cuadrado pink decorativo */
 .hp-pink-square {
@@ -222,6 +502,7 @@
   position: relative;
   margin-top: 30px;
 }
+
 .h-just {
   font-size: clamp(46px, 6vw, 78px);
   font-weight: 900;
@@ -230,13 +511,15 @@
   line-height: 0.95;
   color: #000;
 }
+
 .h-come-bg {
   display: inline-block;
   background: #000;
-  padding: 4px 18px 8px;
-  margin-top: 6px;
-  transform: skewX(-2deg);
+  padding: 6px 22px 10px;
+  margin-top: 4px;
+  transform: skewX(-6deg);
 }
+
 .h-come {
   font-size: clamp(40px, 5.4vw, 68px);
   font-weight: 900;
@@ -255,26 +538,70 @@
   color: #000;
 }
 
-/* X row + triangulos */
+/* Patrón de puntos pequeño bajo el body */
+.hp-dot-pattern {
+  position: absolute;
+  top: 460px;
+  left: 70px;
+  display: grid;
+  grid-template-columns: repeat(5, 4px);
+  gap: 7px;
+  z-index: 2;
+}
+
+.hp-dot-pattern span {
+  width: 4px;
+  height: 4px;
+  background: #000;
+  border-radius: 50%;
+}
+
+/* Rayas diagonales extra abajo izquierda del panel */
+.hp-stripes-bot {
+  position: absolute;
+  bottom: 130px;
+  left: 220px;
+  width: 70px;
+  height: 16px;
+  background: repeating-linear-gradient(-45deg,
+      #000 0,
+      #000 3px,
+      transparent 3px,
+      transparent 9px);
+}
+
+/* X row + triangulos (centrados un poco más arriba dentro del panel) */
 .hp-x-row {
   position: absolute;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 80px;
+  left: 38%;
   display: flex;
-  gap: 16px;
+  gap: 22px;
 }
-.hp-x-row .xm { font-size: 22px; }
+
+.hp-x-row .xm {
+  font-size: 20px;
+}
 
 .hp-down-tri {
   position: absolute;
-  right: 220px;
-  bottom: 110px;
-  font-size: 10px;
-  line-height: 1.2;
+  right: 230px;
+  bottom: 130px;
+  font-size: 11px;
+  line-height: 1.15;
   letter-spacing: 0;
   color: #000;
   text-align: center;
+}
+
+/* Triángulos extra apuntando a la derecha (zona media-baja) */
+.hp-right-tri {
+  position: absolute;
+  left: 60px;
+  bottom: 230px;
+  font-size: 11px;
+  line-height: 1.15;
+  color: #000;
 }
 
 /* Visit Now */
@@ -294,10 +621,12 @@
   letter-spacing: 0.04em;
   transition: transform 0.1s, box-shadow 0.1s;
 }
+
 .visit-btn:hover {
   transform: translate(-2px, -2px);
   box-shadow: 7px 7px 0 #000;
 }
+
 .visit-btn:active {
   transform: translate(3px, 3px);
   box-shadow: 2px 2px 0 #000;
@@ -308,30 +637,23 @@
 ░░░░░░░░░░░░░░░░░░░░░░░░░░ */
 .right-zone {
   position: absolute;
-  top: 60px;
-  right: 0;
-  width: 320px;
+  top: 150px;
+  right: 110px;
+  width: 360px;
   height: 460px;
-  z-index: 7;
+  z-index: 8;
 }
 
+/* Espiral pegada al borde derecho — la mitad derecha (donde está el corte) sale del viewport */
 .circles {
   position: absolute;
-  top: 30px;
-  right: 20px;
-  width: 70px;
-  height: 70px;
+  top: 90px;
+  right: -60px;
+  width: 280px;
+  height: auto;
+  display: block;
+  z-index: 7;
 }
-.circles span {
-  position: absolute;
-  border: 1.5px solid #000;
-  border-radius: 50%;
-}
-.circles span:nth-child(1) { inset: 0; }
-.circles span:nth-child(2) { inset: 8px; }
-.circles span:nth-child(3) { inset: 16px; }
-.circles span:nth-child(4) { inset: 24px; }
-.circles span:nth-child(5) { inset: 30px; background: #000; }
 
 .rt-xrow {
   position: absolute;
@@ -340,193 +662,498 @@
   display: flex;
   gap: 8px;
 }
-.rt-xrow .xm { font-size: 13px; }
+
+.rt-xrow .xm {
+  font-size: 13px;
+}
 
 .hex3d {
   position: absolute;
-  top: 110px;
+  top: 100px;
   left: 50%;
-  transform: translateX(-50%);
-  width: 240px;
-  height: 240px;
+  transform: translateX(-70%);
+  width: clamp(280px, 38vw, 720px);
+  height: auto;
+  display: block;
+  z-index: 9;
 }
-.hex3d svg { width: 100%; height: 100%; }
 
 .rt-burst {
   position: absolute;
-  top: 200px;
-  right: 0;
-  width: 50px;
-  height: 50px;
+  top: 250px;
+  right: -60px;
+  width: 250px;
+  height: auto;
+  display: block;
 }
 
 .rt-mini-diamond {
   position: absolute;
-  bottom: 30px;
-  left: 30px;
-  width: 50px;
-}
-.rt-mini-diamond svg { width: 100%; height: auto; }
-
-/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
-   FONDO — bloques de color
-░░░░░░░░░░░░░░░░░░░░░░░░░░ */
-.bg-blue-tall {
-  position: absolute;
-  top: -10px;
-  left: 200px;
-  width: 100px;
-  height: 130px;
-  background: var(--blue);
-  border: 2.5px solid #000;
-  z-index: 3;
+  bottom: -300px;
+  left: -200px;
+  width: 250px;
+  height: auto;
+  display: block;
 }
 
-.bg-pink-bot-left {
-  position: absolute;
-  bottom: 10px;
-  left: 230px;
-  width: 130px;
-  height: 80px;
-  background: var(--pink);
-  border: 2.5px solid #000;
-  box-shadow: 5px 5px 0 #000;
-  z-index: 4;
-}
-
-.bg-stripes-bot {
-  position: absolute;
-  bottom: 30px;
-  left: 360px;
-  width: 230px;
-  height: 24px;
-  background: repeating-linear-gradient(
-    -45deg,
-    #000 0,
-    #000 4px,
-    transparent 4px,
-    transparent 12px
-  );
-  z-index: 4;
-}
-
-.bg-black-bot-right {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 320px;
-  height: 56px;
-  background: #000;
-  border: 2.5px solid #000;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  padding-right: 24px;
-  z-index: 5;
-}
-.bg-black-bot-right .dot {
-  width: 8px;
-  height: 8px;
-  background: #fff;
-}
-
-/* Sparkles azules sobre fondo */
+/* Sparkles blancos sobre bloque azul (esquina inferior izq.) */
 .bl-sparkles {
   position: absolute;
-  bottom: 100px;
+  bottom: 180px;
   left: 14px;
   display: flex;
-  gap: 10px;
+  gap: 14px;
   align-items: flex-end;
   z-index: 8;
 }
-.bl-sparkles svg:nth-child(1) { width: 28px; height: 28px; fill: var(--blue); }
-.bl-sparkles svg:nth-child(2) { width: 20px; height: 20px; fill: var(--blue); }
-.bl-sparkles svg:nth-child(3) { width: 18px; height: 18px; fill: var(--blue); }
-.bl-sparkles svg:nth-child(4) { width: 14px; height: 14px; fill: var(--blue); }
 
-.dot-grid {
-  position: absolute;
-  bottom: 110px;
-  left: 360px;
-  display: grid;
-  grid-template-columns: repeat(4, 4px);
-  gap: 6px;
-  z-index: 4;
+.bl-sparkles svg {
+  fill: #fff;
 }
-.dot-grid span {
-  width: 4px;
-  height: 4px;
-  background: #000;
-  border-radius: 50%;
+
+.bl-sparkles svg:nth-child(1) {
+  width: 36px;
+  height: 36px;
+}
+
+.bl-sparkles svg:nth-child(2) {
+  width: 24px;
+  height: 24px;
+}
+
+.bl-sparkles svg:nth-child(3) {
+  width: 20px;
+  height: 20px;
+}
+
+.bl-sparkles svg:nth-child(4) {
+  width: 16px;
+  height: 16px;
 }
 
 /* ──────────────────────────
-   RESPONSIVE
+   RESPONSIVE — TABLET LARGE / DESKTOP CHICO
+   (1100px - 1280px)
 ────────────────────────── */
-@media (max-width: 900px) {
-  .navbar {
-    padding: 16px 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
+@media (max-width: 1280px) {
+  .hero-panel {
+    left: 280px;
+    right: 60px;
+    padding: 32px 40px;
   }
-  .nav-tabs { gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .nav-tabs li a { padding: 8px 14px; font-size: 12px; }
-  .nav-btn { padding: 10px 20px; font-size: 12px; }
+
+  .right-zone {
+    right: 60px;
+    width: 320px;
+  }
+
+  .hex3d {
+    width: clamp(280px, 36vw, 560px);
+    transform: translateX(-60%);
+  }
+
+  .rt-burst {
+    width: 200px;
+    right: -30px;
+  }
+
+  .circles {
+    width: 220px;
+    right: -30px;
+  }
+
+  .hp-down-tri {
+    right: 180px;
+  }
+
+  .hp-stripes-bot {
+    left: 200px;
+  }
+}
+
+/* ──────────────────────────
+   RESPONSIVE — TABLET (700px - 1100px)
+   Stack vertical pero conserva decoraciones reducidas
+────────────────────────── */
+@media (max-width: 1100px) {
+  .navbar {
+    padding: 18px 24px;
+  }
+
+  .nav-tabs li a {
+    padding: 9px 16px;
+    font-size: 12px;
+  }
+
+  .nav-btn {
+    padding: 12px 22px;
+    font-size: 12px;
+  }
+
+  /* Mantenemos algunos elementos del bg-layer pero ajustados */
+  .bg-blue-big {
+    width: 100%;
+    left: 0;
+    top: 14px;
+    height: 220px;
+    bottom: auto;
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .bg-pink-tr {
+    width: 90px;
+    height: 50px;
+    right: 18px;
+  }
+
+  .bg-stripes-tr {
+    right: 130px;
+    top: 26px;
+  }
+
+  .bg-dot-grid-tr {
+    top: 80px;
+    right: 24px;
+  }
+
+  .bg-x-cluster-top {
+    display: none;
+  }
+
+  .bg-blue-hex,
+  .bg-pink-hex,
+  .bg-stripes-mid,
+  .bg-pink-square-mid,
+  .bg-dot-grid,
+  .bg-pink-bl,
+  .bg-black-bot-long,
+  .bg-pink-br {
+    display: none;
+  }
 
   .scene {
-    margin: 0 16px 24px;
-    min-height: 1100px;
+    margin: 0 20px 30px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
   }
+
+  /* Banner brand — convertido a barra horizontal con fondo sólido (sin SVG diagonal) */
   .brand-tag {
     position: relative;
     width: 100%;
     height: auto;
-    top: 0; left: 0;
-    margin-bottom: 16px;
+    top: 0;
+    left: 0;
+    background: var(--lime);
+    border: 2.5px solid #000;
+    box-shadow: 6px 6px 0 #000;
+    padding: 20px 24px;
   }
-  .brand-tag-inner {
-    height: 220px;
+
+  .brand-tag-bg {
+    display: none;
+  }
+
+  .brand-tag-content {
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    justify-content: space-between;
+    padding: 0;
+    gap: 16px;
+    flex-wrap: wrap;
   }
-  .brand-tag-tip { display: none; }
-  .brand-vtext { font-size: 26px; }
+
+  .brand-vtext {
+    font-size: 26px;
+  }
+
+  .brand-x-cluster {
+    margin-top: 0;
+  }
+
+  .brand-sparkle {
+    position: relative;
+    top: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+  }
+
   .brand-diamond {
     position: relative;
     bottom: 0;
     left: 0;
-    transform: none;
-    width: 80px;
+    width: 100px;
   }
-  .brand-x-cluster { margin-top: 0; }
 
+  /* Panel verde como bloque normal del flujo */
   .hero-panel {
     position: relative;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: auto;
-    min-height: 460px;
-    padding: 28px 24px 100px;
+    min-height: 520px;
+    padding: 32px 28px 100px;
   }
-  .hp-stripes, .sp, .hp-pink-square, .hp-arrows, .hp-down-tri {
+
+  .hp-stripes {
+    top: 20px;
+    left: 24px;
+  }
+
+  .sp-a { top: 50px; left: 200px; }
+  .sp-b { top: 24px; right: 90px; }
+  .sp-c { top: 80px; left: 280px; }
+  .sp-d { bottom: 200px; left: 30px; }
+  .sp-e { bottom: 120px; left: 200px; }
+  .sp-f { top: 320px; left: 50px; }
+
+  .hp-pink-square {
+    top: 40px;
+    right: 70px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .hp-arrows {
+    top: 90px;
+    right: 90px;
+  }
+
+  .hp-dot-pattern {
+    top: auto;
+    bottom: 200px;
+    left: 30px;
+  }
+
+  .hp-stripes-bot {
+    bottom: 180px;
+    left: 160px;
+  }
+
+  .hp-x-row {
+    bottom: 140px;
+    left: 30%;
+  }
+
+  .hp-down-tri {
+    right: 30px;
+    bottom: 150px;
+  }
+
+  .hp-right-tri {
     display: none;
   }
 
+  /* Zona derecha como bloque debajo del panel */
   .right-zone {
     position: relative;
     width: 100%;
-    height: 320px;
-    margin-top: 16px;
-    top: 0; right: 0;
+    height: 340px;
+    margin-top: 0;
+    top: 0;
+    right: 0;
+    background: #fff;
   }
-  .hex3d { width: 200px; height: 200px; top: 50px; }
 
-  .bg-blue-tall, .bg-pink-bot-left, .bg-stripes-bot,
-  .bg-black-bot-right, .bl-sparkles, .dot-grid {
+  .rt-xrow {
+    top: 16px;
+    left: 16px;
+  }
+
+  .hex3d {
+    width: 280px;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .rt-burst {
+    width: 140px;
+    right: 20px;
+    top: 180px;
+  }
+
+  .rt-mini-diamond {
+    width: 140px;
+    bottom: -40px;
+    left: 10px;
+  }
+
+  .circles {
+    top: 40px;
+    right: -40px;
+    width: 160px;
+  }
+
+  .bl-sparkles {
     display: none;
+  }
+}
+
+/* ──────────────────────────
+   RESPONSIVE — MÓVIL (≤700px)
+────────────────────────── */
+@media (max-width: 700px) {
+  .navbar {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .nav-tabs {
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-tabs li a {
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+
+  .nav-btn {
+    padding: 9px 16px;
+    font-size: 11px;
+  }
+
+  /* En móvil ocultamos el bloque azul superior pero conservamos algunas decoraciones */
+  .bg-blue-big {
+    display: none;
+  }
+
+  .bg-pink-tr {
+    width: 70px;
+    height: 40px;
+    right: 12px;
+  }
+
+  .bg-stripes-tr,
+  .bg-dot-grid-tr {
+    display: none;
+  }
+
+  .scene {
+    margin: 0 14px 24px;
+    gap: 14px;
+  }
+
+  .brand-tag {
+    padding: 16px 18px;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .brand-tag-content {
+    gap: 10px;
+  }
+
+  .brand-vtext {
+    font-size: 22px;
+  }
+
+  .brand-x-cluster .xm {
+    font-size: 13px;
+  }
+
+  .brand-diamond {
+    width: 70px;
+  }
+
+  .brand-sparkle {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hero-panel {
+    min-height: 480px;
+    padding: 28px 22px 90px;
+  }
+
+  /* Algunos adornos del hero se reducen / se ocultan parcialmente */
+  .hp-arrows,
+  .sp-c,
+  .sp-f,
+  .hp-down-tri,
+  .hp-right-tri,
+  .hp-stripes-bot {
+    display: none;
+  }
+
+  .sp-a { top: 30px; left: 150px; width: 16px; height: 16px; }
+  .sp-b { top: 18px; right: 30px; width: 14px; height: 14px; }
+  .sp-d { bottom: 160px; left: 16px; width: 14px; height: 14px; }
+  .sp-e { bottom: 100px; left: 140px; width: 10px; height: 10px; }
+
+  .hp-pink-square {
+    top: 32px;
+    right: 26px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .hp-stripes {
+    top: 18px;
+    left: 20px;
+    width: 60px;
+    height: 14px;
+  }
+
+  .hp-dot-pattern {
+    bottom: 150px;
+    left: 20px;
+  }
+
+  .hp-x-row {
+    bottom: 95px;
+    left: 50%;
+    transform: translateX(-50%);
+    gap: 16px;
+  }
+
+  .hp-x-row .xm {
+    font-size: 16px;
+  }
+
+  .visit-btn {
+    bottom: 24px;
+    left: 22px;
+    padding: 11px 26px;
+    font-size: 12px;
+  }
+
+  .right-zone {
+    height: 280px;
+  }
+
+  .hex3d {
+    width: 220px;
+    top: 20px;
+  }
+
+  .rt-burst {
+    width: 110px;
+    right: 12px;
+    top: 140px;
+  }
+
+  .rt-mini-diamond {
+    width: 110px;
+    bottom: -30px;
+    left: 8px;
+  }
+
+  .circles {
+    width: 120px;
+    top: 20px;
+    right: -30px;
+  }
+
+  .rt-xrow .xm {
+    font-size: 11px;
   }
 }
