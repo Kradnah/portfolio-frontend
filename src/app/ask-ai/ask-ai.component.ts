@@ -16,7 +16,7 @@ const SUGGESTED: { label: string; q: string; a: string }[] = [
   {
     label: 'Su stack',
     q: '¿Qué stack domina?',
-    a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL, MySQL, MongoDB y Redis. En frontend trabaja con Angular y React. Despliega con Docker en AWS, GCP y en su propio VPS con Dokploy.',
+    a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL (su base de datos fuerte), MySQL y Redis. En frontend trabaja con Angular y React. Despliega con Docker en AWS, GCP y en su propio VPS con Dokploy.',
   },
   {
     label: 'Mayor logro',
