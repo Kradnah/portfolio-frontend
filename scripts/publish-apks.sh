@@ -11,6 +11,13 @@ SRC=${RIDEAPP_APKS_DIR:-/d/Server/rideapp-apks}
 HOST=${PORTFOLIO_HOST:-admin@161.97.96.66}
 DEST=portfolio-files/downloads
 
+# Una sola conexión SSH reutilizada: muchas conexiones seguidas activan el bloqueo del servidor.
+CTL="$(mktemp -u)"
+SSH_OPTS=(-o ControlMaster=auto -o ControlPath="$CTL" -o ControlPersist=120)
+ssh() { command ssh "${SSH_OPTS[@]}" "$@"; }
+scp() { command scp "${SSH_OPTS[@]}" "$@"; }
+trap 'command ssh -o ControlPath="$CTL" -O exit "$HOST" 2>/dev/null || true' EXIT
+
 latest() { # latest <app>: archivo con la versión semver más alta
   ls "$SRC"/rideapp-"$1"-*.apk 2>/dev/null |
     sed -E "s/.*rideapp-$1-([0-9.]+)\.apk/\1 &/" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | cut -d' ' -f2
