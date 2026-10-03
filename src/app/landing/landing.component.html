@@ -45,11 +45,11 @@
   <!-- ─── NAVBAR (top, sobre fondo grid) ─── -->
   <nav class="navbar">
     <ul class="nav-tabs">
-      <li><a href="#">Home</a></li>
-      <li><a href="#">Collection</a></li>
-      <li><a href="#">About Me</a></li>
+      <li><a href="#proyectos">Proyectos</a></li>
+      <li><a href="#ia">Pregúntale a mi IA</a></li>
+      <li><a href="#contacto">Contacto</a></li>
     </ul>
-    <button class="nav-btn" (click)="openCoral()">Coral ↗</button>
+    <a class="nav-btn" href="/cv/Julian_Lizcano_CV.pdf" download>Descargar CV</a>
   </nav>
 
   <!-- ─── ESCENA HERO (composición en capas) ─── -->
@@ -112,17 +112,17 @@
 
       <!-- Headline -->
       <div class="hp-headline">
-        <h1 class="h-just">Portfolio</h1>
+        <h1 class="h-just">Full-Stack</h1>
         <div class="h-come-bg">
-          <h1 class="h-come">Building...</h1>
+          <p class="h-come">&amp; AI Dev</p>
         </div>
       </div>
 
       <!-- Body text -->
       <p class="hp-body">
-        I'm an Automation AI Developer<br>
-        I do things<br>
-        to get more things done!
+        Construyo APIs, apps y automatizaciones<br>
+        con IA que llegan a producción.<br>
+        Python · FastAPI · NestJS · Angular · React
       </p>
 
       <!-- Patrón de puntos decorativo bajo el body -->
@@ -148,7 +148,7 @@
       <div class="hp-right-tri">►<br>►<br>►</div>
 
       <!-- Botón Visit Now (esquina inferior izquierda del panel) -->
-      <button class="visit-btn" (click)="openCoral()">Visit Now</button>
+      <a class="visit-btn" href="#proyectos">Ver proyectos</a>
     </div>
 
     <!-- Espiral pegada al borde derecho (fuera del right-zone para no moverse con el hex) -->
@@ -194,3 +194,7 @@
   </section>
 
 </div>
+
+<app-projects id="proyectos" />
+<app-ask-ai id="ia" />
+<app-contact id="contacto" />

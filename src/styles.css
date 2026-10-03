@@ -35,6 +35,10 @@
     --grid-line: rgba(0, 0, 0, 0.07);
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   html, body {
     margin: 0;
     padding: 0;
@@ -142,4 +146,46 @@
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 48px 48px;
   }
+}
+
+/* ── Secciones de la landing (proyectos, IA, contacto) ── */
+.section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 96px 40px;
+}
+.section-head { margin-bottom: 40px; }
+.kicker {
+  display: inline-block;
+  background: #000;
+  color: var(--lime);
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  margin-bottom: 14px;
+}
+.section-title {
+  margin: 0 0 18px;
+  font-size: clamp(32px, 4.4vw, 56px);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+.section-title .hl {
+  background: var(--pink);
+  color: #fff;
+  padding: 0 10px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.section-sub {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  max-width: 640px;
+}
+@media (max-width: 640px) {
+  .section { padding: 64px 20px; }
 }

@@ -1,17 +1,13 @@
 import { Component } from '@angular/core';
-
-/** Demo en vivo de Coral, el CRM conversacional con IA (repo D:\Server\Coral). */
-const CORAL_URL = 'https://crm.julian-lizcano.com';
+import { AskAiComponent } from '../ask-ai/ask-ai.component';
+import { ContactComponent } from '../contact/contact.component';
+import { ProjectsComponent } from '../projects/projects.component';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [],
+  imports: [ProjectsComponent, AskAiComponent, ContactComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.css'
 })
-export class LandingComponent {
-  openCoral() {
-    window.open(CORAL_URL, '_blank', 'noopener');
-  }
-}
+export class LandingComponent {}

@@ -288,6 +288,8 @@
 }
 
 .nav-btn {
+  display: inline-block;
+  text-decoration: none;
   background: var(--pink);
   color: #fff;
   border: none;
@@ -606,6 +608,7 @@
 
 /* Visit Now */
 .visit-btn {
+  text-decoration: none;
   position: absolute;
   bottom: 32px;
   left: 50px;
