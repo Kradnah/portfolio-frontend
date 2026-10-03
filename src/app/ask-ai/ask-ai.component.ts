@@ -12,20 +12,24 @@ const MAX_CHARS = 500;
 const MAX_TURNS = 10;
 
 /** Preguntas frecuentes con respuesta fija: no gastan saldo de IA. */
-const SUGGESTED: { q: string; a: string }[] = [
+const SUGGESTED: { label: string; q: string; a: string }[] = [
   {
+    label: 'Su stack',
     q: '¿Qué stack domina?',
     a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL, MySQL, MongoDB y Redis. En frontend trabaja con Angular y React. Despliega con Docker en AWS, GCP, Oracle Cloud y en su propio VPS con Dokploy.',
   },
   {
+    label: 'Mayor logro',
     q: '¿Cuál es su logro más destacado?',
     a: 'En GroupCOS diseñó una solución de QA de llamadas con WhisperX desplegado en servidores propios e integrado con ChatGPT. Ahorra USD 4.000 al mes en APIs externas y se convirtió en un producto que la empresa vende a nuevos clientes.',
   },
   {
+    label: '¿Sabe de IA?',
     q: '¿Tiene experiencia con IA?',
     a: 'Sí: bots de WhatsApp y agentes de IA con APIs de OpenAI, modelos de HuggingFace adaptados al negocio, speech-to-text con WhisperX y automatizaciones con Python, Selenium y Playwright. Este mismo asistente es una API suya en FastAPI.',
   },
   {
+    label: 'Contacto',
     q: '¿Cómo lo contacto?',
     a: 'Por email a kradnah@gmail.com o por LinkedIn (linkedin.com/in/julian-lizcano). También puedes descargar su CV en la sección de contacto.',
   },

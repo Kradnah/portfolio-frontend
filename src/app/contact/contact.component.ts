@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   template: `
     <section class="section">
       <header class="section-head">
-        <span class="kicker">03 · Contacto</span>
+        <span class="kicker">02 · Contacto</span>
         <h2 class="section-title">¿Hablamos? <span class="hl">Estoy a un mensaje</span></h2>
         <p class="section-sub">Desarrollador Full-Stack en Bogotá, Colombia. Español e inglés.</p>
       </header>

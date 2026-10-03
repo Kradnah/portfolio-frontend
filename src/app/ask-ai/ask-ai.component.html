@@ -1,51 +1,43 @@
-<section class="section">
-  <header class="section-head">
-    <span class="kicker">02 · Pregúntale a mi IA</span>
-    <h2 class="section-title">Un asistente que conoce <span class="hl">mi perfil</span></h2>
-    <p class="section-sub">
-      Pregúntale por mi experiencia, stack o proyectos. Responde en español o inglés.
-    </p>
-  </header>
-
-  <div class="chat saas-card">
-    <div class="chat-bar">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      <span class="chat-title">julian-ai</span>
-      <span class="chat-count">{{ turns() }}/{{ maxTurns }}</span>
-    </div>
-
-    <div class="log" #log aria-live="polite">
-      @if (!messages().length) {
-        <p class="hint">Empieza con una de estas preguntas o escribe la tuya ↓</p>
-      }
-      @for (m of messages(); track $index) {
-        <div class="msg" [class.user]="m.role === 'user'" [class.error]="m.error">@if (m.content) {<span>{{ m.content }}</span>} @else {<span class="typing"><i></i><i></i><i></i></span>}</div>
-      }
-    </div>
-
-    <div class="chips">
-      @for (s of suggested; track s.q) {
-        <button type="button" class="chip" (click)="askSuggested(s)" [disabled]="busy()">{{ s.q }}</button>
-      }
-    </div>
-
-    <form class="composer" (submit)="$event.preventDefault(); send()">
-      <textarea
-        rows="2"
-        placeholder="Ej.: ¿Ha trabajado con microservicios?"
-        aria-label="Tu pregunta"
-        [value]="draft()"
-        [attr.maxlength]="maxChars"
-        [disabled]="turns() >= maxTurns"
-        (input)="onInput($event)"
-        (keydown)="onKeydown($event)"
-      ></textarea>
-      <button type="submit" class="saas-btn-primary send" [disabled]="busy() || !draft().trim() || turns() >= maxTurns">
-        Enviar
-      </button>
-    </form>
-    <p class="fineprint">
-      Respuestas generadas con IA a partir de mi CV; pueden contener errores. {{ draft().length }}/{{ maxChars }}
-    </p>
+<div class="chat saas-card">
+  <div class="chat-bar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="chat-title">pregúntale a mi IA</span>
+    <span class="chat-count" title="Preguntas usadas en esta conversación">{{ turns() }}/{{ maxTurns }}</span>
   </div>
-</section>
+
+  <div class="log" #log aria-live="polite">
+    @if (!messages().length) {
+      <div class="hint">
+        <strong>¡Hola! 👋</strong>
+        <span>Soy un asistente que conoce la experiencia, el stack y los proyectos de Julian.</span>
+        <span>Pregúntame en español o inglés ↓</span>
+      </div>
+    }
+    @for (m of messages(); track $index) {
+      <div class="msg" [class.user]="m.role === 'user'" [class.error]="m.error">@if (m.content) {<span>{{ m.content }}</span>} @else {<span class="typing"><i></i><i></i><i></i></span>}</div>
+    }
+  </div>
+
+  <div class="chips">
+    @for (s of suggested; track s.q) {
+      <button type="button" class="chip" (click)="askSuggested(s)" [disabled]="busy()" [title]="s.q">{{ s.label }}</button>
+    }
+  </div>
+
+  <form class="composer" (submit)="$event.preventDefault(); send()">
+    <textarea
+      rows="2"
+      placeholder="Ej.: ¿Ha trabajado con microservicios?"
+      aria-label="Tu pregunta"
+      [value]="draft()"
+      [attr.maxlength]="maxChars"
+      [disabled]="turns() >= maxTurns"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    ></textarea>
+    <button type="submit" class="saas-btn-primary send" [disabled]="busy() || !draft().trim() || turns() >= maxTurns">
+      Enviar
+    </button>
+  </form>
+  <p class="fineprint">Respuestas generadas con IA a partir de mi CV; pueden contener errores.</p>
+</div>
