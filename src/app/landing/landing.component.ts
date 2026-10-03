@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+
+/** Demo en vivo de Coral, el CRM conversacional con IA (repo D:\Server\Coral). */
+const CORAL_URL = 'https://crm.julian-lizcano.com';
 
 @Component({
   selector: 'app-landing',
@@ -9,9 +11,7 @@ import { Router } from '@angular/router';
   styleUrl: './landing.component.css'
 })
 export class LandingComponent {
-  constructor(private router: Router) {}
-
-  goToLogin() {
-    this.router.navigate(['/login']);
+  openCoral() {
+    window.open(CORAL_URL, '_blank', 'noopener');
   }
 }

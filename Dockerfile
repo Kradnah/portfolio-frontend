@@ -4,8 +4,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ARG ENCRYPTION_KEY
-ENV ENCRYPTION_KEY=$ENCRYPTION_KEY
 RUN npm run build
 
 # --- Serve ---
