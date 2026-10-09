@@ -1,16 +1,16 @@
 <div class="chat saas-card">
   <div class="chat-bar">
     <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    <span class="chat-title">pregúntale a mi IA</span>
-    <span class="chat-count" title="Preguntas usadas en esta conversación">{{ turns() }}/{{ maxTurns }}</span>
+    <span class="chat-title">{{ t().chat.title }}</span>
+    <span class="chat-count" [title]="t().chat.counter">{{ turns() }}/{{ maxTurns }}</span>
   </div>
 
   <div class="log" #log aria-live="polite">
     @if (!messages().length) {
       <div class="hint">
-        <strong>¡Hola! 👋</strong>
-        <span>Soy un asistente que conoce la experiencia, el stack y los proyectos de Julian.</span>
-        <span>Pregúntame en español o inglés ↓</span>
+        <strong>{{ t().chat.hello }}</strong>
+        <span>{{ t().chat.intro }}</span>
+        <span>{{ t().chat.askMe }}</span>
       </div>
     }
     @for (m of messages(); track $index) {
@@ -19,7 +19,7 @@
   </div>
 
   <div class="chips">
-    @for (s of suggested; track s.q) {
+    @for (s of t().chat.suggested; track s.q) {
       <button type="button" class="chip" (click)="askSuggested(s)" [disabled]="busy()" [title]="s.q">{{ s.label }}</button>
     }
   </div>
@@ -27,8 +27,8 @@
   <form class="composer" (submit)="$event.preventDefault(); send()">
     <textarea
       rows="2"
-      placeholder="Ej.: ¿Ha trabajado con microservicios?"
-      aria-label="Tu pregunta"
+      [placeholder]="t().chat.placeholder"
+      [attr.aria-label]="t().chat.inputLabel"
       [value]="draft()"
       [attr.maxlength]="maxChars"
       [disabled]="turns() >= maxTurns"
@@ -36,8 +36,8 @@
       (keydown)="onKeydown($event)"
     ></textarea>
     <button type="submit" class="saas-btn-primary send" [disabled]="busy() || !draft().trim() || turns() >= maxTurns">
-      Enviar
+      {{ t().chat.send }}
     </button>
   </form>
-  <p class="fineprint">Respuestas generadas con IA a partir de mi CV; pueden contener errores.</p>
+  <p class="fineprint">{{ t().chat.fineprint }}</p>
 </div>

@@ -1,4 +1,5 @@
-import { Component, ElementRef, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { I18n } from '../i18n';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -11,38 +12,6 @@ interface Message {
 const MAX_CHARS = 500;
 const MAX_TURNS = 10;
 
-/** Preguntas frecuentes con respuesta fija: no gastan saldo de IA. */
-const SUGGESTED: { label: string; q: string; a: string }[] = [
-  {
-    label: 'Su stack',
-    q: '¿Qué stack domina?',
-    a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL (su base de datos fuerte), MySQL y Redis. En frontend trabaja con Angular y React. Despliega con Docker en AWS, GCP y en su propio VPS con Dokploy.',
-  },
-  {
-    label: 'Mayor logro',
-    q: '¿Cuál es su logro más destacado?',
-    a: 'En GroupCOS diseñó una solución de QA de llamadas con WhisperX desplegado en servidores propios e integrado con ChatGPT. Ahorra USD 4.000 al mes en APIs externas y se convirtió en un producto que la empresa vende a nuevos clientes.',
-  },
-  {
-    label: '¿Sabe de IA?',
-    q: '¿Tiene experiencia con IA?',
-    a: 'Sí: bots de WhatsApp y agentes de IA con APIs de OpenAI, modelos de HuggingFace adaptados al negocio, speech-to-text con WhisperX y automatizaciones con Python, Selenium y Playwright. Este mismo asistente es una API suya en FastAPI.',
-  },
-  {
-    label: 'Contacto',
-    q: '¿Cómo lo contacto?',
-    a: 'Por email a kradnah@gmail.com o por LinkedIn (linkedin.com/in/julian-lizcano). También puedes descargar su CV en la sección de contacto.',
-  },
-];
-
-const ERRORS: Record<string, string> = {
-  ip_burst: 'Vas muy rápido 😅 Espera unos minutos y vuelve a preguntar.',
-  ip_daily: 'Llegaste al límite de preguntas de hoy. ¡Gracias por el interés! Escríbeme a kradnah@gmail.com.',
-  global_daily: 'El asistente ya respondió mucho hoy. Escríbeme a kradnah@gmail.com y te contesto yo.',
-  max_turns: 'Esta conversación llegó a su límite. Si quieres saber más, escríbeme a kradnah@gmail.com.',
-  default: 'No pude responder ahora mismo. Inténtalo más tarde o escríbeme a kradnah@gmail.com.',
-};
-
 @Component({
   selector: 'app-ask-ai',
   standalone: true,
@@ -50,7 +19,8 @@ const ERRORS: Record<string, string> = {
   styleUrl: './ask-ai.component.css',
 })
 export class AskAiComponent {
-  protected readonly suggested = SUGGESTED;
+  /** Textos, preguntas sugeridas (respuesta fija: no gastan saldo de IA) y errores, en el idioma activo. */
+  protected readonly t = inject(I18n).t;
   protected readonly maxChars = MAX_CHARS;
   protected readonly messages = signal<Message[]>([]);
   protected readonly draft = signal('');
@@ -88,13 +58,14 @@ export class AskAiComponent {
       const res = await this.post(this.history());
       if (!res.ok) {
         const detail = res.status === 429 ? ((await res.json()) as { detail?: string }).detail : undefined;
-        this.fail(ERRORS[detail ?? 'default'] ?? ERRORS['default']);
+        const errors = this.t().chat.errors;
+        this.fail(errors[detail ?? 'default'] ?? errors['default']);
         return;
       }
       this.turns.update((n) => n + 1);
       await this.readStream(res);
     } catch {
-      this.fail(ERRORS['default']);
+      this.fail(this.t().chat.errors['default']);
     } finally {
       this.busy.set(false);
     }
@@ -147,7 +118,7 @@ export class AskAiComponent {
       for (const raw of events) {
         if (!raw.startsWith('data: ')) continue;
         const event = JSON.parse(raw.slice(6)) as { delta?: string; error?: string };
-        if (event.error) return this.fail(ERRORS['default']);
+        if (event.error) return this.fail(this.t().chat.errors['default']);
         if (event.delta) this.appendToLast(event.delta);
       }
     }

@@ -1,21 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { I18n } from '../i18n';
+import { RevealDirective } from '../reveal.directive';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
+  imports: [RevealDirective],
   template: `
     <section class="section">
-      <header class="section-head">
-        <span class="kicker">02 · Contacto</span>
-        <h2 class="section-title">¿Hablamos? <span class="hl">Estoy a un mensaje</span></h2>
-        <p class="section-sub">Desarrollador Full-Stack en Bogotá, Colombia. Español e inglés.</p>
+      <header class="section-head" appReveal>
+        <span class="kicker">{{ t().contact.kicker }}</span>
+        <h2 class="section-title">{{ t().contact.title }} <span class="hl">{{ t().contact.titleHl }}</span></h2>
+        <p class="section-sub">{{ t().contact.sub }}</p>
       </header>
-      <div class="links">
+      <div class="links" appReveal="200">
         <a class="saas-btn-primary link" href="mailto:kradnah@gmail.com">kradnah&#64;gmail.com</a>
         <a class="saas-btn-accent link" href="https://www.linkedin.com/in/julian-lizcano" target="_blank" rel="noopener">LinkedIn ↗</a>
-        <a class="saas-btn link" href="/cv/Julian_Lizcano_CV.pdf" download>Descargar CV (PDF)</a>
+        <a class="saas-btn link" href="/cv/Julian_Lizcano_CV.pdf" download>{{ t().contact.cv }}</a>
       </div>
-      <p class="footer">© {{ year }} Julian Lizcano · Hecho con Angular y FastAPI en mi propio servidor.</p>
+      <p class="footer">© {{ year }} Julian Lizcano · {{ t().contact.footer }}</p>
     </section>
   `,
   styles: `
@@ -28,5 +31,6 @@ import { Component } from '@angular/core';
   `,
 })
 export class ContactComponent {
+  protected readonly t = inject(I18n).t;
   protected readonly year = new Date().getFullYear();
 }

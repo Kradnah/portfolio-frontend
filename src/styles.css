@@ -189,3 +189,32 @@
 @media (max-width: 640px) {
   .section { padding: 64px 20px; }
 }
+
+/* ── Aparición al hacer scroll (RevealDirective) ── */
+.reveal {
+  opacity: 0;
+  translate: 0 48px;
+  transition: opacity 0.6s ease, translate 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible { opacity: 1; translate: 0 0; }
+
+/* El resaltado rosa del título se "pinta" al aparecer */
+.reveal .section-title .hl {
+  background: linear-gradient(var(--pink), var(--pink)) no-repeat left / 0% 100%;
+  transition: background-size 0.7s 0.35s cubic-bezier(0.7, 0, 0.2, 1);
+}
+.reveal.is-visible .section-title .hl { background-size: 100% 100%; }
+
+/* Tarjetas: se levantan al pasar el mouse */
+.saas-card.reveal.is-visible { transition: opacity 0.6s ease, translate 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 0.2s ease; }
+.saas-card.reveal.is-visible:hover { translate: -4px -4px; box-shadow: 10px 10px 0 #000; transition-delay: 0ms; }
+
+.kicker::after { content: '_'; animation: kicker-blink 1s steps(1) infinite; }
+@keyframes kicker-blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; translate: none; transition: none; }
+  .reveal .section-title .hl { background-size: 100% 100%; transition: none; }
+  .kicker::after { animation: none; }
+}

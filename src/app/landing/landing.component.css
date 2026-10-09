@@ -287,6 +287,34 @@
   box-shadow: 3px 3px 0 #000;
 }
 
+/* Selector de idioma ES | EN */
+.lang-btn {
+  display: inline-flex;
+  padding: 0;
+  border: 2px solid #000;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.lang-btn span {
+  padding: 10px 10px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.lang-btn span.on {
+  background: #000;
+  color: var(--lime);
+}
+
+.lang-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 #000;
+}
+
 .nav-btn {
   display: inline-block;
   text-decoration: none;
@@ -316,7 +344,8 @@
   flex: 1;
   position: relative;
   margin: 0 40px 40px;
-  min-height: 720px;
+  /* El panel lima termina en y = 840 (top 80 + 760); con menos alto, .page lo recortaba. */
+  min-height: 860px;
   z-index: 2;
 }
 
@@ -361,10 +390,10 @@
 }
 
 .brand-vtext {
-  font-size: 30px;
+  font-size: 46px;
   font-weight: 900;
   font-style: italic;
-  line-height: 0.95;
+  line-height: 0.9;
   color: #000;
   letter-spacing: -0.01em;
 }
@@ -380,7 +409,7 @@
 /* Sparkle dentro del brand-tag */
 .brand-sparkle {
   position: absolute;
-  top: 110px;
+  top: 150px;
   right: 28px;
   width: 22px;
   height: 22px;
@@ -670,16 +699,6 @@
   font-size: 13px;
 }
 
-.hex3d {
-  position: absolute;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-70%);
-  width: clamp(280px, 38vw, 720px);
-  height: auto;
-  display: block;
-  z-index: 9;
-}
 
 .rt-burst {
   position: absolute;
@@ -750,10 +769,6 @@
     width: 320px;
   }
 
-  .hex3d {
-    width: clamp(280px, 36vw, 560px);
-    transform: translateX(-60%);
-  }
 
   .rt-burst {
     width: 200px;
@@ -870,7 +885,7 @@
   }
 
   .brand-vtext {
-    font-size: 26px;
+    font-size: 36px;
   }
 
   .brand-x-cluster {
@@ -968,12 +983,6 @@
     left: 16px;
   }
 
-  .hex3d {
-    width: 280px;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
 
   .rt-burst {
     width: 140px;
@@ -1025,6 +1034,11 @@
     font-size: 11px;
   }
 
+  .lang-btn span {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
   /* En móvil ocultamos el bloque azul superior pero conservamos algunas decoraciones */
   .bg-blue-big {
     display: none;
@@ -1056,7 +1070,7 @@
   }
 
   .brand-vtext {
-    font-size: 22px;
+    font-size: 30px;
   }
 
   .brand-x-cluster .xm {
@@ -1133,10 +1147,6 @@
     height: 280px;
   }
 
-  .hex3d {
-    width: 220px;
-    top: 20px;
-  }
 
   .rt-burst {
     width: 110px;
@@ -1204,4 +1214,132 @@
     height: 480px;
   }
   .visit-btn { display: inline-block; }
+}
+
+/* ──────────────────────────
+   RESUMEN DEL STACK — ocupa el hueco entre el chat y el hexágono, que solo existe
+   en pantallas muy anchas. Chat: termina en x = 1270 de .scene. Hexágono: empieza
+   ~542 px antes del borde derecho. 40 px de aire a cada lado.
+────────────────────────── */
+.hero-stack { display: none; }
+
+@media (min-width: 2320px) {
+  .hero-stack {
+    display: block;
+    position: absolute;
+    z-index: 9;
+    top: 176px;
+    left: 1310px;
+    right: 582px;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+}
+
+/* ──────────────────────────
+   MEME "literally me" — la foto va recortada a la cara gris del hexágono
+   (polígono medido sobre cuboFoto-gris.svg, metido ~3 % hacia dentro para que se vea el borde negro).
+   Vive en .scene (no en .right-zone) para poder moverlo donde el chat no lo tape.
+────────────────────────── */
+.meme {
+  position: absolute;
+  z-index: 8;
+  margin: 0;
+  /* ≥ 1907 px: en la zona derecha, donde estaba el hexágono */
+  top: 250px;
+  right: 182px;
+  width: 360px;
+}
+
+.meme-cube {
+  position: relative;
+  container-type: inline-size;
+}
+
+.meme-frame {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.meme-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  clip-path: polygon(8.7% 27%, 44.4% 2.6%, 95.3% 7.5%, 89.1% 71.3%, 55.7% 94%, 2.7% 88.7%);
+}
+
+/* Texto de meme sobre la foto (Impact blanco con borde negro) */
+.meme-top {
+  position: absolute;
+  top: 17%;
+  left: 14%;
+  right: 6%;
+  pointer-events: none;
+  font-family: Impact, 'Anton', 'Arial Black', sans-serif;
+  font-size: 7.4cqw;
+  line-height: 1;
+  color: #fff;
+  text-transform: uppercase;
+  text-align: center;
+  -webkit-text-stroke: 0.5cqw #000;
+  paint-order: stroke fill;
+  text-shadow: 0.4cqw 0.4cqw 0 #000;
+}
+
+/* Aclaración, fuera de la imagen y debajo */
+.meme-note {
+  width: max-content;
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 4px 10px;
+  background: #000;
+  color: var(--lime);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  rotate: -2deg;
+}
+
+/* Chat al lado del titular y sin hueco a la derecha: el meme pasa a la columna izquierda, bajo el texto. */
+@media (min-width: 1341px) and (max-width: 1906px) {
+  .meme {
+    top: 405px;
+    right: auto;
+    left: 350px;
+    width: 300px;
+  }
+}
+
+/* Chat debajo del texto: el meme va arriba a la derecha, junto al titular. */
+@media (min-width: 1101px) and (max-width: 1340px) {
+  .meme {
+    top: 100px;
+    right: 90px;
+    width: min(290px, calc(100% - 800px));
+  }
+}
+
+/* Escena apilada: el meme ocupa el bloque de la zona derecha, con sus adornos encima. */
+@media (max-width: 1100px) {
+  .meme {
+    position: relative;
+    top: 0;
+    right: auto;
+    z-index: 9;
+    width: 280px;
+    margin: 20px auto 12px;
+  }
+  .right-zone { margin-top: -358px; }
+}
+
+@media (max-width: 700px) {
+  .meme {
+    width: 220px;
+    margin: 16px auto 15px;
+  }
+  .right-zone { margin-top: -294px; }
 }

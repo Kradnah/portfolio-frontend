@@ -1,4 +1,4 @@
-<div class="page">
+<div class="page" (pointermove)="onPointerMove($event)" (pointerleave)="resetParallax()">
 
 
   <!-- ─── CAPA A · Bloques de fondo ─── -->
@@ -45,11 +45,14 @@
   <!-- ─── NAVBAR (top, sobre fondo grid) ─── -->
   <nav class="navbar">
     <ul class="nav-tabs">
-      <li><a href="#proyectos">Proyectos</a></li>
-      <li><a href="#ia">Pregúntale a mi IA</a></li>
-      <li><a href="#contacto">Contacto</a></li>
+      <li><a href="#proyectos">{{ t().nav.projects }}</a></li>
+      <li><a href="#ia">{{ t().nav.ai }}</a></li>
+      <li><a href="#contacto">{{ t().nav.contact }}</a></li>
     </ul>
-    <a class="nav-btn" href="/cv/Julian_Lizcano_CV.pdf" download>Descargar CV</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+    <a class="nav-btn" href="/cv/Julian_Lizcano_CV.pdf" download>{{ t().nav.cv }}</a>
   </nav>
 
   <!-- ─── ESCENA HERO (composición en capas) ─── -->
@@ -112,7 +115,9 @@
 
       <!-- Headline -->
       <div class="hp-headline">
-        <h1 class="h-just">Full-Stack</h1>
+        <h1 class="h-just" aria-label="Full-Stack">
+          @for (ch of headline; track $index) {<span class="ch" aria-hidden="true" [style.--i]="$index">{{ ch }}</span>}
+        </h1>
         <div class="h-come-bg">
           <p class="h-come">&amp; AI Dev</p>
         </div>
@@ -120,9 +125,7 @@
 
       <!-- Body text -->
       <p class="hp-body">
-        Construyo APIs, apps y automatizaciones<br>
-        con IA que llegan a producción.<br>
-        Python · FastAPI · NestJS · Angular · React
+        @for (line of t().hero.body; track $index; let last = $last) {<span class="line" [style.--i]="$index">{{ line }}</span>@if (!last) {<br>}}<span class="cursor" aria-hidden="true"></span>
       </p>
 
       <!-- Patrón de puntos decorativo bajo el body -->
@@ -148,14 +151,27 @@
       <div class="hp-right-tri">►<br>►<br>►</div>
 
       <!-- Botón Visit Now (esquina inferior izquierda del panel) -->
-      <a class="visit-btn" href="#proyectos">Ver proyectos</a>
+      <a class="visit-btn" href="#proyectos">{{ t().hero.cta }}</a>
     </div>
 
     <!-- ░░░ CHAT CON LA IA (sobre el panel, en el hueco junto al titular) ░░░ -->
     <app-ask-ai id="ia" class="hero-chat" />
 
+    <!-- ░░░ RESUMEN DEL STACK (solo en pantallas muy anchas, en el hueco entre el chat y el hexágono) ░░░ -->
+    <app-stack-card class="hero-stack" />
+
     <!-- Espiral pegada al borde derecho (fuera del right-zone para no moverse con el hex) -->
     <img class="circles" src="/svgs/Curva.svg" alt="">
+
+    <!-- ░░░ MEME: la foto va recortada a la cara gris del hexágono 3D ░░░ -->
+    <figure class="meme">
+      <div class="meme-cube">
+        <img class="meme-frame" src="/svgs/cuboFoto-gris.svg" alt="">
+        <img class="meme-photo" src="/litteralyme.webp" [alt]="t().meme.alt">
+        <span class="meme-top">{{ t().meme.top }}</span>
+      </div>
+      <figcaption class="meme-note">{{ t().meme.bottom }}</figcaption>
+    </figure>
 
     <!-- ░░░ ZONA DERECHA (hexágono 3D + decoraciones) ░░░ -->
     <div class="right-zone">
@@ -167,9 +183,6 @@
         <span class="xm">×</span>
         <span class="xm">×</span>
       </div>
-
-      <!-- Hexágono 3D principal (cuboFoto con caras grises) -->
-      <img class="hex3d" src="/svgs/cuboFoto-gris.svg" alt="">
 
       <!-- Sparkle "explosión" (puas del usuario) -->
       <img class="rt-burst" src="/svgs/puas.svg" alt="">
@@ -196,6 +209,20 @@
 
   </section>
 
+</div>
+
+<!-- ─── CINTA MARQUEE ─── -->
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee marquee-a">
+    <div class="marquee-track">
+      @for (w of marqueeA(); track $index) {<span>{{ w }}</span>}
+    </div>
+  </div>
+  <div class="marquee marquee-b">
+    <div class="marquee-track">
+      @for (w of marqueeB(); track $index) {<span>{{ w }}</span>}
+    </div>
+  </div>
 </div>
 
 <app-projects id="proyectos" />
