@@ -123,6 +123,20 @@
     ],
     "highlights": [
       {
+        "path": "api/app/call_qa.py",
+        "note": {
+          "es": "Analizador de llamadas: rúbrica, salida JSON con esquema estricto y limpieza determinista de lo que devuelve el modelo.",
+          "en": "Call analyzer: rubric, strict-schema JSON output and deterministic cleanup of the model's answer."
+        }
+      },
+      {
+        "path": "client/src/app/demos/calls/whisper.worker.ts",
+        "note": {
+          "es": "Whisper en un Web Worker: la transcripción corre en el navegador del visitante.",
+          "en": "Whisper in a Web Worker: transcription runs in the visitor's browser."
+        }
+      },
+      {
         "path": "api/app/limits.py",
         "note": {
           "es": "Límites de uso del chat por IP y globales, para que la IA no genere costos sorpresa.",
