@@ -9,12 +9,12 @@ interface StackGroup {
 
 /** Resumen del stack (fuente: api/knowledge/profile.md). */
 const GROUPS: StackGroup[] = [
-  { key: 'backend', tone: 'lime', items: ['Python', 'FastAPI', 'Node.js', 'NestJS', 'REST', 'GraphQL'] },
+  { key: 'backend', tone: 'lime', items: ['Python', 'FastAPI', 'NestJS', 'REST', 'WebSockets/SSE', 'Celery'] },
   { key: 'data', tone: 'blue', items: ['PostgreSQL', 'PostGIS', 'MySQL', 'Redis'] },
   { key: 'frontend', tone: 'pink', items: ['Angular', 'React', 'React Native', 'TypeScript'] },
-  { key: 'ai', tone: 'yellow', items: ['OpenAI', 'Claude', 'HuggingFace', 'WhisperX', '@agents'] },
-  { key: 'devops', tone: 'lime', items: ['Docker', 'GitHub Actions', 'AWS', 'GCP', 'Dokploy'] },
-  { key: 'automation', tone: 'blue', items: ['Selenium', 'Playwright', 'Pandas'] },
+  { key: 'ai', tone: 'yellow', items: ['LLMs', 'RAG', 'LangGraph', 'MCP', 'WhisperX', 'vLLM', '@agents'] },
+  { key: 'devops', tone: 'lime', items: ['Docker', 'GitLab CI', 'GitHub Actions', 'GCP', 'AWS', 'Dokploy'] },
+  { key: 'automation', tone: 'blue', items: ['Selenium', 'Playwright', 'Pandas', 'UiPath'] },
 ];
 
 /** Índice global de cada chip, para escalonar la aparición y el barrido. */

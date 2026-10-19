@@ -44,7 +44,9 @@
 
   <!-- ─── NAVBAR (top, sobre fondo grid) ─── -->
   <nav class="navbar">
+    <a class="open-badge nav-open" href="#contacto"><span class="open-dot" aria-hidden="true"></span>{{ t().nav.available }}</a>
     <ul class="nav-tabs">
+      <li><a href="#experiencia">{{ t().nav.experience }}</a></li>
       <li><a href="#proyectos">{{ t().nav.projects }}</a></li>
       <li><a href="#ia">{{ t().nav.ai }}</a></li>
       <li><a href="#contacto">{{ t().nav.contact }}</a></li>
@@ -52,7 +54,7 @@
     <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
       <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
     </button>
-    <a class="nav-btn" href="/cv/Julian_Lizcano_CV.pdf" download>{{ t().nav.cv }}</a>
+    <a class="nav-btn" [href]="t().cvUrl" download>{{ t().nav.cv }}</a>
   </nav>
 
   <!-- ─── ESCENA HERO (composición en capas) ─── -->
@@ -225,5 +227,6 @@
   </div>
 </div>
 
+<app-experience id="experiencia" />
 <app-projects id="proyectos" />
 <app-contact id="contacto" />

@@ -5,22 +5,25 @@ export type Lang = 'es' | 'en';
 const STORAGE_KEY = 'lang';
 
 const ES = {
+  cvUrl: '/cv/Julian_Lizcano_CV.pdf',
   nav: {
     projects: 'Proyectos',
     ai: 'Pregúntale a mi IA',
+    experience: 'Experiencia',
     contact: 'Contacto',
+    available: 'Disponible para trabajar',
     cv: 'Descargar CV',
     switchTo: 'Ver en inglés',
   },
   hero: {
     body: [
-      'Construyo APIs, apps y automatizaciones',
-      'con IA que llegan a producción.',
-      'Python · FastAPI · NestJS · Angular · React',
+      'Full-Stack AI Engineer: llevo LLMs,',
+      'agentes y automatización a producción.',
+      'Python · FastAPI · Angular · IA generativa',
     ],
     cta: 'Ver proyectos',
-    marqueeA: ['Python', 'FastAPI', 'NestJS', 'Angular', 'React', 'PostgreSQL', 'Redis', 'Docker', 'IA en producción'],
-    marqueeB: ['APIs', 'Apps', 'Automatizaciones', 'Agentes de IA', 'Despliegue propio', 'Bogotá · Colombia'],
+    marqueeA: ['Python', 'FastAPI', 'Angular', 'React', 'LLMs', 'RAG', 'LangGraph', 'PostgreSQL', 'Docker', 'IA en producción'],
+    marqueeB: ['APIs', 'Agentes de IA', 'Speech-to-text', 'OCR', 'Automatizaciones', 'Despliegue propio', 'Colombia · remoto'],
   },
   meme: {
     alt: 'Foto del meme «literally me»',
@@ -37,7 +40,7 @@ const ES = {
       automation: 'automatización',
     },
     agents: 'Agentes',
-    foot: '4+ años llevando código a producción',
+    foot: 'casi 4 años llevando código a producción',
   },
   chat: {
     title: 'pregúntale a mi IA',
@@ -53,17 +56,17 @@ const ES = {
       {
         label: 'Su stack',
         q: '¿Qué stack domina?',
-        a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL (su base de datos fuerte), MySQL y Redis. En frontend trabaja con Angular y React. Despliega con Docker en AWS, GCP y en su propio VPS con Dokploy.',
+        a: 'Backend con Python y FastAPI (también Node.js/NestJS), APIs REST con JWT/OAuth2, PostgreSQL, MySQL y Redis. En frontend, Angular y React. En IA: LLMs (OpenAI, Claude, Gemini), RAG, agentes con LangChain/LangGraph y MCP. Despliega con Docker en GCP y en su propio VPS con Dokploy.',
       },
       {
         label: 'Mayor logro',
         q: '¿Cuál es su logro más destacado?',
-        a: 'En GroupCOS diseñó una solución de QA de llamadas con WhisperX desplegado en servidores propios e integrado con ChatGPT. Ahorra USD 4.000 al mes en APIs externas y se convirtió en un producto que la empresa vende a nuevos clientes.',
+        a: 'En GroupCOS diseñó una solución de análisis de llamadas con WhisperX en servidores propios e integrado con ChatGPT para evaluar asesores y generar feedback automático. Ahorra USD 4.000 al mes en APIs externas y se empaquetó como producto comercial para nuevos clientes.',
       },
       {
         label: '¿Sabe de IA?',
         q: '¿Tiene experiencia con IA?',
-        a: 'Sí: bots de WhatsApp y agentes de IA con APIs de OpenAI, modelos de HuggingFace adaptados al negocio, speech-to-text con WhisperX y automatizaciones con Python, Selenium y Playwright. Este mismo asistente es una API suya en FastAPI.',
+        a: 'Sí: bots de WhatsApp y agentes de IA con la API de OpenAI, OCR para validar facturas en PDF, speech-to-text con WhisperX, RAG y modelos de Hugging Face adaptados al negocio. También corre modelos locales (vLLM, llama.cpp, Ollama) y hace fine-tuning con LoRA. Este mismo asistente es una API suya en FastAPI.',
       },
       {
         label: 'Contacto',
@@ -79,8 +82,58 @@ const ES = {
       default: 'No pude responder ahora mismo. Inténtalo más tarde o escríbeme a kradnah@gmail.com.',
     } as Record<string, string>,
   },
+  experience: {
+    kicker: '01 · Experiencia',
+    title: 'Casi 4 años',
+    titleHl: 'llevando IA a producción',
+    sub: 'Automatización, IA generativa y desarrollo full-stack en empresas reales.',
+    jobs: [
+      {
+        role: 'Automation Developer',
+        company: 'GroupCOS',
+        dates: 'Jul 2023 – Jul 2026',
+        place: 'Bogotá · remoto',
+        stat: { value: 'USD 4.000', label: 'ahorrados cada mes con el análisis de llamadas con IA' },
+        points: [
+          'Diseñé y desplegué un análisis de llamadas end-to-end: WhisperX en servidores propios + ChatGPT para evaluar asesores y dar feedback automático. Se empaquetó como producto comercial.',
+          'Herramienta de OCR que valida facturas en PDF: extrae datos personales y valores y los verifica automáticamente.',
+          'Bots de WhatsApp y agentes de IA con la API de OpenAI; modelos de Hugging Face adaptados al negocio.',
+          'APIs con FastAPI y NestJS, frontends en Angular y React, despliegue con Docker en GCP y CI/CD en GitLab.',
+          'Mentoría a desarrolladores junior y practicantes, trabajando bajo Scrum.',
+        ],
+        stack: ['Python', 'FastAPI', 'WhisperX', 'OpenAI', 'Angular', 'React', 'Docker', 'GCP'],
+      },
+      {
+        role: 'RPA Developer',
+        company: 'Net Applications',
+        dates: 'Oct 2022 – Jul 2023',
+        place: 'Bogotá',
+        stat: null,
+        points: [
+          'Bots de RPA con UiPath y Automation Anywhere para automatizar procesos de clientes.',
+          'Scripts en Python para flujos operativos y optimización de bases de datos MySQL.',
+        ],
+        stack: ['UiPath', 'Automation Anywhere', 'Python', 'MySQL'],
+      },
+      {
+        role: 'Aprendiz de Análisis y Desarrollo de Sistemas',
+        company: 'Siemens Energy',
+        dates: 'Abr 2022 – Oct 2022',
+        place: 'Bogotá',
+        stat: null,
+        points: ['Estructuré y transformé datos operativos para generar informes de apoyo a decisiones.'],
+        stack: ['Datos', 'Informes'],
+      },
+    ],
+    eduTitle: 'Formación',
+    edu: [
+      { title: 'Ingeniería de Sistemas', place: 'UNIMINUTO', when: 'En curso · 7.º de 9 semestres' },
+      { title: 'Tecnología en Análisis y Desarrollo de Sistemas', place: 'SENA', when: '2020 – 2022' },
+      { title: 'MisiónTIC 2022 · Desarrollo de Software (800 h)', place: 'U. Sergio Arboleda', when: '2021' },
+    ],
+  },
   projects: {
-    kicker: '01 · Proyectos',
+    kicker: '02 · Proyectos',
     title: 'Cosas que ya están',
     titleHl: 'en producción',
     sub: 'Construidos y desplegados por mí, en mi propio servidor.',
@@ -107,10 +160,11 @@ const ES = {
     apk: { pasajero: 'pasajero', conductor: 'conductor' } as Record<string, string>,
   },
   contact: {
-    kicker: '02 · Contacto',
+    kicker: '03 · Contacto',
     title: '¿Hablamos?',
     titleHl: 'Estoy a un mensaje',
-    sub: 'Desarrollador Full-Stack en Bogotá, Colombia. Español e inglés.',
+    sub: 'Full-Stack AI Engineer en Colombia, trabajo en remoto. Español nativo, inglés B2.',
+    available: 'Disponible para nuevas oportunidades · remoto o híbrido',
     cv: 'Descargar CV (PDF)',
     footer: 'Hecho con Angular y FastAPI en mi propio servidor.',
   },
@@ -119,22 +173,25 @@ const ES = {
 export type Dict = typeof ES;
 
 const EN: Dict = {
+  cvUrl: '/cv/Julian_Lizcano_Resume.pdf',
   nav: {
     projects: 'Projects',
     ai: 'Ask my AI',
+    experience: 'Experience',
     contact: 'Contact',
+    available: 'Open to work',
     cv: 'Download CV',
     switchTo: 'Ver en español',
   },
   hero: {
     body: [
-      'I build APIs, apps and AI-powered',
-      'automations that ship to production.',
-      'Python · FastAPI · NestJS · Angular · React',
+      'Full-Stack AI Engineer: I ship LLMs,',
+      'agents and automation to production.',
+      'Python · FastAPI · Angular · Generative AI',
     ],
     cta: 'See projects',
-    marqueeA: ['Python', 'FastAPI', 'NestJS', 'Angular', 'React', 'PostgreSQL', 'Redis', 'Docker', 'AI in production'],
-    marqueeB: ['APIs', 'Apps', 'Automations', 'AI agents', 'Self-hosted deploys', 'Bogotá · Colombia'],
+    marqueeA: ['Python', 'FastAPI', 'Angular', 'React', 'LLMs', 'RAG', 'LangGraph', 'PostgreSQL', 'Docker', 'AI in production'],
+    marqueeB: ['APIs', 'AI agents', 'Speech-to-text', 'OCR', 'Automations', 'Self-hosted deploys', 'Colombia · remote'],
   },
   meme: {
     alt: '"Literally me" meme photo',
@@ -151,7 +208,7 @@ const EN: Dict = {
       automation: 'automation',
     },
     agents: 'Agents',
-    foot: '4+ years shipping code to production',
+    foot: 'nearly 4 years shipping code to production',
   },
   chat: {
     title: 'ask my AI',
@@ -167,17 +224,17 @@ const EN: Dict = {
       {
         label: 'His stack',
         q: 'What is his main stack?',
-        a: 'Backend with Python and FastAPI (also Node.js/NestJS), REST APIs with JWT/OAuth2, PostgreSQL (his strongest database), MySQL and Redis. On the frontend he works with Angular and React. He deploys with Docker on AWS, GCP and his own VPS running Dokploy.',
+        a: 'Backend with Python and FastAPI (also Node.js/NestJS), REST APIs with JWT/OAuth2, PostgreSQL, MySQL and Redis. On the frontend, Angular and React. In AI: LLMs (OpenAI, Claude, Gemini), RAG, agents with LangChain/LangGraph and MCP. He deploys with Docker on GCP and on his own VPS running Dokploy.',
       },
       {
         label: 'Top achievement',
         q: 'What is his most notable achievement?',
-        a: 'At GroupCOS he designed a call QA solution with WhisperX running on in-house servers and integrated with ChatGPT. It saves USD 4,000 a month in external APIs and became a product the company sells to new clients.',
+        a: 'At GroupCOS he designed a call-analysis solution with WhisperX on in-house servers, integrated with ChatGPT to evaluate agents and generate automatic feedback. It saves USD 4,000 a month in external APIs and was packaged as a commercial product for new clients.',
       },
       {
         label: 'AI experience?',
         q: 'Does he have AI experience?',
-        a: 'Yes: WhatsApp bots and AI agents built on the OpenAI APIs, HuggingFace models adapted to the business, speech-to-text with WhisperX, and automations with Python, Selenium and Playwright. This very assistant is one of his FastAPI APIs.',
+        a: 'Yes: WhatsApp bots and AI agents on the OpenAI API, OCR to validate PDF invoices, speech-to-text with WhisperX, RAG and Hugging Face models adapted to the business. He also runs local models (vLLM, llama.cpp, Ollama) and fine-tunes with LoRA. This very assistant is one of his FastAPI APIs.',
       },
       {
         label: 'Contact',
@@ -193,8 +250,58 @@ const EN: Dict = {
       default: "I couldn't answer right now. Try again later or write to me at kradnah@gmail.com.",
     },
   },
+  experience: {
+    kicker: '01 · Experience',
+    title: 'Nearly 4 years',
+    titleHl: 'shipping AI to production',
+    sub: 'Automation, generative AI and full-stack development at real companies.',
+    jobs: [
+      {
+        role: 'Automation Developer',
+        company: 'GroupCOS',
+        dates: 'Jul 2023 – Jul 2026',
+        place: 'Bogotá · remote',
+        stat: { value: 'USD 4,000', label: 'saved every month with AI call analysis' },
+        points: [
+          'Designed and deployed end-to-end call analysis: WhisperX on in-house servers + ChatGPT to evaluate agents and generate automatic feedback. It was packaged as a commercial product.',
+          'OCR tool that validates PDF invoices: extracts personal data and amounts and checks them automatically.',
+          'WhatsApp bots and AI agents on the OpenAI API; Hugging Face models adapted to the business.',
+          'APIs with FastAPI and NestJS, Angular and React frontends, Docker deploys on GCP with GitLab CI/CD.',
+          'Mentored junior developers and interns, working in Scrum.',
+        ],
+        stack: ['Python', 'FastAPI', 'WhisperX', 'OpenAI', 'Angular', 'React', 'Docker', 'GCP'],
+      },
+      {
+        role: 'RPA Developer',
+        company: 'Net Applications',
+        dates: 'Oct 2022 – Jul 2023',
+        place: 'Bogotá',
+        stat: null,
+        points: [
+          'RPA bots with UiPath and Automation Anywhere to automate client processes.',
+          'Python scripts for operational workflows and MySQL database optimization.',
+        ],
+        stack: ['UiPath', 'Automation Anywhere', 'Python', 'MySQL'],
+      },
+      {
+        role: 'Systems Analysis & Development Apprentice',
+        company: 'Siemens Energy',
+        dates: 'Apr 2022 – Oct 2022',
+        place: 'Bogotá',
+        stat: null,
+        points: ['Structured and transformed operational data into reports that supported decisions.'],
+        stack: ['Data', 'Reporting'],
+      },
+    ],
+    eduTitle: 'Education',
+    edu: [
+      { title: 'B.S. Systems Engineering', place: 'UNIMINUTO', when: 'In progress · semester 7 of 9' },
+      { title: 'Technologist in Systems Analysis & Development', place: 'SENA', when: '2020 – 2022' },
+      { title: 'MisiónTIC 2022 · Software Development (800 h)', place: 'U. Sergio Arboleda', when: '2021' },
+    ],
+  },
   projects: {
-    kicker: '01 · Projects',
+    kicker: '02 · Projects',
     title: 'Things already',
     titleHl: 'in production',
     sub: 'Built and deployed by me, on my own server.',
@@ -221,11 +328,12 @@ const EN: Dict = {
     apk: { pasajero: 'rider', conductor: 'driver' },
   },
   contact: {
-    kicker: '02 · Contact',
+    kicker: '03 · Contact',
     title: "Let's talk?",
     titleHl: "I'm one message away",
-    sub: 'Full-Stack Developer in Bogotá, Colombia. Spanish and English.',
-    cv: 'Download CV (PDF, Spanish)',
+    sub: 'Full-Stack AI Engineer based in Colombia, working remotely. Native Spanish, B2 English.',
+    available: 'Open to new opportunities · remote or hybrid',
+    cv: 'Download resume (PDF)',
     footer: 'Built with Angular and FastAPI on my own server.',
   },
 };

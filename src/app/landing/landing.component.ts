@@ -2,6 +2,7 @@ import { Component, ElementRef, computed, inject } from '@angular/core';
 import { I18n } from '../i18n';
 import { AskAiComponent } from '../ask-ai/ask-ai.component';
 import { ContactComponent } from '../contact/contact.component';
+import { ExperienceComponent } from '../experience/experience.component';
 import { ProjectsComponent } from '../projects/projects.component';
 import { StackCardComponent } from '../stack-card/stack-card.component';
 
@@ -11,7 +12,7 @@ const loop = (words: string[]) => [...words, ...words, ...words, ...words];
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [ProjectsComponent, AskAiComponent, ContactComponent, StackCardComponent],
+  imports: [ExperienceComponent, ProjectsComponent, AskAiComponent, ContactComponent, StackCardComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css', './landing.motion.css'],
 })
