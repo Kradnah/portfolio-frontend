@@ -250,7 +250,7 @@
    "en": {
     "isServiceCall": true,
     "callType": "support",
-    "summary": "El cliente contacta por problemas de conexión a internet. El asesor identifica que hay una avería general en la zona y estima dos horas para la reparación, aplicando un descuento proporcional y ofreciendo una visita técnica si el problema persiste. El cliente acepta la solución.",
+    "summary": "The customer contacted support due to intermittent internet connection issues, which were impacting their ability to work from home. The agent identified a network outage in the customer's area and provided an estimated resolution time of two hours. The agent also offered a proportional discount on the next bill and explained the process for scheduling a technical visit if the issue persisted.",
     "customerSentiment": "neutral",
     "overall": 100,
     "roles": [
@@ -282,7 +282,7 @@
      {
       "key": "greeting",
       "score": 5,
-      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "comment": "The agent greeted the customer, introduced herself and the company.",
       "evidence": [
        {
         "segment": 0,
@@ -297,7 +297,7 @@
      {
       "key": "verification",
       "score": 5,
-      "comment": "Se valida la identidad del cliente mediante el número de cédula antes de proceder.",
+      "comment": "The agent verified the customer's identity using their ID number before proceeding.",
       "evidence": [
        {
         "segment": 4,
@@ -312,7 +312,7 @@
      {
       "key": "empathy",
       "score": 5,
-      "comment": "El asesor muestra comprensión ante la situación del cliente.",
+      "comment": "The agent showed understanding and acknowledged the customer's frustration.",
       "evidence": [
        {
         "segment": 8,
@@ -323,50 +323,50 @@
      {
       "key": "resolution",
       "score": 5,
-      "comment": "Se identifica la causa del problema, se informa sobre la solución y se ofrecen compensaciones y un plan de contingencia.",
+      "comment": "The agent identified the cause of the issue, provided an estimated resolution time, offered a discount, and outlined next steps if the problem persists.",
       "evidence": [
        {
         "segment": 13,
-        "quote": "Revisé y en su sector hubo un daño en la red esta mañana. El equipo técnico ya lo está reparando."
+        "quote": "Revisé y en su sector hubo un daño en la red esta mañana."
        },
        {
         "segment": 15,
-        "quote": "Le voy a dejar registrado el caso con el número RM48213 y apenas se restablezca le llega un mensaje de texto. Además, por las horas sin servicio, le aplico un…"
+        "quote": "El tiempo estimado es de dos horas. Le voy a dejar registrado el caso con el número RM48213 y apenas se restablezca le llega un mensaje de texto."
        }
       ]
      },
      {
       "key": "compliance",
       "score": 5,
-      "comment": "El asesor proporciona información veraz y no realiza promesas indebidas.",
+      "comment": "The agent provided accurate information about the outage and resolution, and offered a discount as compensation.",
       "evidence": [
        {
         "segment": 15,
-        "quote": "El tiempo estimado es de dos horas."
+        "quote": "Además, por las horas sin servicio, le aplico un descuento proporcional en su próxima factura."
        }
       ]
      },
      {
       "key": "closing",
       "score": 5,
-      "comment": "Se resume la información, se acuerda un siguiente paso y se despide cordialmente.",
+      "comment": "The agent summarized the next steps, confirmed if further assistance was needed, and provided a polite closing.",
       "evidence": [
        {
         "segment": 19,
         "quote": "¿Hay algo más en lo que le pueda ayudar?"
        },
        {
-        "segment": 21,
-        "quote": "Gracias por su paciencia, Andrés."
+        "segment": 22,
+        "quote": "Que tenga una buena tarde."
        }
       ]
      }
     ],
     "alerts": [],
     "feedback": [
-     "Excelente manejo de la situación, identificando la causa raíz y ofreciendo soluciones concretas y compensaciones.",
-     "La empatía demostrada al inicio de la conversación ayudó a calmar al cliente.",
-     "Se cumplieron todos los pasos de la llamada de manera efectiva."
+     "Ensure to always provide a case number for tracking purposes, which was done effectively in this call.",
+     "When explaining technical issues, use clear and simple language to ensure customer understanding.",
+     "Proactively offering compensation or discounts for service disruptions demonstrates good customer care."
     ]
    }
   }
@@ -549,7 +549,7 @@
    "en": {
     "isServiceCall": true,
     "callType": "collections",
-    "summary": "La llamada es de un asesor de Créditos Tokio 3 para cobrar una deuda a Marcela Rodríguez. La cliente explica que se quedó sin trabajo y pregunta si puede pagar por partes, a lo que el asesor se niega y la amenaza con embargo y reporte a centrales de riesgo si no paga hoy. La cliente indica que verá qué consigue.",
+    "summary": "The agent called the customer regarding an overdue payment. The customer explained their financial hardship due to job loss, but the agent was unsympathetic and threatened immediate action. The call ended with the customer stating they would try to find the money.",
     "customerSentiment": "negative",
     "overall": 7,
     "roles": [
@@ -569,24 +569,37 @@
      {
       "key": "greeting",
       "score": 0,
-      "comment": "El asesor no se presenta ni indica el nombre de la empresa al inicio de la llamada.",
-      "evidence": []
-     },
-     {
-      "key": "verification",
-      "score": 0,
-      "comment": "El asesor no verifica la identidad de la cliente antes de discutir la deuda.",
+      "comment": "The agent did not properly greet the customer or identify the company.",
       "evidence": [
        {
         "segment": 0,
         "quote": "¿Aló? ¿Marcela Rodríguez?"
+       },
+       {
+        "segment": 2,
+        "quote": "Le llamo de Créditos Tokio 3 por la deuda."
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 0,
+      "comment": "The agent did not verify the customer's identity before discussing the debt.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "¿Aló? ¿Marcela Rodríguez?"
+       },
+       {
+        "segment": 2,
+        "quote": "Le llamo de Créditos Tokio 3 por la deuda."
        }
       ]
      },
      {
       "key": "empathy",
       "score": 0,
-      "comment": "El asesor no muestra empatía ante la situación de desempleo de la cliente y la interrumpe.",
+      "comment": "The agent showed a complete lack of empathy, dismissing the customer's explanation for non-payment.",
       "evidence": [
        {
         "segment": 4,
@@ -601,7 +614,7 @@
      {
       "key": "resolution",
       "score": 1,
-      "comment": "El asesor no ofrece alternativas de pago viables cuando la cliente las solicita y se niega a negociar.",
+      "comment": "The agent did not offer any viable solutions or alternatives to the customer's request for a payment plan.",
       "evidence": [
        {
         "segment": 7,
@@ -616,7 +629,7 @@
      {
       "key": "compliance",
       "score": 1,
-      "comment": "El asesor amenaza a la cliente con embargo y reporte a centrales de riesgo al día siguiente si no paga, lo cual es una práctica coercitiva.",
+      "comment": "The agent made an undue threat of immediate legal action and reporting to credit bureaus without exploring options.",
       "evidence": [
        {
         "segment": 8,
@@ -627,7 +640,7 @@
      {
       "key": "closing",
       "score": 0,
-      "comment": "La llamada termina abruptamente sin un acuerdo claro o un siguiente paso definido por parte del asesor.",
+      "comment": "There was no clear agreement on a next step, and the call ended abruptly with the customer needing to find funds.",
       "evidence": [
        {
         "segment": 10,
@@ -639,20 +652,20 @@
     "alerts": [
      {
       "severity": "high",
-      "text": "Amenaza de embargo y reporte a centrales de riesgo al día siguiente.",
+      "text": "Agent threatened immediate action (embargo, credit reporting) without exploring alternatives or proper verification.",
       "segment": 8
      },
      {
       "severity": "medium",
-      "text": "Falta de verificación de identidad antes de discutir datos de deuda.",
-      "segment": 0
+      "text": "Lack of empathy and dismissive attitude towards customer's financial hardship.",
+      "segment": 5
      }
     ],
     "feedback": [
-     "Al inicio de la llamada, preséntate tú y la empresa para dar una mejor imagen.",
-     "Verifica siempre la identidad del cliente antes de hablar de su situación financiera o deudas.",
-     "Muestra empatía ante las dificultades del cliente y busca alternativas de pago flexibles en lugar de amenazar.",
-     "Asegúrate de acordar un siguiente paso concreto con el cliente antes de finalizar la llamada, como una fecha de pago o una revisión de opciones."
+     "Always start calls with a proper greeting, including your name and company name.",
+     "Verify the customer's identity before discussing any account or debt information.",
+     "Practice active listening and show empathy when customers explain their situation, especially financial difficulties.",
+     "Explore all possible solutions and payment arrangements before resorting to threats of legal action or credit reporting."
     ]
    }
   }
@@ -840,9 +853,9 @@
    "en": {
     "isServiceCall": true,
     "callType": "sales",
-    "summary": "La llamada es una venta de seguro de carro. El asesor presenta el producto y su precio, pero el cliente considera que es caro y pide tiempo para pensarlo. La llamada termina sin un acuerdo concreto.",
+    "summary": "The agent contacted the customer to follow up on a car insurance quote. The agent presented the 'Todo Riesgo Plus' plan and its benefits. The customer found the price too high and asked for time to think. The call ended without a clear next step or agreement.",
     "customerSentiment": "neutral",
-    "overall": 77,
+    "overall": 73,
     "roles": [
      "agent",
      "customer",
@@ -862,7 +875,7 @@
      {
       "key": "greeting",
       "score": 5,
-      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "comment": "The agent greeted the customer, introduced herself and the company.",
       "evidence": [
        {
         "segment": 0,
@@ -873,7 +886,7 @@
      {
       "key": "verification",
       "score": 5,
-      "comment": "El asesor verifica la identidad del cliente al inicio de la llamada.",
+      "comment": "The agent verified the customer's identity by asking for his name.",
       "evidence": [
        {
         "segment": 0,
@@ -884,7 +897,7 @@
      {
       "key": "empathy",
       "score": 3,
-      "comment": "El asesor muestra algo de empatía al reconocer la objeción del cliente, pero podría haber profundizado más.",
+      "comment": "The agent showed some empathy but could have acknowledged the customer's concern about the price more directly.",
       "evidence": [
        {
         "segment": 8,
@@ -895,7 +908,7 @@
      {
       "key": "resolution",
       "score": 3,
-      "comment": "El asesor presenta el producto y su precio, pero no maneja la objeción de precio ni ofrece alternativas concretas cuando el cliente duda.",
+      "comment": "The agent presented the product details but did not effectively handle the customer's objection about the price or offer alternatives.",
       "evidence": [
        {
         "segment": 4,
@@ -910,18 +923,13 @@
      {
       "key": "compliance",
       "score": 5,
-      "comment": "El asesor se comunica de forma respetuosa y no incurre en incumplimientos.",
-      "evidence": [
-       {
-        "segment": 4,
-        "quote": "Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor eleg…"
-       }
-      ]
+      "comment": "The agent's communication was compliant and respectful.",
+      "evidence": []
      },
      {
       "key": "closing",
-      "score": 2,
-      "comment": "El asesor no logra un acuerdo de siguiente paso concreto, solo deja la decisión en manos del cliente.",
+      "score": 1,
+      "comment": "The call ended without a clear next step or agreement, and the agent did not attempt to secure a commitment or schedule a follow-up.",
       "evidence": [
        {
         "segment": 10,
@@ -936,9 +944,10 @@
     ],
     "alerts": [],
     "feedback": [
-     "Al recibir una objeción de precio, intenta indagar más sobre qué aspectos del precio le parecen elevados al cliente o qué valor le da a la competencia.",
-     "Ofrece alternativas o beneficios adicionales que puedan justificar el precio o negociar un plan que se ajuste mejor al presupuesto del cliente.",
-     "Intenta concretar un siguiente paso, como agendar una nueva llamada para resolver dudas o enviar un resumen de la propuesta por correo electrónico, en lugar de solo dejarlo a la reflexión del cliente."
+     "When a customer expresses concern about price, try to explore their needs further or offer different plan options that might better fit their budget.",
+     "To improve closing, suggest a concrete next step, such as scheduling a follow-up call to discuss their decision or offering to send more information.",
+     "Acknowledge the customer's objection more directly, for example, 'I understand your concern about the price, let's see if we can find a solution that works for you.'",
+     "Ensure that all sales calls aim to reach a decision or a clear next step, rather than leaving the customer to simply 'think about it'."
     ]
    }
   }
