@@ -1,0 +1,232 @@
+<div class="page" (pointermove)="onPointerMove($event)" (pointerleave)="resetParallax()">
+
+
+  <!-- ─── CAPA A · Bloques de fondo ─── -->
+  <div class="bg-layer">
+    <div class="bg-black-top"></div>
+    <div class="bg-black-top-step"></div>
+    <div class="bg-blue-big"></div>
+    <div class="bg-pink-tr"></div>
+    <div class="bg-blue-hex"></div>
+    <div class="bg-pink-hex"></div>
+    <div class="bg-stripes-mid"></div>
+    <div class="bg-pink-square-mid"></div>
+    <div class="bg-dot-grid">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="bg-pink-bl"></div>
+    <div class="bg-black-bot-long">
+      <span class="bdot"></span>
+      <span class="bdot"></span>
+      <span class="bdot"></span>
+      <span class="bdot"></span>
+    </div>
+    <div class="bg-pink-br"></div>
+    <div class="bg-black-bot"></div>
+
+    <!-- Adornos extras de fondo -->
+    <div class="bg-stripes-tr"></div>
+    <div class="bg-dot-grid-tr">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <div class="bg-x-cluster-top">
+      <span class="xm">×</span>
+      <span class="xm">×</span>
+      <span class="xm">×</span>
+      <span class="xm">×</span>
+    </div>
+  </div>
+
+  <!-- ─── NAVBAR (top, sobre fondo grid) ─── -->
+  <nav class="navbar">
+    <a class="open-badge nav-open" href="#contacto"><span class="open-dot" aria-hidden="true"></span>{{ t().nav.available }}</a>
+    <ul class="nav-tabs">
+      <li><a href="#experiencia">{{ t().nav.experience }}</a></li>
+      <li><a href="#proyectos">{{ t().nav.projects }}</a></li>
+      <li><a href="#ia">{{ t().nav.ai }}</a></li>
+      <li><a href="#contacto">{{ t().nav.contact }}</a></li>
+    </ul>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+    <a class="nav-btn" [href]="t().cvUrl" download>{{ t().nav.cv }}</a>
+  </nav>
+
+  <!-- ─── ESCENA HERO (composición en capas) ─── -->
+  <section class="scene">
+
+    <!-- ░░░ BANNER VERTICAL IZQUIERDO (polilinea SVG con punta diagonal) ░░░ -->
+    <div class="brand-tag">
+      <img class="brand-tag-bg" src="/svgs/polilinea.svg" alt="">
+      <div class="brand-tag-content">
+        <div class="brand-vtext">Julian<br>Lizcano</div>
+
+        <div class="brand-x-cluster">
+          <span class="xm">×</span>
+          <span class="xm">×</span>
+          <span class="xm">×</span>
+          <span class="xm">×</span>
+        </div>
+
+        <!-- Sparkle decorativo dentro del banner -->
+        <svg class="brand-sparkle" viewBox="0 0 24 24" fill="black">
+          <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+        </svg>
+
+        <img class="brand-diamond" src="/svgs/Agrupar.svg" alt="">
+      </div>
+    </div>
+
+    <!-- ░░░ PANEL CENTRAL VERDE LIMA (hero principal) ░░░ -->
+    <div class="hero-panel">
+
+      <!-- Decoración esquina superior izquierda: rayas diagonales -->
+      <div class="hp-stripes"></div>
+
+      <!-- Sparkles dispersos arriba -->
+      <svg class="sp sp-a" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg class="sp sp-b" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg class="sp sp-c" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <!-- Sparkles extra distribuidos -->
+      <svg class="sp sp-d" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg class="sp sp-e" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg class="sp sp-f" viewBox="0 0 24 24" fill="black">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+
+      <!-- Pequeño cuadrado pink decorativo cerca del headline -->
+      <div class="hp-pink-square"></div>
+
+      <!-- Punta de flechas decorativa -->
+      <div class="hp-arrows">►►►►</div>
+
+      <!-- Headline -->
+      <div class="hp-headline">
+        <h1 class="h-just" aria-label="Full-Stack">
+          @for (ch of headline; track $index) {<span class="ch" aria-hidden="true" [style.--i]="$index">{{ ch }}</span>}
+        </h1>
+        <div class="h-come-bg">
+          <p class="h-come">&amp; AI Dev</p>
+        </div>
+      </div>
+
+      <!-- Body text -->
+      <p class="hp-body">
+        @for (line of t().hero.body; track $index; let last = $last) {<span class="line" [style.--i]="$index">{{ line }}</span>@if (!last) {<br>}}<span class="cursor" aria-hidden="true"></span>
+      </p>
+
+      <!-- Patrón de puntos decorativo bajo el body -->
+      <div class="hp-dot-pattern">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <!-- Rayas diagonales extra en zona inferior -->
+      <div class="hp-stripes-bot"></div>
+
+      <!-- X marks fila inferior + triángulos abajo derecha -->
+      <div class="hp-x-row">
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+      </div>
+      <div class="hp-down-tri">▼<br>▼<br>▼</div>
+
+      <!-- Triángulos extra apuntando hacia la derecha -->
+      <div class="hp-right-tri">►<br>►<br>►</div>
+
+      <!-- Botón Visit Now (esquina inferior izquierda del panel) -->
+      <a class="visit-btn" href="#proyectos">{{ t().hero.cta }}</a>
+    </div>
+
+    <!-- ░░░ CHAT CON LA IA (sobre el panel, en el hueco junto al titular) ░░░ -->
+    <app-ask-ai id="ia" class="hero-chat" />
+
+    <!-- ░░░ RESUMEN DEL STACK (solo en pantallas muy anchas, en el hueco entre el chat y el hexágono) ░░░ -->
+    <app-stack-card class="hero-stack" />
+
+    <!-- Espiral pegada al borde derecho (fuera del right-zone para no moverse con el hex) -->
+    <img class="circles" src="/svgs/Curva.svg" alt="">
+
+    <!-- ░░░ MEME: la foto va recortada a la cara gris del hexágono 3D ░░░ -->
+    <figure class="meme">
+      <div class="meme-cube">
+        <img class="meme-frame" src="/svgs/cuboFoto-gris.svg" alt="">
+        <img class="meme-photo" src="/litteralyme.webp" [alt]="t().meme.alt">
+        <span class="meme-top">{{ t().meme.top }}</span>
+      </div>
+      <figcaption class="meme-note">{{ t().meme.bottom }}</figcaption>
+    </figure>
+
+    <!-- ░░░ ZONA DERECHA (hexágono 3D + decoraciones) ░░░ -->
+    <div class="right-zone">
+
+      <!-- X marks superior -->
+      <div class="rt-xrow">
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+        <span class="xm">×</span>
+      </div>
+
+      <!-- Sparkle "explosión" (puas del usuario) -->
+      <img class="rt-burst" src="/svgs/puas.svg" alt="">
+
+      <!-- Diamante wireframe pequeño abajo (diamond1 del usuario) -->
+      <img class="rt-mini-diamond" src="/svgs/diamond1.svg" alt="">
+    </div>
+
+    <!-- Sparkles blancos esquina inferior izquierda (encima del bloque azul) -->
+    <div class="bl-sparkles">
+      <svg viewBox="0 0 24 24" fill="white">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg viewBox="0 0 24 24" fill="white">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg viewBox="0 0 24 24" fill="white">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+      <svg viewBox="0 0 24 24" fill="white">
+        <path d="M12 0L13.8 10.2L24 12L13.8 13.8L12 24L10.2 13.8L0 12L10.2 10.2Z" />
+      </svg>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- ─── CINTA MARQUEE ─── -->
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee marquee-a">
+    <div class="marquee-track">
+      @for (w of marqueeA(); track $index) {<span>{{ w }}</span>}
+    </div>
+  </div>
+  <div class="marquee marquee-b">
+    <div class="marquee-track">
+      @for (w of marqueeB(); track $index) {<span>{{ w }}</span>}
+    </div>
+  </div>
+</div>
+
+<app-experience id="experiencia" />
+<app-projects id="proyectos" />
+<app-contact id="contacto" />

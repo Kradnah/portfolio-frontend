@@ -1,0 +1,55 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # www -> dominio raiz
+    if ($host = www.julian-lizcano.com) {
+        return 301 https://julian-lizcano.com$request_uri;
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # APK de rideapp y su manifiesto: carpeta del VPS montada por Dokploy (scripts/publish-apks.sh).
+    location ^~ /downloads/ {
+        types {
+            application/vnd.android.package-archive apk;
+            application/json json;
+        }
+        location ~ \.apk$ {
+            add_header Content-Disposition "attachment";
+            add_header Cache-Control "public, max-age=86400";
+        }
+        location ~ \.json$ {
+            add_header Cache-Control "no-cache";
+        }
+    }
+
+    # Código exportado para el visor /codigo (scripts/export-code.mjs): texto plano, sin fallback a la SPA.
+    location ^~ /code/ {
+        types {
+            application/json json;
+            text/plain txt;
+        }
+        default_type text/plain;
+        charset utf-8;
+        add_header X-Content-Type-Options "nosniff";
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+
+    # Assets con hash: cache largo
+    location ~* \.(?:js|css|woff2?|png|jpg|jpeg|gif|svg|ico|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA fallback
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+}

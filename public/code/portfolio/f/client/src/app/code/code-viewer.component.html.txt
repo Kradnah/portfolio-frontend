@@ -1,0 +1,107 @@
+<div class="page">
+  <header class="top">
+    <a class="back" routerLink="/">{{ t().code.back }}</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+  </header>
+
+  @switch (status()) {
+    @case ('loading') {
+      <p class="state">{{ t().code.loading }}</p>
+    }
+    @case ('missing') {
+      <p class="state">{{ t().code.notFound }} <a routerLink="/">{{ t().code.back }}</a></p>
+    }
+    @case ('ready') {
+      @let m = manifest()!;
+      <section class="intro">
+        <span class="kicker">{{ t().code.kicker }}</span>
+        <h1 class="name">{{ m.name }}</h1>
+        <p class="sub">{{ t().code.sub }}</p>
+        <ul class="stats">
+          <li><strong>{{ fmt(m.files.length) }}</strong> {{ t().code.files }}</li>
+          <li><strong>{{ fmt(m.totalLines) }}</strong> {{ t().code.lines }}</li>
+          @for (s of m.sources; track s.prefix) {
+            <li>{{ t().code.exported }} {{ s.prefix }}<strong>{{ s.commit }}</strong> · {{ s.date.slice(0, 10) }}</li>
+          }
+        </ul>
+        <div class="langbar" aria-hidden="true">
+          @for (l of langBar(); track l.lang) {<span [style.width.%]="l.pct" [style.background]="l.color"></span>}
+        </div>
+        <ul class="legend">
+          @for (l of langBar(); track l.lang) {
+            <li><span class="sw" [style.background]="l.color"></span>{{ l.lang }} {{ l.pct.toFixed(1) }}%</li>
+          }
+        </ul>
+      </section>
+
+      <div class="ide">
+        <aside class="side">
+          <div class="side-bar">{{ t().code.tree }}</div>
+          <input class="search" type="search" [placeholder]="t().code.search" [attr.aria-label]="t().code.search"
+                 [value]="search()" (input)="search.set($any($event.target).value)" />
+          <nav class="tree">
+            @if (results(); as list) {
+              @for (f of list; track f.p) {
+                <button type="button" class="row file" [class.active]="f.p === file()" (click)="open(f.p)">{{ f.p }}</button>
+              } @empty {
+                <p class="empty">{{ t().code.noResults }}</p>
+              }
+            } @else {
+              @for (r of rows(); track r.path) {
+                <button type="button" class="row" [class.dir]="r.dir" [class.file]="!r.dir" [class.active]="r.path === file()"
+                        [style.--depth]="r.depth" [attr.aria-expanded]="r.dir ? r.open : null" (click)="toggle(r)">
+                  <span class="ico" aria-hidden="true">{{ r.dir ? (r.open ? '▾' : '▸') : '·' }}</span>{{ r.name }}
+                </button>
+              }
+            }
+          </nav>
+        </aside>
+
+        <main class="viewer">
+          <div class="viewer-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            @if (file(); as f) {
+              <span class="crumbs">
+                @for (c of crumbs(f); track $index; let last = $last) {<span [class.leaf]="last">{{ c }}</span>@if (!last) {<span class="sep">/</span>}}
+              </span>
+              <span class="meta">{{ fmt(currentLines()) }} {{ t().code.lines }}</span>
+              <button type="button" class="copy" (click)="copyLink()">{{ copied() ? t().code.copied : t().code.copyLink }}</button>
+            } @else {
+              <span class="crumbs"><span class="leaf">{{ t().code.start }}</span></span>
+            }
+          </div>
+
+          @if (!file()) {
+            <div class="start">
+              <p class="start-sub">{{ t().code.startSub }}</p>
+              <ol class="highlights">
+                @for (h of m.highlights; track h.path; let i = $index) {
+                  <li>
+                    <button type="button" (click)="open(h.path)">
+                      <span class="num">{{ (i + 1).toString().padStart(2, '0') }}</span>
+                      <span class="h-body">
+                        <span class="h-path">{{ h.path }}</span>
+                        <span class="h-note">{{ note(h) }}</span>
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ol>
+            </div>
+          } @else {
+            @switch (fileStatus()) {
+              @case ('error') { <p class="state small">{{ t().code.fileError }}</p> }
+              @case ('loading') { <p class="state small">{{ t().code.loading }}</p> }
+              @default {
+                <div class="code-scroll" (click)="onCodeClick($event)" [innerHTML]="code()"></div>
+                <p class="hint">{{ t().code.lineHint }}</p>
+              }
+            }
+          }
+        </main>
+      </div>
+    }
+  }
+</div>

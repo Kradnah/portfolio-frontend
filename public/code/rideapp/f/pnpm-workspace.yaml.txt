@@ -1,0 +1,60 @@
+# React Native/Metro necesitan node_modules planos (1.1). pnpm 12 ya no lee esto de .npmrc.
+nodeLinker: hoisted
+
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  '@swc/core': true
+  cpu-features: false
+  esbuild: true
+  # Acelerador nativo opcional de BullMQ: sin él usa la versión en JS (los binarios llegan precompilados).
+  msgpackr-extract: false
+  prisma: true
+  protobufjs: false
+  ssh2: false
+minimumReleaseAgeExclude:
+  - '@turbo/darwin-64@2.11.6'
+  - '@turbo/darwin-arm64@2.11.6'
+  - '@turbo/linux-64@2.11.6'
+  - '@turbo/linux-arm64@2.11.6'
+  - '@turbo/windows-64@2.11.6'
+  - '@turbo/windows-arm64@2.11.6'
+  - globals@17.13.0
+  - turbo@2.11.6
+  - vite@8.3.2
+
+# Versiones compartidas. React lo fija Expo SDK 57: el admin usa la misma para que
+# solo exista una copia de React en el node_modules plano.
+catalog:
+  react: 19.2.3
+  react-dom: 19.2.3
+  '@types/react': ~19.2.18
+  '@types/react-dom': ~19.2.0
+  zod: ^4.6.5
+  typescript: ~6.0.3
+  vitest: ^5.0.3
+
+# Una sola copia de React en todo el monorepo (la CLI de Prisma trae otra como peer de Prisma Studio).
+overrides:
+  react: 'catalog:'
+  react-dom: 'catalog:'
+  # Dependencias de la CLI de Prisma con avisos de seguridad (pnpm audit, 7.8).
+  mysql2: ^3.23.1
+  deepmerge-ts: ^8.0.0
+
+# Excepciones de `pnpm audit` (pre-push, 7.8). Cada una con motivo y fecha de revisión.
+auditConfig:
+  ignoreGhsas:
+    # node-forge (vía @expo/cli): verificación de firmas RSA PKCS#1. Solo se usa en la CLI de
+    # Expo en el PC del desarrollador (code signing de updates, que no usamos); no llega al APK
+    # ni al servidor. Sin versión corregida a 2026-10-02. Revisar al actualizar Expo.
+    - GHSA-86w9-cpqp-85rv
+    # braces (vía metro > micromatch): DoS con patrones de llaves muy anidados. Solo en Metro, el
+    # empaquetador de React Native en el PC, con patrones de nuestra configuración; no llega al APK
+    # ni al servidor. Sin versión corregida a 2026-10-02. Revisar al actualizar React Native.
+    - GHSA-vfj7-8cjw-p6xm
+patchedDependencies:
+  react-native-maps@1.27.2: patches/react-native-maps@1.27.2.patch

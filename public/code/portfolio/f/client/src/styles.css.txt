@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Brutalist palette (matched with landing) */
+    --lime: #B8FF00;
+    --pink: #FF0090;
+    --blue: #3B35E8;
+    --yellow: #FFE500;
+
+    /* Surfaces */
+    --page-bg: #ffffff;
+    --sidebar-bg: #ffffff;
+    --card-bg: #ffffff;
+    --input-bg: #ffffff;
+    --hover-bg: #f4f4f4;
+
+    /* Borders & shadows */
+    --border-color: #000000;
+    --border-hover: #000000;
+    --shadow-hard: 4px 4px 0 #000;
+    --shadow-hard-sm: 2px 2px 0 #000;
+    --shadow-hard-lg: 6px 6px 0 #000;
+
+    /* Text */
+    --text-color: #000000;
+    --text-muted: #4a4a4a;
+
+    /* Accents */
+    --accent-color: #000000;
+    --accent-soft: #B8FF00;
+    --accent-ring: rgba(184, 255, 0, 0.45);
+
+    /* Page background grid (used by .grid-bg) */
+    --grid-line: rgba(0, 0, 0, 0.07);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--page-bg);
+    color: var(--text-color);
+    font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* ── Brutalist surface ── */
+  .saas-card {
+    background-color: var(--card-bg);
+    border: 2.5px solid #000;
+    border-radius: 0;
+    box-shadow: var(--shadow-hard);
+  }
+
+  /* ── Brutalist input ── */
+  .saas-input {
+    background-color: var(--input-bg);
+    border: 2px solid #000;
+    border-radius: 0;
+    color: var(--text-color);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .saas-input:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  /* ── Brutalist button (secondary / neutral) ── */
+  .saas-btn {
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    font-weight: 700;
+    box-shadow: var(--shadow-hard-sm);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .saas-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard);
+  }
+
+  .saas-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 #000;
+  }
+
+  /* ── Brutalist primary button (pink) ── */
+  .saas-btn-primary {
+    background-color: var(--pink);
+    color: #fff;
+    border: 2.5px solid #000;
+    border-radius: 0;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: var(--shadow-hard);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .saas-btn-primary:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-lg);
+  }
+  .saas-btn-primary:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+  .saas-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  /* ── Brutalist accent button (lime) ── */
+  .saas-btn-accent {
+    background-color: var(--lime);
+    color: #000;
+    border: 2.5px solid #000;
+    border-radius: 0;
+    font-weight: 800;
+    box-shadow: var(--shadow-hard);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .saas-btn-accent:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard-lg);
+  }
+  .saas-btn-accent:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: var(--shadow-hard-sm);
+  }
+
+  /* ── Page grid background (matches landing) ── */
+  .grid-bg {
+    background-color: #fff;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+/* ── Secciones de la landing (proyectos, IA, contacto) ── */
+.section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 96px 40px;
+}
+.section-head { margin-bottom: 40px; }
+.kicker {
+  display: inline-block;
+  background: #000;
+  color: var(--lime);
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  margin-bottom: 14px;
+}
+.section-title {
+  margin: 0 0 18px;
+  font-size: clamp(32px, 4.4vw, 56px);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+.section-title .hl {
+  background: var(--pink);
+  color: #fff;
+  padding: 0 10px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.section-sub {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  max-width: 640px;
+}
+@media (max-width: 640px) {
+  .section { padding: 64px 20px; }
+}
+
+/* ── Aparición al hacer scroll (RevealDirective) ── */
+.reveal {
+  opacity: 0;
+  translate: 0 48px;
+  transition: opacity 0.6s ease, translate 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible { opacity: 1; translate: 0 0; }
+
+/* El resaltado rosa del título se "pinta" al aparecer */
+.reveal .section-title .hl {
+  background: linear-gradient(var(--pink), var(--pink)) no-repeat left / 0% 100%;
+  transition: background-size 0.7s 0.35s cubic-bezier(0.7, 0, 0.2, 1);
+}
+.reveal.is-visible .section-title .hl { background-size: 100% 100%; }
+
+/* Tarjetas: se levantan al pasar el mouse */
+.saas-card.reveal.is-visible { transition: opacity 0.6s ease, translate 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 0.2s ease; }
+.saas-card.reveal.is-visible:hover { translate: -4px -4px; box-shadow: 10px 10px 0 #000; transition-delay: 0ms; }
+
+.kicker::after { content: '_'; animation: kicker-blink 1s steps(1) infinite; }
+@keyframes kicker-blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; translate: none; transition: none; }
+  .reveal .section-title .hl { background-size: 100% 100%; transition: none; }
+  .kicker::after { animation: none; }
+}
+
+/* ── Aviso "Disponible para trabajar" (navbar y contacto) ── */
+.open-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #000;
+  color: var(--lime);
+  border: 2px solid #000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.open-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 0 0 rgb(184 255 0 / 0.7);
+  animation: open-pulse 1.8s ease-out infinite;
+}
+@keyframes open-pulse { to { box-shadow: 0 0 0 9px rgb(184 255 0 / 0); } }
+.nav-open { margin-right: 6px; }
+a.open-badge:hover { background: var(--lime); color: #000; }
+a.open-badge:hover .open-dot { background: #000; }
+@media (max-width: 700px) {
+  .nav-open { margin-right: 0; font-size: 11px; padding: 6px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .open-dot { animation: none; }
+}

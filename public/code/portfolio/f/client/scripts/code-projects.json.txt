@@ -1,0 +1,148 @@
+[
+  {
+    "slug": "rideapp",
+    "name": "rideapp",
+    "sources": [
+      {
+        "repo": "D:/Server/rideapp",
+        "ref": "main",
+        "include": [
+          "apps/**",
+          "packages/**",
+          "docs/adr/**",
+          "README.md",
+          "turbo.json",
+          "pnpm-workspace.yaml",
+          "package.json"
+        ],
+        "exclude": [
+          "**/assets/**",
+          "packages/mock-server/**",
+          "patches/**",
+          "infra/**",
+          "apps/api/src/generated/**"
+        ]
+      }
+    ],
+    "allowSecrets": [
+      {
+        "path": "apps/api/test/**",
+        "kind": "asignación de secreto"
+      }
+    ],
+    "highlights": [
+      {
+        "path": "apps/api/src/modules/trips/trip-state.machine.ts",
+        "note": {
+          "es": "Máquina de estados del viaje: qué transiciones existen y quién puede ejecutar cada una.",
+          "en": "Trip state machine: which transitions exist and who may trigger each one."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/trips/matching.service.ts",
+        "note": {
+          "es": "Emparejamiento: ofertas con tiempo límite, radio de búsqueda que crece (3 → 5 → 8 km) y colas BullMQ.",
+          "en": "Matching: time-boxed offers, a growing search radius (3 → 5 → 8 km) and BullMQ queues."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/realtime/realtime.gateway.ts",
+        "note": {
+          "es": "Tiempo real con Socket.IO: salas por viaje y eventos tipados con los contratos compartidos.",
+          "en": "Real time with Socket.IO: per-trip rooms and events typed with the shared contracts."
+        }
+      },
+      {
+        "path": "packages/contracts/src/trips.ts",
+        "note": {
+          "es": "Contratos Zod compartidos entre la API, el panel y las apps móviles.",
+          "en": "Zod contracts shared by the API, the admin panel and the mobile apps."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/auth/token.service.ts",
+        "note": {
+          "es": "JWT ES256 con kid para rotar la clave sin cerrar sesiones.",
+          "en": "ES256 JWTs with a kid so the key can rotate without logging users out."
+        }
+      },
+      {
+        "path": "apps/api/src/common/crypto/field-crypto.ts",
+        "note": {
+          "es": "Cifrado de columnas sensibles con AES-256-GCM.",
+          "en": "Column-level encryption of sensitive data with AES-256-GCM."
+        }
+      },
+      {
+        "path": "apps/api/test/trips.int.test.ts",
+        "note": {
+          "es": "Tests de integración contra Postgres y Redis reales (Testcontainers).",
+          "en": "Integration tests against real Postgres and Redis (Testcontainers)."
+        }
+      }
+    ]
+  },
+  {
+    "slug": "portfolio",
+    "name": "julian-lizcano.com",
+    "sources": [
+      {
+        "repo": "D:/Server/PortFolio/client",
+        "ref": "HEAD",
+        "prefix": "client/",
+        "include": [
+          "src/**",
+          "scripts/**",
+          "nginx.conf",
+          "Dockerfile",
+          "angular.json",
+          "package.json"
+        ],
+        "exclude": [
+          "**/*.webp",
+          "**/*.png",
+          "**/*.svg",
+          "**/*.ico",
+          "**/*.pdf"
+        ]
+      },
+      {
+        "repo": "D:/Server/PortFolio/api",
+        "ref": "HEAD",
+        "prefix": "api/",
+        "include": [
+          "app/**",
+          "tests/**",
+          "knowledge/**",
+          "Dockerfile",
+          "pyproject.toml",
+          "README.md"
+        ],
+        "exclude": []
+      }
+    ],
+    "highlights": [
+      {
+        "path": "api/app/limits.py",
+        "note": {
+          "es": "Límites de uso del chat por IP y globales, para que la IA no genere costos sorpresa.",
+          "en": "Per-IP and global usage limits for the chat, so the AI never runs up surprise costs."
+        }
+      },
+      {
+        "path": "api/app/prompt.py",
+        "note": {
+          "es": "Prompt del asistente: reglas contra prompt injection y respuestas solo desde el perfil.",
+          "en": "Assistant prompt: prompt-injection rules and answers grounded only in the profile."
+        }
+      },
+      {
+        "path": "client/scripts/export-code.mjs",
+        "note": {
+          "es": "Este visor: export curado del código con escaneo de secretos antes de publicar.",
+          "en": "This viewer: curated code export with a secret scan before publishing."
+        }
+      }
+    ]
+  }
+]

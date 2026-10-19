@@ -1,0 +1,66 @@
+<section class="section">
+  <header class="section-head" appReveal>
+    <span class="kicker">{{ t().projects.kicker }}</span>
+    <h2 class="section-title">{{ t().projects.title }} <span class="hl">{{ t().projects.titleHl }}</span></h2>
+    <p class="section-sub">{{ t().projects.sub }}</p>
+  </header>
+
+  <div class="grid">
+    <!-- ░░ Casa Zhef ░░ -->
+    <article class="project saas-card" appReveal="0">
+      <a class="shot" href="https://casazhef.com" target="_blank" rel="noopener">
+        <img src="/projects/casazhef.webp" [alt]="t().projects.casazhefAlt" loading="lazy" width="1280" height="800" />
+      </a>
+      <div class="body">
+        <div class="tags">
+          <span class="tag tag-lime">{{ t().projects.live }}</span>
+          <span class="tag">{{ t().projects.ownBusiness }}</span>
+        </div>
+        <h3 class="title">Casa Zhef</h3>
+        <p class="desc">{{ t().projects.casazhefDesc }}</p>
+        <ul class="stack">
+          <li>Angular 20</li><li>Tailwind 4</li><li>NestJS</li><li>Docker</li><li>Dokploy</li>
+        </ul>
+        <div class="actions">
+          <a class="saas-btn-primary btn" href="https://casazhef.com" target="_blank" rel="noopener">{{ t().projects.viewLive }}</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ░░ rideapp ░░ -->
+    <article class="project saas-card" appReveal="150">
+      <div class="gallery">
+        <img class="shot" [src]="rideShots[shot()].src" [alt]="t().projects.rideShots[shot()].alt" loading="lazy" width="1280" height="800" />
+        <div class="thumbs" role="tablist" [attr.aria-label]="t().projects.rideTabs">
+          @for (s of rideShots; track s.src; let i = $index) {
+            <button type="button" role="tab" class="thumb" [class.active]="shot() === i" [attr.aria-selected]="shot() === i" (click)="shot.set(i)">
+              {{ t().projects.rideShots[i].label }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="body">
+        <div class="tags">
+          <span class="tag tag-lime">{{ t().projects.demo }}</span>
+          <span class="tag">Android</span>
+        </div>
+        <h3 class="title">rideapp</h3>
+        <p class="desc">{{ t().projects.rideDesc }}</p>
+        <ul class="points">
+          @for (p of t().projects.ridePoints; track $index) {<li>{{ p }}</li>}
+        </ul>
+        <ul class="stack">
+          <li>React Native</li><li>NestJS</li><li>PostGIS</li><li>Redis</li><li>BullMQ</li><li>Google Maps</li>
+        </ul>
+        <div class="actions">
+          @for (apk of apks(); track apk.app) {
+            <a class="saas-btn-accent btn" [href]="'/downloads/' + apk.file" download>
+              APK {{ t().projects.apk[apk.app] }} <small>v{{ apk.version }} · {{ mb(apk.bytes) }}</small>
+            </a>
+          }
+          <a class="saas-btn btn code-btn" routerLink="/codigo/rideapp">{{ t().projects.viewCode }}</a>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

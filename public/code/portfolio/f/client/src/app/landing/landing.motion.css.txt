@@ -1,0 +1,279 @@
+/* ░░░░░░░░░░░░░░░░░░░░░░░░░░
+   MOVIMIENTO DE LA PORTADA
+   Las animaciones usan las propiedades `translate`, `rotate` y `scale` (no `transform`)
+   para sumarse a los transforms de posición que ya tienen las piezas en landing.component.css.
+   --mx / --my (−1…1) los pone el componente según el mouse: parallax.
+░░░░░░░░░░░░░░░░░░░░░░░░░░ */
+
+.page {
+  --mx: 0;
+  --my: 0;
+  animation: grid-pan 8s linear infinite;
+}
+
+@keyframes grid-pan {
+  to { background-position: 48px 48px, 48px 48px; }
+}
+
+/* ─── Entrada ─── */
+@keyframes drop-in {
+  from { opacity: 0; translate: 0 -60px; }
+}
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 80px; }
+}
+@keyframes slide-left {
+  from { opacity: 0; translate: -120px 0; }
+}
+@keyframes slide-right {
+  from { opacity: 0; translate: 120px 0; }
+}
+@keyframes pop-in {
+  0% { opacity: 0; scale: 0.3; }
+  70% { opacity: 1; scale: 1.08; }
+}
+@keyframes wipe-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes grow-x {
+  from { scale: 0 1; }
+}
+
+.bg-black-top,
+.bg-black-bot,
+.bg-black-bot-long { transform-origin: left; animation: grow-x 0.9s cubic-bezier(0.7, 0, 0.2, 1) both; }
+.bg-black-bot-long { animation-delay: 0.5s; }
+.bg-blue-big { animation: slide-left 0.8s 0.1s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.bg-pink-tr { animation: drop-in 0.6s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+.bg-pink-bl,
+.bg-pink-square-mid,
+.bg-pink-br { animation: rise-in 0.6s 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+.bg-pink-square-mid { animation-delay: 0.8s; }
+.bg-pink-br { animation-delay: 0.9s; }
+.bg-stripes-mid,
+.bg-stripes-tr { animation: wipe-in 0.6s 1s both, stripes-run 1.2s 1.6s linear infinite; }
+.bg-blue-hex,
+.bg-pink-hex { animation: pop-in 0.6s 0.9s both; }
+
+.nav-tabs li { animation: drop-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+.nav-tabs li:nth-child(1) { animation-delay: 0.35s; }
+.nav-tabs li:nth-child(2) { animation-delay: 0.45s; }
+.nav-tabs li:nth-child(3) { animation-delay: 0.55s; }
+.lang-btn { animation: drop-in 0.5s 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+.nav-btn { animation: drop-in 0.5s 0.65s cubic-bezier(0.2, 0.9, 0.3, 1.4) both, cv-nudge 5s 3s ease-in-out infinite; }
+
+.brand-tag { animation: drop-in 0.8s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; }
+.hero-panel { animation: rise-in 0.8s 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+.hero-chat { animation: slide-right 0.8s 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+.right-zone,
+.meme { animation: pop-in 0.9s 0.7s both; }
+.visit-btn { animation: pop-in 0.5s 1.6s both, btn-bounce 3.5s 3s ease-in-out infinite; }
+
+/* Titular: letra por letra */
+.h-just { display: flex; }
+.h-just .ch {
+  display: inline-block;
+  animation: letter-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+  animation-delay: calc(0.6s + var(--i) * 0.05s);
+  transition: translate 0.2s, color 0.2s;
+}
+.h-just .ch:hover { translate: 0 -10px; color: var(--pink); }
+@keyframes letter-in {
+  from { opacity: 0; translate: 0 50px; rotate: 12deg; }
+}
+
+/* "& AI Dev": la barra negra se barre de izquierda a derecha */
+.h-come-bg { animation: wipe-in 0.7s 1.15s cubic-bezier(0.7, 0, 0.2, 1) both; }
+
+/* Descripción: línea a línea + cursor */
+.hp-body .line {
+  display: inline-block;
+  animation: wipe-in 0.6s steps(24) both;
+  animation-delay: calc(1.5s + var(--i) * 0.45s);
+}
+.hp-body .cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  margin-left: 4px;
+  vertical-align: -2px;
+  background: #000;
+  animation: blink-cursor 1s steps(1) infinite;
+}
+@keyframes blink-cursor { 50% { opacity: 0; } }
+
+/* ─── Movimiento continuo ─── */
+@keyframes twinkle {
+  0%, 100% { scale: 1; rotate: 0deg; opacity: 1; }
+  50% { scale: 0.45; rotate: 90deg; opacity: 0.6; }
+}
+@keyframes float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -14px; }
+}
+@keyframes spin { to { rotate: 360deg; } }
+@keyframes wobble {
+  0%, 100% { rotate: -6deg; }
+  50% { rotate: 6deg; }
+}
+@keyframes stripes-run {
+  to { background-position: 12px 0; }
+}
+@keyframes blink-x {
+  0%, 80%, 100% { opacity: 1; scale: 1; }
+  90% { opacity: 0.2; scale: 1.6; }
+}
+@keyframes dot-wave {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.9; }
+}
+@keyframes march {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 10px 0; }
+}
+@keyframes drip {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 8px; }
+}
+@keyframes btn-bounce {
+  0%, 88%, 100% { translate: 0 0; }
+  92% { translate: 0 -8px; }
+  96% { translate: 0 0; }
+}
+@keyframes cv-nudge {
+  0%, 90%, 100% { rotate: 0deg; }
+  93% { rotate: -4deg; }
+  96% { rotate: 4deg; }
+}
+@keyframes square-spin {
+  0%, 70% { rotate: 0deg; }
+  100% { rotate: 180deg; }
+}
+
+.sp,
+.brand-sparkle,
+.bl-sparkles svg { animation: twinkle 2.6s ease-in-out infinite; }
+.sp-b { animation-delay: -0.4s; }
+.sp-c { animation-delay: -0.9s; animation-duration: 2s; }
+.sp-d { animation-delay: -1.3s; animation-duration: 3.2s; }
+.sp-e { animation-delay: -1.8s; }
+.sp-f { animation-delay: -2.2s; animation-duration: 2.2s; }
+.brand-sparkle { animation-duration: 3s; }
+.bl-sparkles svg:nth-child(2) { animation-delay: -0.6s; }
+.bl-sparkles svg:nth-child(3) { animation-delay: -1.2s; }
+.bl-sparkles svg:nth-child(4) { animation-delay: -1.8s; }
+
+.meme-cube { animation: float 5s ease-in-out infinite; }
+.brand-diamond { animation: float 6s -2s ease-in-out infinite; }
+.rt-mini-diamond { animation: float 4.5s -1s ease-in-out infinite; }
+.circles { animation: pop-in 0.9s 0.8s both, spin 24s 1.7s linear infinite; }
+.rt-burst { animation: wobble 4s ease-in-out infinite; transform-origin: 20% 50%; }
+.hp-pink-square { animation: square-spin 4s cubic-bezier(0.7, 0, 0.2, 1) infinite; }
+
+.hp-stripes,
+.hp-stripes-bot { animation: stripes-run 1.2s linear infinite; }
+
+.xm { display: inline-block; animation: blink-x 3s ease-in-out infinite; }
+.xm:nth-child(2) { animation-delay: 0.25s; }
+.xm:nth-child(3) { animation-delay: 0.5s; }
+.xm:nth-child(4) { animation-delay: 0.75s; }
+
+.hp-dot-pattern span,
+.bg-dot-grid span,
+.bg-dot-grid-tr span,
+.bg-black-bot-long .bdot { animation: dot-wave 2.4s ease-in-out infinite; }
+.hp-dot-pattern span:nth-child(5n + 2),
+.bg-dot-grid span:nth-child(4n + 2),
+.bg-dot-grid-tr span:nth-child(3n + 2),
+.bg-black-bot-long .bdot:nth-child(2) { animation-delay: 0.2s; }
+.hp-dot-pattern span:nth-child(5n + 3),
+.bg-dot-grid span:nth-child(4n + 3),
+.bg-dot-grid-tr span:nth-child(3n + 3),
+.bg-black-bot-long .bdot:nth-child(3) { animation-delay: 0.4s; }
+.hp-dot-pattern span:nth-child(5n + 4),
+.bg-dot-grid span:nth-child(4n + 4),
+.bg-black-bot-long .bdot:nth-child(4) { animation-delay: 0.6s; }
+.hp-dot-pattern span:nth-child(5n + 5) { animation-delay: 0.8s; }
+
+.hp-arrows,
+.hp-right-tri { animation: march 1.4s ease-in-out infinite; }
+.hp-down-tri { animation: drip 1.4s ease-in-out infinite; }
+
+/* ─── Parallax con el mouse (solo escritorio; en el resto --mx/--my se quedan en 0) ─── */
+.right-zone,
+.meme { translate: calc(var(--mx) * -18px) calc(var(--my) * -14px); }
+.circles { translate: calc(var(--mx) * 26px) calc(var(--my) * 20px); }
+.bg-blue-hex,
+.bg-pink-hex { translate: calc(var(--mx) * 30px) calc(var(--my) * 24px); }
+.bl-sparkles { translate: calc(var(--mx) * 22px) calc(var(--my) * 16px); }
+.brand-tag-content { translate: calc(var(--mx) * -8px) calc(var(--my) * -6px); }
+.right-zone,
+.meme,
+.circles,
+.bg-blue-hex,
+.bg-pink-hex,
+.bl-sparkles,
+.brand-tag-content { transition: translate 0.25s ease-out; }
+
+/* ─── Cinta marquee entre la portada y los proyectos ─── */
+.marquee-wrap {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 0 76px;
+  background: #fff;
+}
+.marquee {
+  width: 110%;
+  margin-left: -5%;
+  overflow: hidden;
+  border-block: 2.5px solid #000;
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(18px, 2.2vw, 28px);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.marquee-a {
+  position: relative;
+  z-index: 1;
+  background: #000;
+  color: var(--lime);
+  rotate: -2deg;
+}
+.marquee-b {
+  position: absolute;
+  top: 84px;
+  left: 0;
+  background: var(--pink);
+  color: #fff;
+  rotate: 1.5deg;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 28px;
+  padding: 10px 14px;
+  animation: marquee 28s linear infinite;
+}
+.marquee-b .marquee-track { animation-direction: reverse; animation-duration: 34s; }
+.marquee-track span::after { content: '✦'; margin-left: 28px; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+@keyframes marquee {
+  to { translate: -50% 0; }
+}
+
+/* ─── Accesibilidad: sin movimiento si el sistema lo pide ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Ventana del stack: entra después del chat */
+.hero-stack { animation: slide-right 0.8s 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
