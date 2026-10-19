@@ -41,6 +41,8 @@ const SECRETS = [
   ['Slack token', /xox[abprs]-[A-Za-z0-9-]{10,}/],
   ['Stripe key', /\b[sr]k_live_[A-Za-z0-9]{20,}/],
   ['JWT', /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/],
+  // Datos de infraestructura que no son secretos pero no conviene publicar (acceso SSH).
+  ['usuario SSH del servidor', /[a-z_][a-z0-9_-]*@\d{1,3}(?:\.\d{1,3}){3}/],
   ['URL con contraseña', /\b[a-z][a-z0-9+.-]*:\/\/[^\s:/@'"`]+:([^\s@'"`$]{6,})@(?!localhost|127\.0\.0\.1|db\b|postgres\b|redis\b)/i],
   ['asignación de secreto', /(?:secret|password|passwd|api[_-]?key|access[_-]?token|private[_-]?key)["']?\s*[:=]\s*["'`]([^"'`\s${}<>]{20,})["'`]/i],
 ];
