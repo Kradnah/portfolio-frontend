@@ -143,6 +143,7 @@ const ES = {
     casazhefDesc:
       'La web de mi cocina oculta de fines de semana en Girardot: menú por categorías, horarios, ubicación y pedidos por WhatsApp. Del diseño al despliegue, hecha por mí.',
     viewLive: 'Ver en vivo ↗',
+    viewCode: 'Ver código </>',
     demo: 'Demo funcional',
     rideTabs: 'Pantallas del panel de rideapp',
     rideShots: [
@@ -159,6 +160,26 @@ const ES = {
     ],
     apk: { pasajero: 'pasajero', conductor: 'conductor' } as Record<string, string>,
   },
+  code: {
+    back: '← Volver al portfolio',
+    kicker: 'Código fuente',
+    sub: 'Selección curada del repositorio, exportada de un commit concreto. Se lee aquí, sin GitHub.',
+    files: 'archivos',
+    lines: 'líneas',
+    exported: 'Commit',
+    search: 'Buscar archivo…',
+    tree: 'Archivos',
+    noResults: 'Ningún archivo coincide.',
+    start: 'Empieza aquí',
+    startSub: 'Los archivos que mejor muestran cómo está construido.',
+    copyLink: 'Copiar enlace',
+    copied: '¡Copiado!',
+    lineHint: 'Clic en un número de línea para enlazarla; Shift+clic para un rango.',
+    loading: 'Cargando…',
+    notFound: 'Ese proyecto no existe.',
+    fileError: 'No se pudo cargar el archivo.',
+    pick: 'Elige un archivo',
+  },
   contact: {
     kicker: '03 · Contacto',
     title: '¿Hablamos?',
@@ -167,6 +188,7 @@ const ES = {
     available: 'Disponible para nuevas oportunidades · remoto o híbrido',
     cv: 'Descargar CV (PDF)',
     footer: 'Hecho con Angular y FastAPI en mi propio servidor.',
+    footerCode: 'Ver el código de esta web',
   },
 };
 
@@ -311,6 +333,7 @@ const EN: Dict = {
     casazhefDesc:
       'The website of my weekend ghost kitchen in Girardot: menu by category, opening hours, location and WhatsApp orders. Designed, built and deployed by me.',
     viewLive: 'See it live ↗',
+    viewCode: 'View code </>',
     demo: 'Working demo',
     rideTabs: 'rideapp admin panel screens',
     rideShots: [
@@ -327,6 +350,26 @@ const EN: Dict = {
     ],
     apk: { pasajero: 'rider', conductor: 'driver' },
   },
+  code: {
+    back: '← Back to portfolio',
+    kicker: 'Source code',
+    sub: 'A curated selection of the repository, exported from a specific commit. Read it here, no GitHub needed.',
+    files: 'files',
+    lines: 'lines',
+    exported: 'Commit',
+    search: 'Find a file…',
+    tree: 'Files',
+    noResults: 'No file matches.',
+    start: 'Start here',
+    startSub: 'The files that best show how it is built.',
+    copyLink: 'Copy link',
+    copied: 'Copied!',
+    lineHint: 'Click a line number to link to it; Shift+click for a range.',
+    loading: 'Loading…',
+    notFound: 'That project does not exist.',
+    fileError: 'The file could not be loaded.',
+    pick: 'Pick a file',
+  },
   contact: {
     kicker: '03 · Contact',
     title: "Let's talk?",
@@ -335,6 +378,7 @@ const EN: Dict = {
     available: 'Open to new opportunities · remote or hybrid',
     cv: 'Download resume (PDF)',
     footer: 'Built with Angular and FastAPI on my own server.',
+    footerCode: "See this site's code",
   },
 };
 

@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { I18n } from '../i18n';
 import { RevealDirective } from '../reveal.directive';
 
@@ -13,7 +14,7 @@ interface ApkInfo {
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [RevealDirective],
+  imports: [RevealDirective, RouterLink],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css',
 })

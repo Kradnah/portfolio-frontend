@@ -52,15 +52,14 @@
         <ul class="stack">
           <li>React Native</li><li>NestJS</li><li>PostGIS</li><li>Redis</li><li>BullMQ</li><li>Google Maps</li>
         </ul>
-        @if (apks().length) {
-          <div class="actions">
-            @for (apk of apks(); track apk.app) {
-              <a class="saas-btn-accent btn" [href]="'/downloads/' + apk.file" download>
-                APK {{ t().projects.apk[apk.app] }} <small>v{{ apk.version }} · {{ mb(apk.bytes) }}</small>
-              </a>
-            }
-          </div>
-        }
+        <div class="actions">
+          @for (apk of apks(); track apk.app) {
+            <a class="saas-btn-accent btn" [href]="'/downloads/' + apk.file" download>
+              APK {{ t().projects.apk[apk.app] }} <small>v{{ apk.version }} · {{ mb(apk.bytes) }}</small>
+            </a>
+          }
+          <a class="saas-btn btn code-btn" routerLink="/codigo/rideapp">{{ t().projects.viewCode }}</a>
+        </div>
       </div>
     </article>
   </div>

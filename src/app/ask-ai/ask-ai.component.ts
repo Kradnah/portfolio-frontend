@@ -20,7 +20,8 @@ const MAX_TURNS = 10;
 })
 export class AskAiComponent {
   /** Textos, preguntas sugeridas (respuesta fija: no gastan saldo de IA) y errores, en el idioma activo. */
-  protected readonly t = inject(I18n).t;
+  private readonly i18n = inject(I18n);
+  protected readonly t = this.i18n.t;
   protected readonly maxChars = MAX_CHARS;
   protected readonly messages = signal<Message[]>([]);
   protected readonly draft = signal('');
@@ -84,7 +85,7 @@ export class AskAiComponent {
       return fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.session}` },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, lang: this.i18n.lang() }),
       });
     };
     let res = await call();
