@@ -2,7 +2,7 @@
 
     uv run --no-project --with reportlab --with pymupdf --with pillow python scripts/generate-invoices.py
 
-Salida en public/demos/facturas/: cinco PDF (uno "escaneado", es decir, solo imagen) y truth.json con
+Salida en public/demo-data/facturas/: cinco PDF (uno "escaneado", es decir, solo imagen) y truth.json con
 los errores que se metieron a propósito, para revisar que el validador los encuentre.
 """
 
@@ -19,7 +19,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-OUT = Path(__file__).resolve().parent.parent / "public" / "demos" / "facturas"
+OUT = Path(__file__).resolve().parent.parent / "public" / "demo-data" / "facturas"
 WEIGHTS = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71]
 
 

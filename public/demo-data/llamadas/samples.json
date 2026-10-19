@@ -6,7 +6,7 @@
    "en": "Well-handled tech support"
   },
   "company": "RedMagi Internet",
-  "audio": "/demos/llamadas/llamada-1-soporte.webm",
+  "audio": "/demo-data/llamadas/llamada-1-soporte.webm",
   "segments": [
    {
     "start": 0.0,
@@ -378,7 +378,7 @@
    "en": "Collections call with tone issues"
   },
   "company": "Créditos Tokio-3",
-  "audio": "/demos/llamadas/llamada-2-cobranza.webm",
+  "audio": "/demo-data/llamadas/llamada-2-cobranza.webm",
   "segments": [
    {
     "start": 0.0,
@@ -664,7 +664,7 @@
    "en": "Friendly sale with no close"
   },
   "company": "Seguros Geofront",
-  "audio": "/demos/llamadas/llamada-3-venta.webm",
+  "audio": "/demo-data/llamadas/llamada-3-venta.webm",
   "segments": [
    {
     "start": 0.0,

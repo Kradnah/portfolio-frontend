@@ -6,7 +6,7 @@ import { I18n } from '../../i18n';
 import { Check, Extraction, FieldKey, Status, fieldStatus, money, runChecks } from './checks';
 import { PageScan, Word, locate, personalData, readImage, readPdf } from './extract';
 
-/** Facturas de ejemplo con la extracción precalculada (public/demos/facturas/samples.json). */
+/** Facturas de ejemplo con la extracción precalculada (public/demo-data/facturas/samples.json). */
 interface Sample {
   id: string;
   file: string;
@@ -110,7 +110,7 @@ export class InvoiceLabComponent implements OnInit {
       // Sin API se muestran los límites por defecto.
     }
     try {
-      const res = await fetch('/demos/facturas/samples.json', { cache: 'no-cache' });
+      const res = await fetch('/demo-data/facturas/samples.json', { cache: 'no-cache' });
       if (res.ok && res.headers.get('content-type')?.includes('json')) this.samples.set(await res.json());
     } catch {
       // Sin ejemplos publicados.
@@ -159,7 +159,7 @@ export class InvoiceLabComponent implements OnInit {
   protected async openSample(s: Sample): Promise<void> {
     this.reset();
     try {
-      const blob = await (await fetch(`/demos/facturas/${s.file}`)).blob();
+      const blob = await (await fetch(`/demo-data/facturas/${s.file}`)).blob();
       const pages = await this.read(blob, 'application/pdf');
       this.pages.set(pages);
       this.extraction.set(s.extraction);
