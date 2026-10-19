@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { ApiSession } from '../../api-session';
@@ -32,6 +32,8 @@ interface Sample {
   audio: string;
   segments: Segment[];
   analysis: { es: Analysis; en: Analysis };
+  /** Versión con audio en inglés (para quien navega la página en inglés). */
+  en?: { audio: string; segments: Segment[]; analysis: Analysis };
 }
 
 type Phase = 'idle' | 'decode' | 'download' | 'transcribe' | 'analyze' | 'done' | 'error';
@@ -73,7 +75,9 @@ export class CallLabComponent implements OnInit, OnDestroy {
   /** Con una llamada de ejemplo, el análisis sigue el idioma de la página. */
   protected readonly result = computed(() => {
     const s = this.sample();
-    return s ? s.analysis[this.i18n.lang()] : this.analysis();
+    if (!s) return this.analysis();
+    const lang = this.i18n.lang();
+    return lang === 'en' && s.en ? s.en.analysis : s.analysis[lang];
   });
   protected readonly busy = computed(() => ['decode', 'download', 'transcribe', 'analyze'].includes(this.phase()));
   protected readonly downloadPct = computed(() => {
@@ -86,6 +90,15 @@ export class CallLabComponent implements OnInit, OnDestroy {
   });
 
   private worker?: Worker;
+
+  constructor() {
+    // Al cambiar de idioma con un ejemplo abierto, se cambia también el audio (si hay versión).
+    effect(() => {
+      this.i18n.lang();
+      const s = untracked(this.sample);
+      if (s?.en) untracked(() => this.openSample(s));
+    });
+  }
   private recorder = new MicRecorder();
   private recTimer?: ReturnType<typeof setInterval>;
 
@@ -132,9 +145,10 @@ export class CallLabComponent implements OnInit, OnDestroy {
 
   protected openSample(s: Sample): void {
     this.reset();
+    const en = this.i18n.lang() === 'en' && s.en;
     this.sample.set(s);
-    this.audioUrl.set(s.audio);
-    this.segments.set(s.segments);
+    this.audioUrl.set(en ? s.en!.audio : s.audio);
+    this.segments.set(en ? s.en!.segments : s.segments);
     this.phase.set('done');
   }
 

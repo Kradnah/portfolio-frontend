@@ -46,3 +46,4 @@ Thumbs.db
 # Environments
 /src/environments/*
 !/src/environments/environment.example.ts
+public/tmp-vision-*

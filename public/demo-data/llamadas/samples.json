@@ -369,6 +369,254 @@
      "Proactively offering compensation or discounts for service disruptions demonstrates good customer care."
     ]
    }
+  },
+  "en": {
+   "audio": "/demo-data/llamadas/llamada-1-soporte-en.webm",
+   "segments": [
+    {
+     "start": 0.0,
+     "end": 7.06,
+     "text": "Good afternoon. Thank you for calling Red Magi Internet. This is Laura speaking. Who am I talking to?"
+    },
+    {
+     "start": 7.84,
+     "end": 10.72,
+     "text": "Hi, good afternoon. This is Andres Mejia."
+    },
+    {
+     "start": 11.3,
+     "end": 16.78,
+     "text": "Nice to meet you, Andres. To help you, could you please confirm the account holder's ID number?"
+    },
+    {
+     "start": 17.2,
+     "end": 21.4,
+     "text": "Sure. 1-0-2-3-4-5-6-7."
+    },
+    {
+     "start": 22.32,
+     "end": 26.98,
+     "text": "Thank you. I have your account. Tell me, how can I help you?"
+    },
+    {
+     "start": 27.6,
+     "end": 31.46,
+     "text": "Since yesterday, my internet keeps dropping, and today I have to work from home."
+    },
+    {
+     "start": 31.92,
+     "end": 34.0,
+     "text": "So you can imagine I'm getting desperate."
+    },
+    {
+     "start": 34.74,
+     "end": 40.16,
+     "text": "I completely understand, Andres. It's really frustrating when you depend on the connection for work."
+    },
+    {
+     "start": 40.56,
+     "end": 44.38,
+     "text": "Let's check it together. Could you tell me which lights you see on the modem?"
+    },
+    {
+     "start": 45.34,
+     "end": 48.04,
+     "text": "Uh, there's a red one that says LOS."
+    },
+    {
+     "start": 48.58,
+     "end": 50.32,
+     "text": "Perfect. That helps a lot."
+    },
+    {
+     "start": 50.66,
+     "end": 53.42,
+     "text": "That light means there's no signal coming through the fiber."
+    },
+    {
+     "start": 53.78,
+     "end": 57.24,
+     "text": "I checked, and there was a network outage in your area this morning."
+    },
+    {
+     "start": 57.64,
+     "end": 59.98,
+     "text": "Our technical team is already fixing it."
+    },
+    {
+     "start": 60.62,
+     "end": 62.48,
+     "text": "Oh, and how long will that take?"
+    },
+    {
+     "start": 63.1,
+     "end": 72.06,
+     "text": "The estimated time is two hours. I'm logging a case with the number RM48213, and as soon as service is restored, you'll get a text message."
+    },
+    {
+     "start": 72.48,
+     "end": 77.06,
+     "text": "Also, for the hours without service, I'm applying a proportional discount to your next bill."
+    },
+    {
+     "start": 78.28,
+     "end": 80.88,
+     "text": "Okay. That's great. Thanks."
+    },
+    {
+     "start": 82.14,
+     "end": 83.1,
+     "text": "You're welcome."
+    },
+    {
+     "start": 83.4,
+     "end": 89.52,
+     "text": "If the light is still red in two hours, call us with that case number and we'll schedule a technician visit at no cost."
+    },
+    {
+     "start": 89.92,
+     "end": 91.7,
+     "text": "Is there anything else I can help you with?"
+    },
+    {
+     "start": 92.12,
+     "end": 93.84,
+     "text": "No, that's all."
+    },
+    {
+     "start": 94.4,
+     "end": 96.28,
+     "text": "Thank you for your patience, Andres."
+    },
+    {
+     "start": 96.66,
+     "end": 97.78,
+     "text": "Have a good afternoon."
+    }
+   ],
+   "analysis": {
+    "isServiceCall": true,
+    "callType": "support",
+    "summary": "The customer contacted support due to an internet outage affecting their work. The agent identified a network outage in the area, provided an estimated resolution time, logged a case, and offered a discount for the downtime. The agent also advised the customer to call back with the case number if the issue persisted after the estimated time.",
+    "customerSentiment": "neutral",
+    "overall": 100,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "The agent greeted the customer, introduced herself and the company.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Good afternoon. Thank you for calling Red Magi Internet. This is Laura speaking. Who am I talking to?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "The agent verified the customer's identity by asking for the account holder's ID number before proceeding.",
+      "evidence": [
+       {
+        "segment": 2,
+        "quote": "Nice to meet you, Andres. To help you, could you please confirm the account holder's ID number?"
+       },
+       {
+        "segment": 3,
+        "quote": "Sure. 1-0-2-3-4-5-6-7."
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 5,
+      "comment": "The agent showed empathy by acknowledging the customer's frustration and the impact on their work.",
+      "evidence": [
+       {
+        "segment": 7,
+        "quote": "I completely understand, Andres. It's really frustrating when you depend on the connection for work."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 5,
+      "comment": "The agent identified the cause of the issue (network outage), provided an estimated resolution time, offered a discount for the downtime, and gave clear instructions for further action if needed.",
+      "evidence": [
+       {
+        "segment": 11,
+        "quote": "That light means there's no signal coming through the fiber."
+       },
+       {
+        "segment": 15,
+        "quote": "The estimated time is two hours. I'm logging a case with the number RM48213, and as soon as service is restored, you'll get a text message."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "The agent provided accurate information about the outage and resolution, and did not make any undue promises.",
+      "evidence": [
+       {
+        "segment": 13,
+        "quote": "Our technical team is already fixing it."
+       },
+       {
+        "segment": 15,
+        "quote": "The estimated time is two hours."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 5,
+      "comment": "The agent summarized the next steps, provided a case number, and offered further assistance before ending the call.",
+      "evidence": [
+       {
+        "segment": 19,
+        "quote": "If the light is still red in two hours, call us with that case number and we'll schedule a technician visit at no cost."
+       },
+       {
+        "segment": 20,
+        "quote": "Is there anything else I can help you with?"
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "Ensure to always provide a case number for tracking purposes, even if the issue is resolved during the call.",
+     "When discussing technical issues, briefly explain what the error light indicates to the customer for better understanding.",
+     "Consider offering a proactive follow-up if the estimated resolution time passes without service restoration, in addition to the customer needing to call back."
+    ]
+   }
   }
  },
  {
@@ -668,6 +916,206 @@
      "Explore all possible solutions and payment arrangements before resorting to threats of legal action or credit reporting."
     ]
    }
+  },
+  "en": {
+   "audio": "/demo-data/llamadas/llamada-2-cobranza-en.webm",
+   "segments": [
+    {
+     "start": 0.0,
+     "end": 2.74,
+     "text": "Hello, Marcella Rodriguez."
+    },
+    {
+     "start": 3.6,
+     "end": 5.16,
+     "text": "Yes, who's calling?"
+    },
+    {
+     "start": 5.84,
+     "end": 8.44,
+     "text": "I'm calling from Tokyo 3 Credit about the debt."
+    },
+    {
+     "start": 8.82,
+     "end": 11.48,
+     "text": "Your installment is 45 days overdue."
+    },
+    {
+     "start": 12.32,
+     "end": 16.4,
+     "text": "Yes, look, I know. The thing is, I lost my job last month, and..."
+    },
+    {
+     "start": 17.42,
+     "end": 18.96,
+     "text": "Ma'am, that's not our problem."
+    },
+    {
+     "start": 19.36,
+     "end": 22.98,
+     "text": "The installment is 380,000 pesos, and you have to pay it."
+    },
+    {
+     "start": 23.58,
+     "end": 26.4,
+     "text": "I want to pay, but right now I don't have all of it."
+    },
+    {
+     "start": 26.88,
+     "end": 28.72,
+     "text": "Is there any way to pay in parts?"
+    },
+    {
+     "start": 29.42,
+     "end": 31.04,
+     "text": "No, that's not possible."
+    },
+    {
+     "start": 31.56,
+     "end": 35.66,
+     "text": "If you don't pay today, tomorrow we'll freeze your bank account and report you to the credit bureaus."
+    },
+    {
+     "start": 36.82,
+     "end": 37.48,
+     "text": "Tomorrow?"
+    },
+    {
+     "start": 38.04,
+     "end": 39.42,
+     "text": "But it can't be that fast."
+    },
+    {
+     "start": 40.36,
+     "end": 42.78,
+     "text": "Well, that's how it is. Your call."
+    },
+    {
+     "start": 43.34,
+     "end": 45.5,
+     "text": "OK, I'll see what I can get."
+    },
+    {
+     "start": 46.46,
+     "end": 47.32,
+     "text": "Fine."
+    }
+   ],
+   "analysis": {
+    "isServiceCall": true,
+    "callType": "collections",
+    "summary": "The agent from Tokyo 3 Credit called the customer regarding an overdue installment. The customer explained they lost their job and couldn't pay the full amount, asking for a payment plan. The agent denied this and threatened immediate bank account freezing and credit bureau reporting. The call ended with the customer stating they would see what they could get.",
+    "customerSentiment": "negative",
+    "overall": 13,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "customer",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 1,
+      "comment": "The agent did not properly greet, state their name, or the company name at the beginning of the call.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Hello, Marcella Rodriguez."
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 0,
+      "comment": "The agent did not verify the customer's identity before discussing debt details.",
+      "evidence": []
+     },
+     {
+      "key": "empathy",
+      "score": 0,
+      "comment": "The agent showed a complete lack of empathy, dismissing the customer's situation and using harsh language.",
+      "evidence": [
+       {
+        "segment": 5,
+        "quote": "Ma'am, that's not our problem."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 1,
+      "comment": "The agent did not offer any alternatives or solutions when the customer requested to pay in parts, and was dismissive of the customer's situation.",
+      "evidence": [
+       {
+        "segment": 9,
+        "quote": "No, that's not possible."
+       },
+       {
+        "segment": 10,
+        "quote": "If you don't pay today, tomorrow we'll freeze your bank account and report you to the credit bureaus."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 1,
+      "comment": "The agent made an undue threat of immediate action (freezing bank account and reporting to credit bureaus) without exploring options or verifying identity.",
+      "evidence": [
+       {
+        "segment": 10,
+        "quote": "If you don't pay today, tomorrow we'll freeze your bank account and report you to the credit bureaus."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 1,
+      "comment": "The closing was abrupt and did not include a clear next step or summary of the conversation. The agent ended the call prematurely.",
+      "evidence": [
+       {
+        "segment": 13,
+        "quote": "Well, that's how it is. Your call."
+       }
+      ]
+     }
+    ],
+    "alerts": [
+     {
+      "severity": "high",
+      "text": "Agent did not verify customer identity before discussing account details.",
+      "segment": -1
+     },
+     {
+      "severity": "high",
+      "text": "Agent made an undue threat of immediate action (freezing bank account and reporting to credit bureaus).",
+      "segment": 10
+     },
+     {
+      "severity": "medium",
+      "text": "Agent displayed a lack of empathy and used dismissive language.",
+      "segment": 5
+     }
+    ],
+    "feedback": [
+     "Always start calls with a proper greeting, including your name and company name, and verify the customer's identity before discussing any account-specific information.",
+     "Practice active listening and show empathy towards the customer's situation, even when discussing overdue payments. Avoid dismissive or harsh language.",
+     "When a customer cannot meet the full payment, explore and offer possible alternatives or payment arrangements instead of immediately resorting to threats.",
+     "Ensure calls are closed properly by summarizing the discussion and agreeing on clear next steps, rather than ending the call abruptly."
+    ]
+   }
   }
  },
  {
@@ -948,6 +1396,199 @@
      "To improve closing, suggest a concrete next step, such as scheduling a follow-up call to discuss their decision or offering to send more information.",
      "Acknowledge the customer's objection more directly, for example, 'I understand your concern about the price, let's see if we can find a solution that works for you.'",
      "Ensure that all sales calls aim to reach a decision or a clear next step, rather than leaving the customer to simply 'think about it'."
+    ]
+   }
+  },
+  "en": {
+   "audio": "/demo-data/llamadas/llamada-3-venta-en.webm",
+   "segments": [
+    {
+     "start": 0.0,
+     "end": 6.26,
+     "text": "Good morning. This is Camila from GeoFront Insurance. Am I speaking with Mr. Jorge Salazar?"
+    },
+    {
+     "start": 7.18,
+     "end": 8.9,
+     "text": "Yes, speaking."
+    },
+    {
+     "start": 9.58,
+     "end": 16.42,
+     "text": "So nice to talk to you, Mr. Salazar. I'm calling because you requested a quote on our website for car insurance, right?"
+    },
+    {
+     "start": 17.44,
+     "end": 34.8,
+     "text": "Oh yes, last week. Great. Let me tell you, our All-Risk Plus plan covers damage, theft, liability, 24-hour roadside assistance, a replacement car for 10 days, a designated driver service, and it also includes discounts at partner garages."
+    },
+    {
+     "start": 35.88,
+     "end": 37.84,
+     "text": "Uh-huh. And how much is that?"
+    },
+    {
+     "start": 38.72,
+     "end": 42.88,
+     "text": "For your car, it comes to 190,000 pesos a month."
+    },
+    {
+     "start": 43.82,
+     "end": 45.86,
+     "text": "Whoa, that's expensive."
+    },
+    {
+     "start": 46.34,
+     "end": 48.32,
+     "text": "I'm paying less with another insurer."
+    },
+    {
+     "start": 48.92,
+     "end": 53.04,
+     "text": "Oh, well, yes, I understand. It's just that the plan is very complete."
+    },
+    {
+     "start": 54.02,
+     "end": 55.54,
+     "text": "Yeah, I imagine."
+    },
+    {
+     "start": 55.92,
+     "end": 57.74,
+     "text": "Well, let me think about it."
+    },
+    {
+     "start": 58.84,
+     "end": 60.46,
+     "text": "Of course, Mr. Salazar."
+    },
+    {
+     "start": 60.84,
+     "end": 61.74,
+     "text": "Take your time."
+    },
+    {
+     "start": 63.1,
+     "end": 64.54,
+     "text": "Okay, thanks."
+    },
+    {
+     "start": 65.12,
+     "end": 65.86,
+     "text": "Thank you."
+    },
+    {
+     "start": 66.28,
+     "end": 67.84,
+     "text": "Have a wonderful day."
+    }
+   ],
+   "analysis": {
+    "isServiceCall": true,
+    "callType": "sales",
+    "summary": "The agent initiated a call to follow up on a car insurance quote requested by the customer. The agent presented the 'All-Risk Plus' plan with its features and price. The customer found the price to be expensive compared to their current insurer and asked to think about it. The call ended without a clear next step or agreement.",
+    "customerSentiment": "neutral",
+    "overall": 70,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "customer",
+     "customer",
+     "agent",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "The agent greeted the customer, introduced herself and the company, and verified the customer's identity.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Good morning. This is Camila from GeoFront Insurance. Am I speaking with Mr. Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "The agent verified the customer's identity at the beginning of the call.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Am I speaking with Mr. Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 3,
+      "comment": "The agent acknowledged the customer's concern about the price but could have shown more understanding.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Oh, well, yes, I understand. It's just that the plan is very complete."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 2,
+      "comment": "The agent presented the plan but did not offer alternatives or try to address the customer's concern about the price effectively.",
+      "evidence": [
+       {
+        "segment": 3,
+        "quote": "Let me tell you, our All-Risk Plus plan covers damage, theft, liability, 24-hour roadside assistance, a replacement car for 10 days, a designated driver servic…"
+       },
+       {
+        "segment": 5,
+        "quote": "For your car, it comes to 190,000 pesos a month."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "The agent maintained a professional and respectful tone throughout the call.",
+      "evidence": [
+       {
+        "segment": 11,
+        "quote": "Of course, Mr. Salazar."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 1,
+      "comment": "The call ended without a clear next step or agreement. The agent did not attempt to schedule a follow-up or confirm if the customer had any further questions.",
+      "evidence": [
+       {
+        "segment": 13,
+        "quote": "Okay, thanks."
+       },
+       {
+        "segment": 15,
+        "quote": "Have a wonderful day."
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "When a customer expresses concern about price, try to explore if there are any other options or discounts that could be applied, or if a different plan might better suit their budget.",
+     "Ensure that after presenting a quote or proposal, you actively try to secure a next step, such as scheduling a follow-up call or sending additional information, rather than just ending the conversation.",
+     "Consider asking more probing questions about the customer's needs before presenting a specific plan to ensure it's the best fit and to potentially justify the cost.",
+     "When the customer states they need time to think, offer to send them the details via email or suggest a specific time for a follow-up call to discuss further."
     ]
    }
   }

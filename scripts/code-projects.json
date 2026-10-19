@@ -152,6 +152,20 @@
         }
       },
       {
+        "path": "client/src/app/demos/vision/detector.ts",
+        "note": {
+          "es": "Visión en tiempo real: objetos y manos con MediaPipe en el navegador, autoprueba de la GPU y qué objeto está en la mano.",
+          "en": "Real-time vision: objects and hands with MediaPipe in the browser, a GPU self-test and which object is in the hand."
+        }
+      },
+      {
+        "path": "api/app/vision.py",
+        "note": {
+          "es": "Descripción de un cuadro con un modelo de visión: imagen validada por firma y tamaño, sin identificar personas.",
+          "en": "Describing one frame with a vision model: image validated by signature and size, no person identification."
+        }
+      },
+      {
         "path": "api/app/limits.py",
         "note": {
           "es": "Límites de uso del chat por IP y globales, para que la IA no genere costos sorpresa.",
