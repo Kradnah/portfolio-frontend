@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import call_qa
+from . import call_qa, invoice
 from .limits import UsageLimiter
 from .llm import Llm, LlmError, OpenRouterLlm
 from .prompt import language_reminder, system_prompt
@@ -67,6 +67,12 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
         burst_window=settings.call_qa_burst_window_seconds,
         ip_daily=settings.call_qa_per_ip_daily,
         global_daily=settings.call_qa_global_daily,
+    )
+    invoice_limiter = UsageLimiter(
+        burst=settings.invoice_burst,
+        burst_window=settings.invoice_burst_window_seconds,
+        ip_daily=settings.invoice_per_ip_daily,
+        global_daily=settings.invoice_global_daily,
     )
     # Turnos usados por sesión: {sid: (turnos, caduca_en)}.
     turns: dict[str, tuple[int, float]] = {}
@@ -220,6 +226,49 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
             qa_limiter.refund(ip)
             raise HTTPException(502, "analysis_unavailable") from err
         return {"analysis": analysis, "remainingToday": qa_limiter.remaining(ip)}
+
+    @app.get("/api/demos/invoice/quota")
+    async def invoice_quota(request: Request) -> dict[str, int]:
+        return {
+            "remainingToday": invoice_limiter.remaining(client_ip(request, settings)),
+            "perDay": settings.invoice_per_ip_daily,
+            "maxChars": settings.invoice_max_chars,
+        }
+
+    @app.post("/api/demos/invoice")
+    async def invoice_extract(
+        body: invoice.InvoiceRequest,
+        request: Request,
+        llm: Annotated[Llm, Depends(get_llm)],
+        authorization: Annotated[str | None, Header()] = None,
+    ):
+        if not (
+            authorization
+            and authorization.startswith("Bearer ")
+            and signer.verify(authorization[7:])
+        ):
+            raise HTTPException(401, "invalid_session")
+        try:
+            invoice.check_size(body, max_chars=settings.invoice_max_chars)
+        except invoice.InvoiceTooLong as err:
+            raise HTTPException(422, "text_too_long") from err
+
+        ip = client_ip(request, settings)
+        verdict = invoice_limiter.check(ip)
+        if not verdict.allowed:
+            log.info("invoice limite ip=%s motivo=%s", anon(ip), verdict.reason)
+            return JSONResponse(
+                {"detail": verdict.reason},
+                status_code=429,
+                headers={"Retry-After": str(verdict.retry_after)},
+            )
+        try:
+            result = await invoice.extract(llm, body, max_tokens=settings.invoice_max_tokens)
+        except (LlmError, invoice.ExtractionFailed) as err:
+            log.warning("invoice error %s", type(err).__name__)
+            invoice_limiter.refund(ip)
+            raise HTTPException(502, "extraction_unavailable") from err
+        return {"extraction": result, "remainingToday": invoice_limiter.remaining(ip)}
 
     return app
 

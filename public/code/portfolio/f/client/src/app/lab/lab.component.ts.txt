@@ -22,12 +22,13 @@ import { RevealDirective } from '../reveal.directive';
           <ul class="stack"><li>Whisper</li><li>transformers.js</li><li>FastAPI</li><li>LLM</li></ul>
           <span class="cta">{{ t().lab.callsCta }}</span>
         </a>
-        <div class="demo saas-card soon" appReveal="150">
-          <span class="tag">{{ t().lab.soon }}</span>
+        <a class="demo saas-card" routerLink="/demos/facturas" appReveal="150">
+          <span class="tag live">{{ t().lab.live }}</span>
           <h3>{{ t().lab.invoiceTitle }}</h3>
           <p>{{ t().lab.invoiceDesc }}</p>
-          <ul class="stack"><li>pdf.js</li><li>tesseract.js</li><li>LLM</li></ul>
-        </div>
+          <ul class="stack"><li>pdf.js</li><li>tesseract.js</li><li>FastAPI</li><li>LLM</li></ul>
+          <span class="cta">{{ t().lab.invoiceCta }}</span>
+        </a>
       </div>
     </section>
   `,
@@ -46,7 +47,6 @@ import { RevealDirective } from '../reveal.directive';
     .stack { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
     .stack li { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: 700; color: #8be000; border: 1.5px solid #8be000; padding: 2px 7px; }
     .cta { margin-top: auto; align-self: flex-start; padding: 10px 18px; background: #ff7a00; color: #000; font-weight: 900; border: 2px solid #000; }
-    .soon { opacity: 0.75; }
     @media (prefers-reduced-motion: reduce) { .section-head.reveal .section-title .hl { background-size: 100% 100%; } }
   `,
 })

@@ -1,0 +1,64 @@
+/* Estilos propios del validador de facturas; la base está en ../demo-shell.css. */
+.results { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 20px; align-items: start; }
+
+/* ── Documento ── */
+.doc { position: sticky; top: 16px; }
+.card-bar .badge { float: right; color: var(--eva-orange); }
+.doc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 14px; border-bottom: 2px solid #000; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; cursor: pointer; }
+.switch input { width: 18px; height: 18px; accent-color: var(--eva-green); }
+.link-btn { border: 2px solid var(--eva-green); background: none; color: var(--eva-green); font: inherit; font-weight: 700; padding: 4px 10px; cursor: pointer; }
+.link-btn:hover { background: var(--eva-green); color: #000; }
+.sheet { position: relative; background: #fff; max-height: calc(100vh - 140px); overflow: auto; }
+.sheet img { display: block; width: 100%; height: auto; }
+.box { position: absolute; border: 2px solid var(--eva-green); background: rgb(139 224 0 / 0.14); border-radius: 2px; transition: background 0.15s, box-shadow 0.15s; }
+.box.st-fail { border-color: var(--eva-red); background: rgb(224 35 60 / 0.16); }
+.box.st-warn { border-color: var(--eva-orange); background: rgb(255 122 0 / 0.16); }
+.box.hot { box-shadow: 0 0 0 3px #000, 0 0 0 6px currentColor; background: rgb(255 122 0 / 0.3); }
+.mask { position: absolute; background: #000; }
+
+/* ── Panel lateral ── */
+.side { display: grid; gap: 18px; }
+.verdict { display: flex; gap: 14px; align-items: center; padding: 16px 18px; }
+.verdict p { margin: 4px 0 0; }
+.verdict strong { font-size: 20px; font-style: italic; color: #fff; }
+.v-icon { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 2.5px solid #000; font-size: 24px; font-weight: 900; color: #000; }
+.v-ok .v-icon { background: var(--eva-green); }
+.v-warn .v-icon { background: var(--eva-orange); }
+.v-fail .v-icon { background: var(--eva-red); color: #fff; }
+.v-none { display: block; }
+
+.checks { list-style: none; margin: 0; padding: 6px 0; }
+.checks li { display: flex; gap: 10px; padding: 8px 14px; font-size: 14px; line-height: 1.45; }
+.c-icon { flex: none; width: 20px; height: 20px; display: grid; place-items: center; font-size: 12px; font-weight: 900; border: 1.5px solid #000; }
+.checks .st-ok .c-icon { background: var(--eva-green); color: #000; }
+.checks .st-fail { background: rgb(224 35 60 / 0.1); }
+.checks .st-fail .c-icon { background: var(--eva-red); color: #fff; }
+.checks .st-warn .c-icon { background: var(--eva-orange); color: #000; }
+.checks .st-skip { color: var(--eva-muted); }
+
+.fields { margin: 0; padding: 4px 0; }
+.fields .row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding: 6px 14px; border-left: 4px solid transparent; font-size: 14px; }
+.fields .row.st-ok { border-left-color: var(--eva-green); }
+.fields .row.st-fail { border-left-color: var(--eva-red); background: rgb(224 35 60 / 0.08); }
+.fields .row.st-warn { border-left-color: var(--eva-orange); }
+.fields .row.hot { background: rgb(255 122 0 / 0.16); }
+.fields dt { color: var(--eva-muted); }
+.fields dd { margin: 0; color: #fff; overflow-wrap: anywhere; }
+.fields dd.missing { color: var(--eva-muted); font-style: italic; }
+.fields dd.mono { font-family: var(--mono); font-size: 11px; }
+
+.table-wrap { overflow-x: auto; }
+.lines { width: 100%; border-collapse: collapse; font-size: 13px; }
+.lines th { text-align: left; padding: 8px 12px; color: var(--eva-muted); font-weight: 700; border-bottom: 2px solid #000; }
+.lines td { padding: 7px 12px; border-bottom: 1px solid #000; }
+.lines td:nth-child(n + 2), .lines th:nth-child(n + 2) { text-align: right; white-space: nowrap; }
+.lines tr.bad td { background: rgb(224 35 60 / 0.14); color: #ffd5dc; }
+.lines tr.hot td { background: rgb(255 122 0 / 0.18); }
+
+@media (max-width: 960px) {
+  .results { grid-template-columns: 1fr; }
+  .doc { position: static; }
+  .sheet { max-height: none; }
+  .fields .row { grid-template-columns: 120px minmax(0, 1fr); }
+}

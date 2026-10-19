@@ -44,6 +44,7 @@
           @switch (tab()) {
             @case ('samples') {
               @if (samples().length) {
+                <p class="small muted">{{ t().calls.samplesHint }}</p>
                 <div class="samples">
                   @for (s of samples(); track s.id) {
                     <button type="button" class="sample" (click)="openSample(s)">
@@ -110,7 +111,9 @@
   } @else {
     <div class="result-bar">
       <button type="button" class="again" (click)="reset()">← {{ t().calls.again }}</button>
-      @if (!sample()) {
+      @if (sample()) {
+        <span class="small muted">{{ t().calls.sampleNote }}</span>
+      } @else {
         <span class="small muted">{{ fill(t().calls.remaining, { n: quota().remainingToday, total: quota().perDay }) }}</span>
       }
     </div>

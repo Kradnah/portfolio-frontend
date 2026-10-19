@@ -19,6 +19,7 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "webWorkerTsConfig": "tsconfig.worker.json",
+            "allowedCommonJsDependencies": ["tesseract.js", "regenerator-runtime/runtime"],
             "assets": [
               {
                 "glob": "**/*",

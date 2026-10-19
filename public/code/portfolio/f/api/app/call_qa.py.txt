@@ -116,7 +116,12 @@ RUBRIC = """\
 Eres un analista de calidad de un call center. Evalúas UNA llamada a partir de su transcripción
 automática (puede tener errores de reconocimiento y no separa hablantes).
 
-Rúbrica, cada criterio de 0 a 5 (0 = no lo hizo o lo hizo mal, 5 = excelente):
+Rúbrica, cada criterio de 0 a 5. Escala: 5 = excelente, sin fallas; 4 = bien, con un detalle menor;
+3 = aceptable, pero con una falla clara; 2 = el objetivo del criterio no se cumple; 1 = muy mal;
+0 = no lo hizo. Sé exigente, como un supervisor de calidad:
+- sin un siguiente paso acordado (agendar, enviar propuesta, número de caso…), closing ≤ 2;
+- si no maneja una objeción o no ofrece alternativas cuando el cliente las pide, resolution ≤ 2;
+- si ofrece un producto sin preguntar antes qué necesita el cliente, resolution ≤ 3.
 - greeting: saluda, dice su nombre y el de la empresa.
 - verification: valida la identidad del cliente antes de hablar de datos personales, deudas o
   cuentas.
