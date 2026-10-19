@@ -1,0 +1,158 @@
+import type { FlowFallback, FlowNode, FlowOption } from '@coral/contracts';
+
+/**
+ * Motor del árbol de decisiones: funciones puras (sin base de datos) para poder probarlas.
+ * El estado de una conversación apunta siempre a un nodo `menu` (el menú en el que está el cliente)
+ * y `ai` indica que, mientras no elija una opción, responde la IA.
+ */
+export interface FlowState {
+  nodeId: string;
+  ai?: boolean;
+}
+
+export interface FlowReply {
+  text: string;
+  node: FlowNode;
+}
+
+export interface FlowStep {
+  replies: FlowReply[];
+  /** Estado nuevo (null: la próxima vez empieza en el inicio). */
+  state: FlowState | null;
+  /** Pasar a un asesor. */
+  escalate: boolean;
+  /** Este mensaje lo responde la IA. */
+  toAi: boolean;
+}
+
+interface Flow {
+  root: FlowNode;
+  fallback: FlowFallback;
+}
+
+const BACK = new Set(['0', 'menu', 'menu principal', 'volver', 'inicio', 'atras', 'regresar']);
+const NUMBER_WORDS: Record<string, number> = {
+  uno: 1,
+  dos: 2,
+  tres: 3,
+  cuatro: 4,
+  cinco: 5,
+  seis: 6,
+  siete: 7,
+  ocho: 8,
+  nueve: 9,
+};
+
+/** Minúsculas, sin tildes, sin signos ni espacios de más. */
+export function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9ñ ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function findNode(
+  root: FlowNode,
+  id: string,
+): { node: FlowNode; parent: FlowNode | null } | null {
+  if (root.id === id) return { node: root, parent: null };
+  if (root.type !== 'menu') return null;
+  for (const o of root.options) {
+    if (o.node.id === id) return { node: o.node, parent: root };
+    const found = findNode(o.node, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+export function renderMenu(node: FlowNode, isRoot: boolean): string {
+  const lines = node.options.map((o, i) => `${i + 1}. ${o.label}`);
+  if (!isRoot) lines.push('0. Volver al menú');
+  return `${node.text}\n\n${lines.join('\n')}`;
+}
+
+/**
+ * Opción elegida por el cliente: por número ("2", "opción 2", "dos") o por nombre.
+ * `strict`: solo número o nombre exacto (mientras habla con la IA, "quiero reservar para 4" no debe
+ * sacarlo de la conversación).
+ */
+export function matchOption(menu: FlowNode, text: string, strict = false): FlowOption | null {
+  const t = normalize(text).replace(/^(la |el )?(opcion|numero|op)\s*/, '');
+  const n = /^\d{1,2}$/.test(t) ? Number(t) : NUMBER_WORDS[t];
+  if (n) return menu.options[n - 1] ?? null;
+  const labels = menu.options.map((o) => ({ o, l: normalize(o.label) }));
+  const exact = labels.find(({ l }) => l === t);
+  if (exact || strict) return exact?.o ?? null;
+  return (
+    labels.find(({ l }) => l.length >= 3 && t.includes(l))?.o ??
+    labels.find(({ l }) => t.length >= 4 && l.includes(t))?.o ??
+    null
+  );
+}
+
+/** Entra a un nodo: lo que se responde y dónde queda la conversación. */
+function enter(flow: Flow, node: FlowNode, menu: FlowNode): FlowStep {
+  const step: FlowStep = { replies: [], state: null, escalate: false, toAi: false };
+  switch (node.type) {
+    case 'menu':
+      step.replies.push({ text: renderMenu(node, node.id === flow.root.id), node });
+      step.state = { nodeId: node.id };
+      break;
+    case 'message':
+      step.replies.push({ text: `${node.text}\n\nEscribe 0 para volver al menú.`, node });
+      step.state = { nodeId: menu.id };
+      break;
+    case 'ai':
+      if (node.text) step.replies.push({ text: node.text, node });
+      step.state = { nodeId: menu.id, ai: true };
+      break;
+    case 'human':
+      step.replies.push({ text: node.text, node });
+      step.escalate = true;
+      break;
+  }
+  return step;
+}
+
+/** Un mensaje del cliente en una conversación que atiende el bot. */
+export function step(flow: Flow, state: FlowState | null, text: string): FlowStep {
+  const { root } = flow;
+  const found = state ? findNode(root, state.nodeId) : null;
+  // Primer mensaje, o el nodo ya no existe porque se editó el árbol. Un saludo ("hola, buenas") ve el
+  // menú; una pregunta completa no se ignora: entra a la opción que nombra o la responde la IA.
+  if (!state || !found || found.node.type !== 'menu') {
+    const words = normalize(text).split(' ').filter(Boolean).length;
+    if (words <= 3) return enter(flow, root, root);
+    const option = matchOption(root, text);
+    // "Quiero hacer un pedido de 2 waffles…": la intro del nodo IA sobraría, ya trae los datos.
+    if (option && option.node.type !== 'ai') return enter(flow, option.node, root);
+    if (option || flow.fallback === 'ai') {
+      return { replies: [], state: { nodeId: root.id, ai: true }, escalate: false, toAi: true };
+    }
+    return enter(flow, root, root);
+  }
+  const menu = found.node;
+
+  if (BACK.has(normalize(text))) return enter(flow, root, root);
+
+  const option = matchOption(menu, text, state.ai === true);
+  if (option) return enter(flow, option.node, menu);
+
+  if (state.ai || flow.fallback === 'ai') {
+    return { replies: [], state: { nodeId: menu.id, ai: true }, escalate: false, toAi: true };
+  }
+  return {
+    replies: [
+      {
+        text: `No te entendí. Responde con el número de una opción.\n\n${renderMenu(menu, menu.id === root.id)}`,
+        node: menu,
+      },
+    ],
+    state,
+    escalate: false,
+    toAi: false,
+  };
+}

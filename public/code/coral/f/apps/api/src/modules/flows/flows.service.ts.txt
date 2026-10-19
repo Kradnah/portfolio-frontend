@@ -1,0 +1,107 @@
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import {
+  type FlowDto,
+  type FlowFallback,
+  type FlowNode,
+  flowProblems,
+  type SaveFlowRequest,
+} from '@coral/contracts';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { Prisma, type Conversation, type Message } from '../../generated/prisma/client.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { AgentService } from '../ai/agent.service.js';
+import { ConversationsService } from '../conversations/conversations.service.js';
+import { type FlowState, step } from './flow.engine.js';
+import { casaZhefFlow } from './flow.template.js';
+
+/**
+ * Árbol de decisiones: decide, mensaje a mensaje, si responde el árbol (al instante y gratis), si pasa
+ * a un asesor o si le toca a la IA. Sin árbol activo, todo lo responde la IA.
+ */
+@Injectable()
+export class FlowsService implements OnModuleInit {
+  private readonly logger = new Logger(FlowsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly conversations: ConversationsService,
+    private readonly agent: AgentService,
+  ) {}
+
+  onModuleInit(): void {
+    this.conversations.onBotTurn((conversation, message) => {
+      this.handle(conversation, message).catch((err: unknown) => {
+        this.logger.warn(`Árbol falló en ${conversation.id}: ${String(err)}`);
+        void this.agent.schedule(conversation.organizationId, conversation.id);
+      });
+    });
+  }
+
+  async get(organizationId: string): Promise<FlowDto> {
+    const flow =
+      (await this.prisma.flow.findUnique({ where: { organizationId } })) ??
+      (await this.prisma.flow.create({
+        data: { organizationId, root: casaZhefFlow() as unknown as Prisma.InputJsonValue },
+      }));
+    return {
+      enabled: flow.enabled,
+      fallback: flow.fallback as FlowFallback,
+      root: flow.root as unknown as FlowNode,
+      updatedAt: flow.updatedAt.toISOString(),
+    };
+  }
+
+  async save(organizationId: string, body: SaveFlowRequest): Promise<FlowDto> {
+    const problems = flowProblems(body.root);
+    if (problems.length) throw new ApiException(400, 'VALIDATION_FAILED', problems.join('. '));
+    const data = {
+      enabled: body.enabled,
+      fallback: body.fallback,
+      root: body.root as unknown as Prisma.InputJsonValue,
+    };
+    await this.prisma.flow.upsert({
+      where: { organizationId },
+      create: { organizationId, ...data },
+      update: data,
+    });
+    return this.get(organizationId);
+  }
+
+  async reset(organizationId: string): Promise<FlowDto> {
+    await this.prisma.flow.deleteMany({ where: { organizationId } });
+    await this.prisma.conversation.updateMany({
+      where: { organizationId },
+      data: { flowState: Prisma.DbNull },
+    });
+    return this.get(organizationId);
+  }
+
+  private async handle(conversation: Conversation, message: Message): Promise<void> {
+    const { organizationId, id: conversationId } = conversation;
+    const flow = await this.prisma.flow.findUnique({ where: { organizationId } });
+    if (!flow?.enabled) {
+      await this.agent.schedule(organizationId, conversationId);
+      return;
+    }
+    const result = step(
+      { root: flow.root as unknown as FlowNode, fallback: flow.fallback as FlowFallback },
+      conversation.flowState as FlowState | null,
+      message.text,
+    );
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: {
+        flowState: result.state
+          ? (result.state as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull,
+      },
+    });
+    for (const reply of result.replies) {
+      await this.conversations.botReply(organizationId, conversationId, reply.text, {
+        flow: { nodeId: reply.node.id, type: reply.node.type },
+      });
+    }
+    if (result.escalate) await this.conversations.escalate(organizationId, conversationId);
+    if (result.toAi) await this.agent.schedule(organizationId, conversationId);
+  }
+}

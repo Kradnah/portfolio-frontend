@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { AiModule } from '../ai/ai.module.js';
+import { ConversationsModule } from '../conversations/conversations.module.js';
+import { FlowsController } from './flows.controller.js';
+import { FlowsService } from './flows.service.js';
+
+@Module({
+  imports: [ConversationsModule, AiModule],
+  controllers: [FlowsController],
+  providers: [FlowsService],
+})
+export class FlowsModule {}

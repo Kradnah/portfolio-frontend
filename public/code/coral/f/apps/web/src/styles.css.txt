@@ -21,6 +21,10 @@
 }
 
 @layer base {
+  html {
+    color-scheme: dark;
+  }
+
   html,
   body {
     height: 100%;
@@ -97,6 +101,27 @@
 
   .btn:disabled {
     opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 2px solid #000;
+    background: var(--color-deep);
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .icon-btn:hover:not(:disabled) {
+    background: var(--color-eva);
+  }
+
+  .icon-btn:disabled {
+    opacity: 0.35;
     cursor: not-allowed;
   }
 

@@ -1,0 +1,90 @@
+import { z } from 'zod';
+
+/**
+ * Árbol de decisiones del bot. Cada nodo es de un tipo:
+ * - `menu`: muestra el texto y las opciones numeradas; el cliente responde con el número o el nombre.
+ * - `message`: envía el texto y vuelve al menú de donde salió.
+ * - `ai`: envía el texto (opcional) y la IA responde los siguientes mensajes.
+ * - `human`: envía el texto y pasa la conversación a un asesor.
+ * Todos los nodos tienen `options` para que cambiar el tipo en el editor no pierda nada.
+ */
+export const FlowNodeType = z.enum(['menu', 'message', 'ai', 'human']);
+export type FlowNodeType = z.infer<typeof FlowNodeType>;
+
+export interface FlowNode {
+  id: string;
+  type: FlowNodeType;
+  text: string;
+  options: FlowOption[];
+}
+
+export interface FlowOption {
+  id: string;
+  label: string;
+  node: FlowNode;
+}
+
+export const FLOW_LIMITS = { nodes: 60, depth: 5, options: 9, text: 1000, label: 40 } as const;
+
+const NodeId = z.string().regex(/^[a-z0-9-]{1,24}$/);
+
+export const FlowOption: z.ZodType<FlowOption> = z.lazy(() =>
+  z.object({
+    id: NodeId,
+    label: z.string().trim().min(1).max(FLOW_LIMITS.label),
+    node: FlowNode,
+  }),
+);
+
+export const FlowNode: z.ZodType<FlowNode> = z.lazy(() =>
+  z.object({
+    id: NodeId,
+    type: FlowNodeType,
+    text: z.string().trim().max(FLOW_LIMITS.text),
+    options: z.array(FlowOption).max(FLOW_LIMITS.options),
+  }),
+);
+
+/** Si el cliente escribe algo que no es una opción: responde la IA o se repite el menú. */
+export const FlowFallback = z.enum(['ai', 'repeat']);
+export type FlowFallback = z.infer<typeof FlowFallback>;
+
+export const SaveFlowRequest = z.strictObject({
+  enabled: z.boolean(),
+  fallback: FlowFallback,
+  root: FlowNode,
+});
+export type SaveFlowRequest = z.infer<typeof SaveFlowRequest>;
+
+export const FlowDto = z.object({
+  enabled: z.boolean(),
+  fallback: FlowFallback,
+  root: FlowNode,
+  updatedAt: z.string(),
+});
+export type FlowDto = z.infer<typeof FlowDto>;
+
+/** Problemas de estructura que el esquema no ve (tamaño, profundidad, ids repetidos, menús vacíos). */
+export function flowProblems(root: FlowNode): string[] {
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  let count = 0;
+  const walk = (node: FlowNode, depth: number, path: string): void => {
+    count++;
+    if (ids.has(node.id)) problems.push(`Id repetido: ${node.id}`);
+    ids.add(node.id);
+    if (depth > FLOW_LIMITS.depth) problems.push(`${path}: más de ${FLOW_LIMITS.depth} niveles`);
+    if (node.type !== 'ai' && !node.text) problems.push(`${path}: falta el texto`);
+    if (node.type === 'menu') {
+      if (!node.options.length) problems.push(`${path}: el menú no tiene opciones`);
+      node.options.forEach((o) => {
+        if (ids.has(o.id)) problems.push(`Id repetido: ${o.id}`);
+        ids.add(o.id);
+        walk(o.node, depth + 1, `${path} › ${o.label}`);
+      });
+    }
+  };
+  walk(root, 1, 'Inicio');
+  if (count > FLOW_LIMITS.nodes) problems.push(`El árbol tiene más de ${FLOW_LIMITS.nodes} pasos`);
+  return problems;
+}

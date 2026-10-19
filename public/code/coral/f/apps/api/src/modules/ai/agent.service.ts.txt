@@ -68,12 +68,7 @@ export class AgentService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    this.conversations.onBotTurn((conversation) => {
-      void this.schedule({
-        organizationId: conversation.organizationId,
-        conversationId: conversation.id,
-      });
-    });
+    // Los mensajes llegan por el árbol de decisiones (FlowsService), que decide cuándo le toca a la IA.
     this.queues.work(QUEUE, (job: Job<AgentJob>) => this.respond(job.data), 4);
   }
 
@@ -81,7 +76,8 @@ export class AgentService implements OnModuleInit {
    * Debounce: cada mensaje nuevo reinicia la espera, así varios mensajes seguidos reciben una sola
    * respuesta (como el batcher original de Kodizof, pero persistente en Redis).
    */
-  private async schedule(data: AgentJob): Promise<void> {
+  async schedule(organizationId: string, conversationId: string): Promise<void> {
+    const data: AgentJob = { organizationId, conversationId };
     const queue = this.queues.queue(QUEUE);
     const jobId = `conv-${data.conversationId}`;
     const existing = await queue.getJob(jobId);

@@ -231,6 +231,20 @@
         }
       },
       {
+        "path": "apps/api/src/modules/flows/flow.engine.ts",
+        "note": {
+          "es": "Motor del árbol de decisiones como funciones puras: menús numerados, coincidencia por número o nombre y cuándo pasarle el turno a la IA.",
+          "en": "The decision-tree engine as pure functions: numbered menus, matching by number or name, and when to hand over to the AI."
+        }
+      },
+      {
+        "path": "apps/web/src/app/pages/flows/flow-node.ts",
+        "note": {
+          "es": "Editor recursivo del árbol: cada paso con su tipo, texto y opciones, con autoguardado.",
+          "en": "The recursive tree editor: each step with its type, text and options, autosaved."
+        }
+      },
+      {
         "path": "apps/api/src/modules/demo/demo.service.ts",
         "note": {
           "es": "Demo aislada por visitante que se borra entera a las 4 horas, con límites por IP.",

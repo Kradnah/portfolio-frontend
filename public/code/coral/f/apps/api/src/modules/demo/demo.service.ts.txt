@@ -11,6 +11,8 @@ import { RedisService } from '../../infra/redis/redis.service.js';
 import { AuthService } from '../auth/auth.service.js';
 import { SessionService } from '../auth/session.service.js';
 import { RealtimeService } from '../realtime/realtime.service.js';
+import type { Prisma } from '../../generated/prisma/client.js';
+import { casaZhefFlow } from '../flows/flow.template.js';
 import { CASA_ZHEF_MENU } from './casa-zhef.menu.js';
 
 /** Duración de cada sandbox: tiempo de sobra para probar, sin quedarnos con nada después. */
@@ -116,6 +118,9 @@ export class DemoService implements OnModuleInit {
       });
       await tx.product.createMany({
         data: CASA_ZHEF_MENU.map((p) => ({ ...p, organizationId: org.id })),
+      });
+      await tx.flow.create({
+        data: { organizationId: org.id, root: casaZhefFlow() as unknown as Prisma.InputJsonValue },
       });
       return { org, user };
     });

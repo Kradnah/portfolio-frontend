@@ -17,6 +17,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { CatalogModule } from './modules/catalog/catalog.module.js';
 import { ConversationsModule } from './modules/conversations/conversations.module.js';
 import { DemoModule } from './modules/demo/demo.module.js';
+import { FlowsModule } from './modules/flows/flows.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { RealtimeModule } from './modules/realtime/realtime.module.js';
 import { UsersModule } from './modules/users/users.module.js';
@@ -48,6 +49,7 @@ export class AppModule {
         ConversationsModule,
         DemoModule,
         AiModule,
+        FlowsModule,
       ],
       // Orden: límite de peticiones (corta el abuso sin verificar tokens) y después la auth.
       providers: [

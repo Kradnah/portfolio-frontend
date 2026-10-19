@@ -1,0 +1,63 @@
+import type { FlowNode, FlowOption } from '@coral/contracts';
+import { CASA_ZHEF_MENU, type SeedProduct } from '../demo/casa-zhef.menu.js';
+
+const COP = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
+const price = (p: SeedProduct): string => {
+  const variants = [...(p.options.sizes ?? []), ...(p.options.toppings ?? [])]
+    .map((v) => v.price ?? p.price)
+    .concat(p.price);
+  const min = Math.min(...variants);
+  return `${variants.some((v) => v !== min) ? 'desde ' : ''}$${COP.format(min)}`;
+};
+
+let seq = 0;
+const id = (prefix: string): string => `${prefix}-${(++seq).toString(36)}`;
+
+const node = (type: FlowNode['type'], text: string, options: FlowOption[] = []): FlowNode => ({
+  id: id('n'),
+  type,
+  text,
+  options,
+});
+const option = (label: string, child: FlowNode): FlowOption => ({
+  id: id('o'),
+  label,
+  node: child,
+});
+
+/** Árbol inicial de cada sandbox: la carta de Casa Zhef por categorías, pedidos y reservas con IA. */
+export function casaZhefFlow(): FlowNode {
+  seq = 0;
+  const categories = [...new Set(CASA_ZHEF_MENU.map((p) => p.category))];
+  const carta = categories.map((category) =>
+    option(
+      category,
+      node(
+        'message',
+        `${category}:\n${CASA_ZHEF_MENU.filter((p) => p.category === category)
+          .map((p) => `- ${p.name}: ${price(p)}`)
+          .join('\n')}`,
+      ),
+    ),
+  );
+  return node('menu', '¡Hola! Soy el asistente de Casa Zhef. ¿En qué te ayudo?', [
+    option('Ver la carta', node('menu', '¿Qué te provoca?', carta)),
+    option(
+      'Hacer un pedido',
+      node('ai', '¡Listo! Dime qué quieres pedir y si es a domicilio o para recoger.'),
+    ),
+    option('Reservar una mesa', node('ai', 'Claro. ¿Para cuántas personas, qué día y a qué hora?')),
+    option(
+      'Horario y ubicación',
+      node(
+        'message',
+        'Abrimos viernes de 6:00 a 10:00 pm, sábados de 5:30 a 11:00 pm y domingos de 5:30 a 10:00 pm.\n' +
+          'Estamos en la Cra 10 #32-97, Rosablanca, Girardot. Hacemos domicilios.',
+      ),
+    ),
+    option(
+      'Hablar con una persona',
+      node('human', 'Te paso con un asesor del equipo; te responde en un momento.'),
+    ),
+  ]);
+}

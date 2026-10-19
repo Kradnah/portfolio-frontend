@@ -23,6 +23,10 @@ export const routes: Routes = [
       },
       { path: 'menu', loadComponent: () => import('./pages/menu/menu').then((m) => m.MenuPage) },
       {
+        path: 'flows',
+        loadComponent: () => import('./pages/flows/flows').then((m) => m.FlowsPage),
+      },
+      {
         path: 'activity',
         loadComponent: () => import('./pages/activity/activity').then((m) => m.ActivityPage),
       },

@@ -8,5 +8,6 @@ import { OpsController } from './ops.controller.js';
   imports: [ConversationsModule],
   controllers: [OpsController],
   providers: [AgentService, LlmService],
+  exports: [AgentService],
 })
 export class AiModule {}

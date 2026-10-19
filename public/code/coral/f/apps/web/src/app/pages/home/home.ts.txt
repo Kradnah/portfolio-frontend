@@ -16,7 +16,7 @@ import { AuthService } from '../../core/auth/auth.service';
             Este sandbox es solo tuyo y se borra solo a las 4 horas (o cuando pulses
             <strong class="text-ink">Borrar mi demo ahora</strong>). Prueba esto:
           </p>
-          <ol class="grid gap-3 sm:grid-cols-3">
+          <ol class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <li class="border-2 border-black bg-deep p-4">
               <span class="mono font-black text-coral">01</span>
               <p class="mt-1 font-bold">Escribe como cliente</p>
@@ -40,10 +40,20 @@ import { AuthService } from '../../core/auth/auth.service';
                 «Actividad del bot».
               </p>
             </li>
+            <li class="border-2 border-black bg-deep p-4">
+              <span class="mono font-black text-coral">04</span>
+              <p class="mt-1 font-bold">Arma el árbol de decisiones</p>
+              <p class="text-sm text-muted">
+                Cambia el menú del bot, decide dónde entra la IA y pruébalo al instante en el chat.
+              </p>
+            </li>
           </ol>
-          <a class="btn btn-primary mt-5" routerLink="/inbox">Ir a la bandeja →</a>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a class="btn btn-primary" routerLink="/inbox">Ir a la bandeja →</a>
+            <a class="btn" routerLink="/flows">Editar el árbol</a>
+          </div>
           <p class="mono mt-5 text-xs text-muted">
-            Próximamente: árbol de decisiones y conexión con tu propio WhatsApp.
+            Próximamente: conecta tu propio WhatsApp y prueba el bot desde tu teléfono.
           </p>
         } @else {
           <p class="font-medium">

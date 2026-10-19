@@ -1,0 +1,174 @@
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { FLOW_LIMITS, type FlowNode, type FlowNodeType } from '@coral/contracts';
+import { FlowStore } from './flow-store';
+
+interface TypeInfo {
+  type: FlowNodeType;
+  label: string;
+  /** Clase del color del tipo (borde y etiqueta). */
+  tone: string;
+  placeholder: string;
+  help: string;
+}
+
+export const TYPES: TypeInfo[] = [
+  {
+    type: 'menu',
+    label: 'Menú',
+    tone: 'text-coral',
+    placeholder: '¿En qué te ayudo?',
+    help: 'Muestra el texto y las opciones numeradas. El cliente responde con el número o el nombre.',
+  },
+  {
+    type: 'message',
+    label: 'Mensaje',
+    tone: 'text-ink',
+    placeholder: 'Abrimos de viernes a domingo…',
+    help: 'Envía el texto y el cliente sigue en el menú anterior.',
+  },
+  {
+    type: 'ai',
+    label: 'IA',
+    tone: 'text-lime',
+    placeholder: 'Opcional: ¿Qué quieres pedir?',
+    help: 'Envía el texto (si hay) y la IA responde lo que siga, con la carta y las herramientas.',
+  },
+  {
+    type: 'human',
+    label: 'Asesor',
+    tone: 'text-alert',
+    placeholder: 'Te paso con un asesor…',
+    help: 'Envía el texto y pasa la conversación a la bandeja para que la tome una persona.',
+  },
+];
+
+/** Un paso del árbol con sus opciones (recursivo). */
+@Component({
+  selector: 'app-flow-node',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @let n = node();
+    <div class="space-y-2">
+      <div class="flex flex-wrap items-center gap-1" role="radiogroup" aria-label="Tipo de paso">
+        @for (t of isRoot() ? [] : types; track t.type) {
+          <button
+            type="button"
+            role="radio"
+            class="border-2 border-black px-2.5 py-1 text-xs font-bold"
+            [class]="
+              n.type === t.type ? 'bg-ink text-black shadow-[2px_2px_0_#000]' : 'bg-deep ' + t.tone
+            "
+            [attr.aria-checked]="n.type === t.type"
+            (click)="store.setType(n.id, t.type)"
+          >
+            {{ t.label }}
+          </button>
+        }
+        <span class="text-xs text-muted" [class.ml-2]="!isRoot()">{{ info().help }}</span>
+      </div>
+
+      <textarea
+        class="input max-h-80 min-h-12 resize-y text-sm [field-sizing:content]"
+        rows="2"
+        maxlength="1000"
+        [attr.aria-label]="'Texto del paso ' + info().label"
+        [placeholder]="info().placeholder"
+        [value]="n.text"
+        (input)="store.setText(n.id, $any($event.target).value)"
+      ></textarea>
+
+      @if (n.type === 'menu') {
+        <ol class="space-y-2">
+          @for (o of n.options; track o.id; let i = $index, first = $first, last = $last) {
+            @let open = !store.collapsed().has(o.id);
+            <li class="border-2 border-black bg-deep/60">
+              <div class="flex items-center gap-2 p-2">
+                <button
+                  type="button"
+                  class="mono w-7 shrink-0 text-center text-sm font-black text-coral"
+                  [attr.aria-expanded]="open"
+                  [attr.aria-label]="(open ? 'Contraer ' : 'Expandir ') + o.label"
+                  (click)="store.toggle(o.id)"
+                >
+                  {{ open ? '▾' : '▸' }}{{ i + 1 }}
+                </button>
+                <input
+                  class="input py-1.5! text-sm font-bold"
+                  maxlength="40"
+                  [attr.aria-label]="'Nombre de la opción ' + (i + 1)"
+                  [value]="o.label"
+                  (input)="store.setLabel(n.id, o.id, $any($event.target).value)"
+                />
+                <span
+                  class="mono hidden shrink-0 text-[0.65rem] uppercase sm:inline"
+                  [class]="tone(o.node.type)"
+                >
+                  {{ typeLabel(o.node.type) }}
+                </span>
+                <div class="flex shrink-0 gap-1">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label="Subir"
+                    [disabled]="first"
+                    (click)="store.moveOption(n.id, o.id, -1)"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label="Bajar"
+                    [disabled]="last"
+                    (click)="store.moveOption(n.id, o.id, 1)"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn hover:text-alert"
+                    aria-label="Eliminar opción"
+                    [disabled]="n.options.length === 1"
+                    (click)="store.removeOption(n.id, o.id)"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              @if (open) {
+                <div class="ml-4 border-l-2 border-mid py-2 pr-2 pl-4">
+                  <app-flow-node [node]="o.node" [depth]="depth() + 1" />
+                </div>
+              }
+            </li>
+          }
+        </ol>
+        <button
+          type="button"
+          class="btn py-1! text-sm"
+          [disabled]="n.options.length >= limits.options || depth() >= limits.depth"
+          (click)="store.addOption(n.id)"
+        >
+          + Agregar opción
+        </button>
+      }
+    </div>
+  `,
+})
+export class FlowNodeEditor {
+  readonly node = input.required<FlowNode>();
+  readonly depth = input(1);
+  readonly isRoot = input(false);
+  protected readonly store = inject(FlowStore);
+  protected readonly types = TYPES;
+  protected readonly limits = FLOW_LIMITS;
+  protected readonly info = computed(() => TYPES.find((t) => t.type === this.node().type)!);
+
+  protected typeLabel(type: FlowNodeType): string {
+    return TYPES.find((t) => t.type === type)!.label;
+  }
+
+  protected tone(type: FlowNodeType): string {
+    return TYPES.find((t) => t.type === type)!.tone;
+  }
+}

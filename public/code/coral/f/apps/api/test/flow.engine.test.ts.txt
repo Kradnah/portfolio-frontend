@@ -1,0 +1,102 @@
+import { flowProblems } from '@coral/contracts';
+import { describe, expect, it } from 'vitest';
+import { matchOption, normalize, step } from '../src/modules/flows/flow.engine.js';
+import { casaZhefFlow } from '../src/modules/flows/flow.template.js';
+
+const root = casaZhefFlow();
+const flow = { root, fallback: 'ai' as const };
+const carta = root.options[0]!.node;
+
+describe('plantilla de Casa Zhef', () => {
+  it('es válida y lista la carta real con precios', () => {
+    expect(flowProblems(root)).toEqual([]);
+    const waffles = carta.options.find((o) => o.label === 'Waffles')!.node.text;
+    expect(waffles).toContain('Waffle Camarones: $22.000');
+    expect(waffles).toContain('Waffle tipo Pizza: $15.000');
+    const compartir = carta.options.find((o) => o.label === 'Para Compartir')!.node.text;
+    expect(compartir).toContain('Tostones Gratinados: desde $15.000');
+  });
+});
+
+describe('matchOption', () => {
+  it('entiende número, palabra y nombre', () => {
+    expect(matchOption(root, '2')?.label).toBe('Hacer un pedido');
+    expect(matchOption(root, 'opción 4')?.label).toBe('Horario y ubicación');
+    expect(matchOption(root, 'tres')?.label).toBe('Reservar una mesa');
+    expect(matchOption(root, 'horario y ubicacion')?.label).toBe('Horario y ubicación');
+    expect(matchOption(root, 'quiero ver la carta porfa')?.label).toBe('Ver la carta');
+    expect(matchOption(root, '9')).toBeNull();
+  });
+
+  it('en modo estricto no confunde una frase con una opción', () => {
+    expect(matchOption(root, 'quiero reservar una mesa para 4', true)).toBeNull();
+    expect(matchOption(root, '3', true)?.label).toBe('Reservar una mesa');
+  });
+
+  it('normaliza tildes y signos', () => {
+    expect(normalize('  ¡Menú!  ')).toBe('menu');
+  });
+});
+
+describe('step', () => {
+  it('un saludo muestra el menú de inicio sin "volver"', () => {
+    const r = step(flow, null, 'Hola, buenas');
+    expect(r.replies[0]!.text).toContain('1. Ver la carta');
+    expect(r.replies[0]!.text).not.toContain('0. Volver');
+    expect(r.state).toEqual({ nodeId: root.id });
+  });
+
+  it('una pregunta completa como primer mensaje la responde la IA', () => {
+    const r = step(flow, null, '¿Qué waffles salados tienen hoy?');
+    expect(r).toMatchObject({ replies: [], toAi: true, state: { nodeId: root.id, ai: true } });
+  });
+
+  it('navega submenús, muestra un mensaje y vuelve con 0', () => {
+    const sub = step(flow, { nodeId: root.id }, '1');
+    expect(sub.replies[0]!.text).toContain('0. Volver al menú');
+    expect(sub.state).toEqual({ nodeId: carta.id });
+
+    const msg = step(flow, sub.state, 'waffles');
+    expect(msg.replies[0]!.text).toContain('Waffle Ropa Vieja');
+    expect(msg.state).toEqual({ nodeId: carta.id });
+
+    const back = step(flow, msg.state, '0');
+    expect(back.state).toEqual({ nodeId: root.id });
+  });
+
+  it('el nodo IA envía su intro y deja la conversación a la IA', () => {
+    const r = step(flow, { nodeId: root.id }, '2');
+    expect(r.replies[0]!.text).toContain('Dime qué quieres pedir');
+    expect(r.state).toEqual({ nodeId: root.id, ai: true });
+    expect(r.toAi).toBe(false);
+
+    const next = step(flow, r.state, '2 waffles de camarones para recoger');
+    expect(next.toAi).toBe(true);
+  });
+
+  it('el nodo humano escala y reinicia el estado', () => {
+    const r = step(flow, { nodeId: root.id }, '5');
+    expect(r).toMatchObject({ escalate: true, state: null });
+  });
+
+  it('con fallback "repeat" repite el menú si no entiende', () => {
+    const r = step({ root, fallback: 'repeat' }, { nodeId: root.id }, 'asdf qwer');
+    expect(r.toAi).toBe(false);
+    expect(r.replies[0]!.text).toMatch(/^No te entendí/);
+  });
+
+  it('si el nodo guardado ya no existe, vuelve al inicio', () => {
+    const r = step(flow, { nodeId: 'n-borrado' }, 'hola');
+    expect(r.state).toEqual({ nodeId: root.id });
+  });
+});
+
+describe('flowProblems', () => {
+  it('detecta menús vacíos y textos faltantes', () => {
+    const bad = { id: 'r', type: 'menu' as const, text: '', options: [] };
+    expect(flowProblems(bad)).toEqual([
+      'Inicio: falta el texto',
+      'Inicio: el menú no tiene opciones',
+    ]);
+  });
+});

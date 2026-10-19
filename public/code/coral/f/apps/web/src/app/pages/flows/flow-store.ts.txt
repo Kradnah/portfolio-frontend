@@ -1,0 +1,120 @@
+import { Injectable, signal } from '@angular/core';
+import { FLOW_LIMITS, type FlowNode, type FlowNodeType } from '@coral/contracts';
+
+const newId = (prefix: string): string => `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+
+export const blankNode = (type: FlowNodeType = 'message'): FlowNode => ({
+  id: newId('n'),
+  type,
+  text: '',
+  options: [],
+});
+
+/**
+ * Estado del editor: el árbol completo en una signal. Cada cambio clona el árbol (son decenas de
+ * nodos, es barato) para que los componentes OnPush vean referencias nuevas.
+ */
+@Injectable()
+export class FlowStore {
+  readonly root = signal<FlowNode | null>(null);
+  readonly collapsed = signal<ReadonlySet<string>>(new Set());
+
+  /** Carga un árbol: los submenús arrancan contraídos para ver el primer nivel de un vistazo. */
+  load(root: FlowNode): void {
+    const hidden = new Set<string>();
+    const walk = (n: FlowNode, depth: number): void => {
+      for (const o of n.options) {
+        if (depth >= 2) hidden.add(o.id);
+        walk(o.node, depth + 1);
+      }
+    };
+    root.options.forEach((o) => walk(o.node, 2));
+    this.collapsed.set(hidden);
+    this.root.set(root);
+  }
+
+  private edit(fn: (root: FlowNode) => void): void {
+    const root = this.root();
+    if (!root) return;
+    const copy = structuredClone(root);
+    fn(copy);
+    this.root.set(copy);
+  }
+
+  private find(root: FlowNode, id: string): FlowNode | null {
+    if (root.id === id) return root;
+    for (const o of root.options) {
+      const found = this.find(o.node, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  count(): number {
+    const walk = (n: FlowNode): number =>
+      1 + (n.type === 'menu' ? n.options.reduce((s, o) => s + walk(o.node), 0) : 0);
+    const root = this.root();
+    return root ? walk(root) : 0;
+  }
+
+  setText(nodeId: string, text: string): void {
+    this.edit((r) => {
+      const n = this.find(r, nodeId);
+      if (n) n.text = text;
+    });
+  }
+
+  setType(nodeId: string, type: FlowNodeType): void {
+    this.edit((r) => {
+      const n = this.find(r, nodeId);
+      if (!n) return;
+      n.type = type;
+      // Un menú nuevo arranca con una opción para que se entienda qué hacer.
+      if (type === 'menu' && !n.options.length) {
+        n.options.push({ id: newId('o'), label: 'Nueva opción', node: blankNode() });
+      }
+    });
+  }
+
+  addOption(menuId: string): void {
+    if (this.count() >= FLOW_LIMITS.nodes) return;
+    this.edit((r) => {
+      const n = this.find(r, menuId);
+      if (n && n.options.length < FLOW_LIMITS.options) {
+        n.options.push({ id: newId('o'), label: 'Nueva opción', node: blankNode() });
+      }
+    });
+  }
+
+  setLabel(menuId: string, optionId: string, label: string): void {
+    this.edit((r) => {
+      const o = this.find(r, menuId)?.options.find((x) => x.id === optionId);
+      if (o) o.label = label;
+    });
+  }
+
+  removeOption(menuId: string, optionId: string): void {
+    this.edit((r) => {
+      const n = this.find(r, menuId);
+      if (n) n.options = n.options.filter((o) => o.id !== optionId);
+    });
+  }
+
+  moveOption(menuId: string, optionId: string, dir: -1 | 1): void {
+    this.edit((r) => {
+      const n = this.find(r, menuId);
+      if (!n) return;
+      const i = n.options.findIndex((o) => o.id === optionId);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= n.options.length) return;
+      [n.options[i], n.options[j]] = [n.options[j]!, n.options[i]!];
+    });
+  }
+
+  toggle(optionId: string): void {
+    const next = new Set(this.collapsed());
+    if (next.has(optionId)) next.delete(optionId);
+    else next.add(optionId);
+    this.collapsed.set(next);
+  }
+}

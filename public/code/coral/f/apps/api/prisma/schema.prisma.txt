@@ -43,6 +43,7 @@ model Organization {
   aiRuns        AiRun[]
   orders        Order[]
   reservations  Reservation[]
+  flow          Flow?
 
   @@index([isDemo, expiresAt])
 
@@ -170,6 +171,8 @@ model Conversation {
   status         ConversationStatus @default(BOT)
   assignedUserId String?            @map("assigned_user_id") @db.Uuid
   unread         Int                @default(0)
+  /// Dónde va la conversación en el árbol de decisiones: { nodeId, ai? } (null = empieza en el inicio).
+  flowState      Json?              @map("flow_state")
   lastMessageAt  DateTime           @default(now()) @map("last_message_at") @db.Timestamptz(3)
   createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
 
@@ -287,4 +290,18 @@ model Reservation {
 
   @@index([organizationId, createdAt])
   @@map("reservations")
+}
+
+/// Árbol de decisiones de la organización (uno por organización). `root`: FlowNode de @coral/contracts.
+model Flow {
+  organizationId String   @id @map("organization_id") @db.Uuid
+  enabled        Boolean  @default(true)
+  /// "ai" | "repeat": qué hacer cuando el cliente escribe algo que no es una opción.
+  fallback       String   @default("ai")
+  root           Json
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("flows")
 }

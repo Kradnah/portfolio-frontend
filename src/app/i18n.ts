@@ -165,6 +165,7 @@ const ES = {
       'CRM de atención al cliente con IA, hecho desde cero. Un agente responde con la carta real de Casa Zhef, toma pedidos y reservas, y un asesor puede tomar la conversación en tiempo real.',
     coralPoints: [
       'Agente con herramientas (carta, pedidos, reservas, memoria, pasar a humano) y su costo por respuesta a la vista.',
+      'Árbol de decisiones editable que responde al instante y sin costo, y le pasa a la IA lo que no está en el menú.',
       'Demo aislada por visitante que se borra entera a las 4 horas; widget embebible en cualquier web.',
       'NestJS, Socket.IO con Redis, colas BullMQ, PostgreSQL y multiempresa con aislamiento por tenant.',
     ],
@@ -579,6 +580,7 @@ const EN: Dict = {
       "An AI customer-service CRM built from scratch. An agent answers with Casa Zhef's real menu, takes orders and bookings, and a human agent can take over the conversation in real time.",
     coralPoints: [
       'Agent with tools (menu, orders, bookings, memory, hand-off) and the cost of every reply on display.',
+      'An editable decision tree that replies instantly at no cost and hands the AI anything off-menu.',
       'An isolated demo per visitor that is fully deleted after 4 hours; an embeddable widget for any site.',
       'NestJS, Socket.IO on Redis, BullMQ queues, PostgreSQL and multi-tenant isolation.',
     ],

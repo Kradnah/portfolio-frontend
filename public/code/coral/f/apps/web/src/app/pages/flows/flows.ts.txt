@@ -1,0 +1,213 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  type OnDestroy,
+  signal,
+} from '@angular/core';
+import {
+  FLOW_LIMITS,
+  type FlowDto,
+  type FlowFallback,
+  flowProblems,
+  type SaveFlowRequest,
+} from '@coral/contracts';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth/auth.service';
+import { CustomerSim } from '../inbox/customer-sim';
+import { FlowNodeEditor } from './flow-node';
+import { FlowStore } from './flow-store';
+
+type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'invalid' | 'error';
+
+/**
+ * Editor del árbol de decisiones: lista anidada (no un lienzo) que se guarda sola, con el simulador
+ * de cliente al lado para probar cada cambio al instante.
+ */
+@Component({
+  selector: 'app-flows',
+  imports: [FlowNodeEditor, CustomerSim],
+  providers: [FlowStore],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div
+      class="grid gap-5 xl:h-[calc(100vh-8.5rem)] xl:min-h-[520px] xl:grid-cols-[minmax(0,1fr)_380px]"
+    >
+      <div class="min-h-0 space-y-5 xl:overflow-y-auto xl:pr-1">
+        <header>
+          <h1 class="text-2xl font-black">Árbol de decisiones</h1>
+          <p class="mt-1 max-w-2xl text-sm text-muted">
+            Respuestas instantáneas y sin costo para lo frecuente; la IA entra donde tú decidas o
+            cuando el cliente escribe algo que no está en el menú. Los cambios se guardan solos:
+            pruébalos en el chat de la derecha.
+          </p>
+        </header>
+
+        <section class="card flex flex-wrap items-center gap-x-6 gap-y-3 p-4">
+          <label class="flex cursor-pointer items-center gap-2 font-bold">
+            <input
+              type="checkbox"
+              class="size-4 accent-lime"
+              [checked]="enabled()"
+              (change)="enabled.set($any($event.target).checked)"
+            />
+            Árbol activo
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <span class="text-muted">Si el cliente escribe otra cosa:</span>
+            <select
+              class="input w-auto! py-1.5! text-sm"
+              [value]="fallback()"
+              (change)="fallback.set($any($event.target).value)"
+            >
+              <option value="ai">responde la IA</option>
+              <option value="repeat">se repite el menú</option>
+            </select>
+          </label>
+          <span class="ml-auto flex items-center gap-4">
+            <span class="mono text-xs" [class]="statusTone()" aria-live="polite">{{
+              statusText()
+            }}</span>
+            <button class="btn py-1! text-sm" type="button" (click)="reset()">
+              Restaurar plantilla
+            </button>
+          </span>
+        </section>
+
+        @if (!enabled()) {
+          <p class="border-2 border-black bg-coral-soft px-4 py-2 text-sm">
+            Con el árbol apagado, la IA responde todos los mensajes.
+          </p>
+        }
+        @if (problems().length) {
+          <ul class="border-2 border-black bg-alert/20 px-4 py-2 text-sm" role="alert">
+            @for (p of problems(); track p) {
+              <li>{{ p }}</li>
+            }
+          </ul>
+        }
+
+        @if (store.root(); as root) {
+          <section class="card p-4" [class.opacity-60]="!enabled()">
+            <p class="mono mb-3 flex justify-between text-xs uppercase tracking-widest text-muted">
+              <span><span class="text-coral">Inicio</span> · lo primero que ve el cliente</span>
+              <span>{{ store.count() }}/{{ limits.nodes }} pasos</span>
+            </p>
+            <app-flow-node [node]="root" [isRoot]="true" />
+          </section>
+        } @else {
+          <p class="text-sm text-muted">Cargando el árbol…</p>
+        }
+
+        <p class="pb-4 text-xs text-muted">
+          En cualquier punto el cliente puede escribir <strong class="text-ink">0</strong> o
+          <strong class="text-ink">menú</strong> para volver al inicio. Un saludo muestra el menú;
+          si el primer mensaje ya es una pregunta completa, la responde la IA.
+        </p>
+      </div>
+
+      @if (widgetKey(); as key) {
+        <div class="h-[70vh] min-h-0 xl:h-full">
+          <app-customer-sim [widgetKey]="key" [restartable]="true" />
+        </div>
+      }
+    </div>
+  `,
+})
+export class FlowsPage implements OnDestroy {
+  private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
+  protected readonly store = inject(FlowStore);
+  protected readonly limits = FLOW_LIMITS;
+  protected readonly enabled = signal(true);
+  protected readonly fallback = signal<FlowFallback>('ai');
+  protected readonly state = signal<SaveState>('idle');
+  protected readonly serverError = signal<string | null>(null);
+  protected readonly widgetKey = computed(() => this.auth.me()?.organization.slug ?? null);
+
+  protected readonly problems = computed(() => {
+    const root = this.store.root();
+    const local = root ? flowProblems(root) : [];
+    return local.length ? local : this.serverError() ? [this.serverError()!] : [];
+  });
+
+  protected readonly statusText = computed(
+    () =>
+      ({
+        idle: '',
+        pending: 'Cambios sin guardar…',
+        saving: 'Guardando…',
+        saved: 'Guardado ✓',
+        invalid: 'Corrige lo marcado para guardar',
+        error: 'No se pudo guardar',
+      })[this.state()],
+  );
+  protected readonly statusTone = computed(() =>
+    this.state() === 'saved'
+      ? 'text-lime'
+      : this.state() === 'invalid' || this.state() === 'error'
+        ? 'text-alert'
+        : 'text-muted',
+  );
+
+  private loaded = false;
+  private timer?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    void this.load();
+    // Autoguardado: cada cambio reinicia la espera; se guarda 700 ms después del último.
+    effect(() => {
+      const body: SaveFlowRequest | null = this.store.root()
+        ? { enabled: this.enabled(), fallback: this.fallback(), root: this.store.root()! }
+        : null;
+      if (!body || !this.loaded) return;
+      clearTimeout(this.timer);
+      if (flowProblems(body.root).length) {
+        this.state.set('invalid');
+        return;
+      }
+      this.state.set('pending');
+      this.timer = setTimeout(() => void this.save(body), 700);
+    });
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.timer);
+  }
+
+  private apply(flow: FlowDto): void {
+    this.loaded = false;
+    this.enabled.set(flow.enabled);
+    this.fallback.set(flow.fallback);
+    this.store.load(flow.root);
+    // El efecto corre después de este cambio; se marca como cargado en la siguiente vuelta.
+    setTimeout(() => (this.loaded = true));
+  }
+
+  private async load(): Promise<void> {
+    this.apply(await firstValueFrom(this.http.get<FlowDto>('/api/flow')));
+  }
+
+  private async save(body: SaveFlowRequest): Promise<void> {
+    this.state.set('saving');
+    try {
+      await firstValueFrom(this.http.put<FlowDto>('/api/flow', body));
+      this.serverError.set(null);
+      this.state.set('saved');
+    } catch (err) {
+      const message = err instanceof HttpErrorResponse ? err.error?.message : null;
+      this.serverError.set(typeof message === 'string' ? message : null);
+      this.state.set('error');
+    }
+  }
+
+  protected async reset(): Promise<void> {
+    if (!confirm('¿Volver a la plantilla de Casa Zhef? Se pierden los cambios del árbol.')) return;
+    clearTimeout(this.timer);
+    this.apply(await firstValueFrom(this.http.post<FlowDto>('/api/flow/reset', {})));
+    this.state.set('saved');
+  }
+}

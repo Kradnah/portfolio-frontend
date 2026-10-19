@@ -25,7 +25,18 @@ import { io, type Socket } from 'socket.io-client';
         <span class="mono text-xs font-bold uppercase tracking-widest text-lime"
           >Simula un cliente</span
         >
-        <span class="mono text-[0.65rem] text-muted">{{ status() }}</span>
+        <span class="flex items-center gap-3">
+          <span class="mono text-[0.65rem] text-muted">{{ status() }}</span>
+          @if (restartable()) {
+            <button
+              type="button"
+              class="mono border-2 border-lime px-1.5 text-[0.65rem] font-bold text-lime hover:bg-lime hover:text-black"
+              (click)="restart()"
+            >
+              Nueva conversación
+            </button>
+          }
+        </span>
       </header>
       <p class="border-b-2 border-black px-4 py-2 text-xs text-muted">
         Así vería el chat un cliente en la web de Casa Zhef. Escribe y mira cómo llega a la bandeja.
@@ -70,6 +81,8 @@ import { io, type Socket } from 'socket.io-client';
 export class CustomerSim implements OnInit, OnDestroy {
   /** Clave del widget (slug de la organización). */
   readonly widgetKey = input.required<string>();
+  /** Muestra "Nueva conversación": otro cliente, para probar el árbol desde el inicio. */
+  readonly restartable = input(false);
 
   protected readonly messages = signal<MessageDto[]>([]);
   protected readonly draft = signal('');
@@ -79,7 +92,23 @@ export class CustomerSim implements OnInit, OnDestroy {
   private socket?: Socket;
 
   ngOnInit(): void {
-    const storageKey = `coral-sim:${this.widgetKey()}`;
+    this.connect();
+  }
+
+  protected restart(): void {
+    sessionStorage.removeItem(this.storageKey());
+    this.socket?.disconnect();
+    this.messages.set([]);
+    this.typing.set(false);
+    this.connect();
+  }
+
+  private storageKey(): string {
+    return `coral-sim:${this.widgetKey()}`;
+  }
+
+  private connect(): void {
+    const storageKey = this.storageKey();
     let visitorId = sessionStorage.getItem(storageKey);
     if (!visitorId) {
       visitorId = crypto.randomUUID();
