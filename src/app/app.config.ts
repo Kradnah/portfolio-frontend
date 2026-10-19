@@ -1,5 +1,5 @@
 import { ApplicationConfig, Injectable } from '@angular/core';
-import { DefaultUrlSerializer, UrlSerializer, UrlTree, provideRouter } from '@angular/router';
+import { DefaultUrlSerializer, UrlSerializer, UrlTree, provideRouter, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from './app.routes';
 
@@ -15,7 +15,8 @@ class ReadableUrlSerializer extends DefaultUrlSerializer {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    // Solo anclas (/#demos desde /intro); la posición del scroll al navegar sigue como estaba.
+    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
     { provide: UrlSerializer, useClass: ReadableUrlSerializer },
   ]
 };

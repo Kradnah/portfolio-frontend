@@ -1,0 +1,75 @@
+<div class="page">
+  <header class="top">
+    <a class="back" routerLink="/">{{ t().intro.back }}</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <span class="kicker">{{ t().intro.kicker }}</span>
+    <h1 class="title">{{ t().intro.title }} <span class="hl">{{ t().intro.titleHl }}</span></h1>
+    <p class="sub">{{ t().intro.sub }}</p>
+  </section>
+
+  <div class="layout">
+    <figure class="player">
+      <video
+        #video
+        controls
+        playsinline
+        preload="metadata"
+        poster="/intro/poster.webp"
+        [attr.aria-label]="t().intro.videoLabel"
+        (timeupdate)="onTime()"
+        (seeked)="onTime()"
+      >
+        <source src="/intro/julian-intro.mp4" type="video/mp4" />
+        <track kind="captions" src="/intro/intro.en.vtt" srclang="en" [attr.label]="t().intro.captions" default />
+      </video>
+    </figure>
+
+    <aside class="facts">
+      <h2>{{ t().intro.factsTitle }}</h2>
+      <ul>
+        @for (f of t().intro.facts; track $index) {
+          <li>{{ f }}</li>
+        }
+      </ul>
+      <div class="ctas">
+        <a class="cta primary" routerLink="/" fragment="demos">{{ t().intro.ctaDemos }} →</a>
+        <a class="cta" routerLink="/codigo/portfolio">{{ t().intro.ctaCode }} &lt;/&gt;</a>
+        <a class="cta" [href]="t().cvUrl" download>{{ t().intro.ctaCv }}</a>
+        <div class="cta-row">
+          <a class="cta" href="mailto:kradnah@gmail.com">{{ t().intro.ctaEmail }}</a>
+          <a class="cta" href="https://www.linkedin.com/in/julian-lizcano" target="_blank" rel="noopener">LinkedIn ↗</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="transcript" aria-labelledby="transcript-title">
+    <h2 id="transcript-title">{{ t().intro.transcriptTitle }}</h2>
+    <p class="note">{{ t().intro.transcriptNote }}</p>
+    <div class="text" lang="en">
+      @for (p of paragraphs; track $index) {
+        <p>
+          <span class="time">{{ stamp(p[0].start) }}</span>
+          @for (c of p; track c.index) {
+            <!-- span y no button: un button no fluye en línea y cortaría el párrafo en cada frase. -->
+            <span
+              role="button"
+              tabindex="0"
+              class="cue"
+              [class.on]="current() === c.index"
+              [attr.aria-label]="t().intro.jump + ' ' + stamp(c.start) + ': ' + c.text"
+              (click)="seek(c.start)"
+              (keydown.enter)="seek(c.start)"
+              (keydown.space)="$event.preventDefault(); seek(c.start)"
+            >{{ c.text }}</span>{{ ' ' }}
+          }
+        </p>
+      }
+    </div>
+  </section>
+</div>

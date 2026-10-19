@@ -21,5 +21,9 @@ export const routes: Routes = [
         path: 'demos/vision',
         loadComponent: () => import('./demos/vision/vision-lab.component').then(m => m.VisionLabComponent)
     },
+    {
+        path: 'intro',
+        loadComponent: () => import('./intro/intro.component').then(m => m.IntroComponent)
+    },
     { path: '**', redirectTo: '/' }
 ];

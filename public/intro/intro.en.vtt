@@ -1,0 +1,74 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.940
+Hi, I'm Julian, a full-stack developer from Colombia with more
+
+2
+00:00:05.940 --> 00:00:10.680
+than four years of experience, and I think I'm a strong fit for this role because
+
+3
+00:00:10.680 --> 00:00:14.320
+Claude Code is already my main development tool.
+
+4
+00:00:14.760 --> 00:00:20.240
+I take an idea, plan it with Claude, build it, test it, and ship it, usually much
+
+5
+00:00:20.240 --> 00:00:22.000
+faster than I could do it before.
+
+6
+00:00:22.000 --> 00:00:27.520
+You can see this in my portfolio at julian-lizcano.com.
+
+7
+00:00:27.720 --> 00:00:32.380
+It has three demos: a call analyzer that transcribes audio in the browser and
+
+8
+00:00:32.380 --> 00:00:38.040
+scores the call with an LLM, an invoice validator that reads PDFs and images
+
+9
+00:00:38.040 --> 00:00:44.900
+using OCR, and a real computer vision demo using the webcam.
+
+10
+00:00:45.200 --> 00:00:51.100
+There is also a code viewer, so you can read all the source code without asking for access.
+
+11
+00:00:51.100 --> 00:00:57.080
+The portfolio uses TypeScript and Angular on the front end and Python FastAPI on
+
+12
+00:00:57.080 --> 00:01:02.800
+the back end, deployed with Docker on my own VPS. I have worked
+
+13
+00:01:02.800 --> 00:01:08.100
+with React, NestJS and PostgreSQL, and I've deployed on
+
+14
+00:01:08.100 --> 00:01:09.880
+Vercel.
+
+15
+00:01:09.880 --> 00:01:14.900
+I build faster with AI, but I don't trust it blindly. I test everything in
+
+16
+00:01:14.900 --> 00:01:19.040
+production, and I find the real cause before I ship a fix.
+
+17
+00:01:19.460 --> 00:01:25.460
+I'm comfortable owning a project from start to finish, and I think that's
+
+18
+00:01:25.460 --> 00:01:29.800
+it. Thank you, I would love to build with you.
+
