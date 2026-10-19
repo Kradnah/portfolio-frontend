@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Gateway de WhatsApp (whatsapp-web.js + Chromium). Contexto en la raíz del monorepo:
+#   docker build -f apps/wa-gateway/Dockerfile -t coral-wa-gateway .
+
+FROM node:24-bookworm-slim AS build
+RUN npm i -g pnpm@12.8.1
+WORKDIR /repo
+COPY . .
+RUN pnpm install --frozen-lockfile --filter "@coral/wa-gateway..."
+RUN pnpm turbo run build --filter "@coral/wa-gateway..."
+RUN pnpm --filter @coral/wa-gateway deploy --prod /out
+
+FROM node:24-bookworm-slim
+# Chromium de Debian (puppeteer no descarga el suyo) y fuentes para que WhatsApp Web renderice.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends chromium fonts-liberation fonts-noto-color-emoji ca-certificates dumb-init \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
+ENV NODE_ENV=production \
+    CHROME_PATH=/usr/bin/chromium \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    SESSIONS_DIR=/tmp/coral-wa
+WORKDIR /app
+RUN groupadd -r app && useradd -r -g app -m app
+COPY --from=build --chown=app:app /out ./
+USER app
+# Sin puerto: solo habla con Redis. dumb-init reenvía SIGTERM para cerrar (y desvincular) las sesiones.
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "--max-old-space-size=384", "dist/main.js"]

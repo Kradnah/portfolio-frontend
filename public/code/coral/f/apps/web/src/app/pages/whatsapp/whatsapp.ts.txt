@@ -1,0 +1,266 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  type OnDestroy,
+  signal,
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
+import type { WaStateDto } from '@coral/contracts';
+import { PanelEvent } from '@coral/contracts/constants';
+import { firstValueFrom } from 'rxjs';
+import { RealtimeService } from '../../core/realtime.service';
+
+/** Conecta el WhatsApp del visitante a su demo con un QR (whatsapp-web.js). */
+@Component({
+  selector: 'app-whatsapp',
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <header class="mb-5">
+      <h1 class="text-2xl font-black">WhatsApp</h1>
+      <p class="mt-1 max-w-2xl text-sm text-muted">
+        Conecta tu propio WhatsApp con un QR y habla con el bot de Casa Zhef desde tu teléfono. Las
+        conversaciones también llegan a la bandeja.
+      </p>
+    </header>
+
+    @if (state(); as s) {
+      @switch (s.status) {
+        @case ('starting') {
+          <section class="card max-w-2xl p-6" aria-live="polite">
+            <p class="text-lg font-black">Abriendo WhatsApp Web…</p>
+            <p class="mt-1 text-sm text-muted">Tarda unos 15 segundos. Luego aparece el QR.</p>
+            <div class="mt-4 h-2 overflow-hidden border-2 border-black bg-deep">
+              <div class="h-full w-1/3 animate-[slide_1.2s_ease-in-out_infinite] bg-coral"></div>
+            </div>
+          </section>
+        }
+        @case ('qr') {
+          <section class="card grid max-w-3xl gap-6 p-6 sm:grid-cols-[300px_1fr]">
+            <img
+              class="size-[300px] border-[3px] border-black bg-white"
+              [src]="s.qr"
+              alt="Código QR para vincular WhatsApp"
+            />
+            <div>
+              <p class="text-lg font-black">Escanea con tu teléfono</p>
+              <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm">
+                <li>Abre WhatsApp en tu teléfono.</li>
+                <li>
+                  Ve a <strong>Ajustes</strong> (iPhone) o al menú <strong>⋮</strong> (Android) y
+                  entra a <strong>Dispositivos vinculados</strong>.
+                </li>
+                <li>Toca <strong>Vincular un dispositivo</strong> y apunta la cámara al código.</li>
+              </ol>
+              <p class="mt-4 text-xs text-muted">
+                El código se renueva solo. Tienes 3 minutos para escanearlo.
+              </p>
+              <button class="btn mt-5 text-sm" type="button" (click)="disconnect()">
+                Cancelar
+              </button>
+            </div>
+          </section>
+        }
+        @case ('ready') {
+          <section class="card max-w-3xl p-6">
+            <p class="mono text-xs font-bold uppercase tracking-widest text-lime">● Conectado</p>
+            <p class="mt-1 text-xl font-black">{{ s.number }}</p>
+            <ol class="mt-4 list-decimal space-y-2 pl-5">
+              <li>
+                En WhatsApp, abre el chat contigo mismo: busca tu nombre con
+                <strong>(Tú)</strong> o <strong>Mensaje para ti</strong>.
+              </li>
+              <li>
+                Escribe <strong>hola</strong>. El bot responde ahí; sus mensajes empiezan con 🪸.
+              </li>
+              <li>
+                Mira la conversación en la
+                <a class="font-bold text-coral underline" routerLink="/inbox">bandeja</a>
+                o cambia el menú en el
+                <a class="font-bold text-coral underline" routerLink="/flows">árbol de decisiones</a
+                >.
+              </li>
+            </ol>
+            @if (s.allow.length) {
+              <p class="mt-4 text-sm text-muted">También responde a: {{ s.allow.join(', ') }}</p>
+            }
+            <p class="mt-4 text-sm text-muted">
+              La sesión se cierra sola {{ until(s.expiresAt) }} y se desvincula de tu teléfono.
+            </p>
+            <button
+              class="btn btn-primary mt-5"
+              type="button"
+              [disabled]="busy()"
+              (click)="disconnect()"
+            >
+              Desconectar y borrar la sesión
+            </button>
+          </section>
+        }
+        @default {
+          @if (s.status === 'closed' && s.reason) {
+            <p class="mb-5 max-w-3xl border-2 border-black bg-coral-soft px-4 py-2 text-sm">
+              Sesión cerrada: {{ s.reason }}
+            </p>
+          }
+          <section class="card max-w-3xl p-6">
+            <h2 class="font-black text-coral">Antes de conectar</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li>
+                <strong>WhatsApp no permite clientes no oficiales</strong> como este
+                (whatsapp-web.js) y puede restringir el número. Si puedes, usa uno secundario. Es
+                una demo, no un servicio.
+              </li>
+              <li>
+                El bot <strong>solo responde en tu chat contigo mismo</strong>. No lee ni guarda tus
+                otros chats, grupos ni estados.
+              </li>
+              <li>
+                La sesión se cierra sola a las <strong>4 horas</strong> (o al desconectar o borrar
+                la demo): se desvincula de tu teléfono y se borra.
+              </li>
+            </ul>
+
+            <fieldset class="mt-6">
+              <legend class="label">Opcional: que también le responda a alguien</legend>
+              <p class="mb-2 text-xs text-muted">
+                Hasta 3 números con indicativo de país. Solo a ellos, en chats 1 a 1.
+              </p>
+              <div class="grid gap-2 sm:grid-cols-3">
+                @for (i of [0, 1, 2]; track i) {
+                  <input
+                    class="input text-sm"
+                    inputmode="tel"
+                    autocomplete="off"
+                    placeholder="+57 300 123 4567"
+                    [attr.aria-label]="'Número permitido ' + (i + 1)"
+                    [value]="allow()[i]"
+                    (input)="setAllow(i, $any($event.target).value)"
+                  />
+                }
+              </div>
+            </fieldset>
+
+            <label class="mt-6 flex cursor-pointer items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                class="mt-0.5 size-4 accent-lime"
+                [checked]="accepted()"
+                (change)="accepted.set($any($event.target).checked)"
+              />
+              Entiendo el aviso y quiero conectar mi WhatsApp.
+            </label>
+
+            @if (error()) {
+              <p class="mt-4 text-sm text-alert" role="alert">{{ error() }}</p>
+            }
+            <div class="mt-5 flex flex-wrap items-center gap-4">
+              <button
+                class="btn btn-ok"
+                type="button"
+                [disabled]="!accepted() || busy() || s.slotsFree === 0"
+                (click)="connect()"
+              >
+                Conectar mi WhatsApp
+              </button>
+              <span class="mono text-xs" [class]="s.slotsFree ? 'text-muted' : 'text-alert'">
+                {{
+                  s.slotsFree
+                    ? s.slotsFree + ' de 3 cupos libres'
+                    : 'Sin cupos: intenta en unos minutos'
+                }}
+              </span>
+            </div>
+          </section>
+        }
+      }
+    } @else {
+      <p class="text-sm text-muted">Cargando…</p>
+    }
+  `,
+  styles: `
+    @keyframes slide {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(300%);
+      }
+    }
+  `,
+})
+export class WhatsappPage implements OnDestroy {
+  private readonly http = inject(HttpClient);
+  private readonly realtime = inject(RealtimeService);
+  protected readonly state = signal<WaStateDto | null>(null);
+  protected readonly allow = signal(['', '', '']);
+  protected readonly accepted = signal(false);
+  protected readonly busy = signal(false);
+  protected readonly error = signal<string | null>(null);
+  private readonly now = signal(Date.now());
+  private readonly off: () => void;
+  private readonly clock = setInterval(() => this.now.set(Date.now()), 30_000);
+
+  protected readonly minutesLeft = computed(() => {
+    const at = this.state()?.expiresAt;
+    return at ? Math.max(0, Math.round((Date.parse(at) - this.now()) / 60_000)) : 0;
+  });
+
+  constructor() {
+    void this.load();
+    this.off = this.realtime.on<WaStateDto>(PanelEvent.WhatsappState, (s) => this.state.set(s));
+  }
+
+  ngOnDestroy(): void {
+    this.off();
+    clearInterval(this.clock);
+  }
+
+  protected setAllow(i: number, value: string): void {
+    this.allow.update((list) => list.map((v, j) => (j === i ? value : v)));
+  }
+
+  protected until(expiresAt: string | null): string {
+    if (!expiresAt) return 'a las 4 horas';
+    const m = this.minutesLeft();
+    return m >= 60 ? `en ${Math.floor(m / 60)} h ${m % 60} min` : `en ${m} min`;
+  }
+
+  private async load(): Promise<void> {
+    this.state.set(await firstValueFrom(this.http.get<WaStateDto>('/api/whatsapp')));
+  }
+
+  protected async connect(): Promise<void> {
+    this.busy.set(true);
+    this.error.set(null);
+    try {
+      const allow = this.allow().filter((v) => v.trim());
+      this.state.set(
+        await firstValueFrom(
+          this.http.post<WaStateDto>('/api/whatsapp/connect', { allow, accept: true }),
+        ),
+      );
+    } catch (err) {
+      const body = err instanceof HttpErrorResponse ? err.error : null;
+      this.error.set(
+        body?.details?.[0]?.message ?? body?.message ?? 'No se pudo conectar. Intenta de nuevo.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async disconnect(): Promise<void> {
+    this.busy.set(true);
+    try {
+      this.state.set(
+        await firstValueFrom(this.http.post<WaStateDto>('/api/whatsapp/disconnect', {})),
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+}

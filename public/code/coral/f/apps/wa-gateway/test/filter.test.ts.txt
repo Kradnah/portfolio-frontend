@@ -1,0 +1,71 @@
+import { describe, expect, it } from 'vitest';
+import { canSendTo, classify, type IncomingMessage, RateLimiter } from '../src/filter.js';
+
+const ME = '573001112233';
+const FRIEND = '573004445566';
+const session = { me: ME, allow: [], readyAt: 1_000_000 };
+const base: IncomingMessage = {
+  from: `${ME}@c.us`,
+  to: `${ME}@c.us`,
+  fromMe: true,
+  type: 'chat',
+  body: 'hola',
+  isStatus: false,
+  timestamp: 1_000_100 / 1000 + 10,
+};
+
+describe('classify', () => {
+  it('atiende el chat del visitante consigo mismo (también con ids @lid)', () => {
+    expect(classify(base, session)).toEqual({ kind: 'self', chatId: `${ME}@c.us` });
+    const lid = { ...base, from: '987654@lid', to: '987654@lid' };
+    expect(classify(lid, session)).toEqual({ kind: 'self', chatId: '987654@lid' });
+  });
+
+  it('no responde a sus propias respuestas', () => {
+    expect(classify({ ...base, body: '🪸 Hola, ¿en qué te ayudo?' }, session).kind).toBe('ignore');
+  });
+
+  it('ignora lo que el visitante escribe a otros chats', () => {
+    expect(classify({ ...base, to: `${FRIEND}@c.us` }, session).kind).toBe('ignore');
+  });
+
+  it('nunca toca grupos, estados, difusiones ni canales', () => {
+    for (const to of ['123-456@g.us', 'status@broadcast', '1@newsletter']) {
+      expect(classify({ ...base, fromMe: false, from: to, to: `${ME}@c.us` }, session).kind).toBe(
+        'ignore',
+      );
+    }
+    expect(classify({ ...base, isStatus: true }, session).kind).toBe('ignore');
+  });
+
+  it('ignora el historial anterior a la conexión y lo que no es texto', () => {
+    expect(classify({ ...base, timestamp: 900 }, session).kind).toBe('ignore');
+    expect(classify({ ...base, type: 'image' }, session).kind).toBe('ignore');
+    expect(classify({ ...base, body: '   ' }, session).kind).toBe('ignore');
+  });
+
+  it('sin números permitidos, ignora a los contactos del visitante', () => {
+    const fromFriend = { ...base, fromMe: false, from: `${FRIEND}@c.us` };
+    expect(classify(fromFriend, session).kind).toBe('ignore');
+    expect(classify(fromFriend, { ...session, allow: [FRIEND] })).toEqual({
+      kind: 'third-party',
+      chatId: `${FRIEND}@c.us`,
+    });
+  });
+});
+
+describe('canSendTo', () => {
+  it('solo al visitante o a sus números permitidos', () => {
+    expect(canSendTo(ME, session)).toBe(true);
+    expect(canSendTo(FRIEND, session)).toBe(false);
+    expect(canSendTo(FRIEND, { ...session, allow: [FRIEND] })).toBe(true);
+  });
+});
+
+describe('RateLimiter', () => {
+  it('corta al pasar el límite y se recupera al minuto', () => {
+    const rl = new RateLimiter(2);
+    expect([rl.take(0), rl.take(1), rl.take(2)]).toEqual([true, true, false]);
+    expect(rl.take(60_002)).toBe(true);
+  });
+});

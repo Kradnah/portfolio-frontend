@@ -1,0 +1,58 @@
+import { mkdir, rm } from 'node:fs/promises';
+import { WA_COMMANDS_QUEUE, WA_EVENTS_QUEUE, type WaCommand, type WaEvent } from '@coral/contracts';
+import { type Job, Queue, Worker } from 'bullmq';
+import { loadEnv, redisConnection } from './env.js';
+import { log } from './log.js';
+import { SessionManager } from './sessions.js';
+
+const env = loadEnv();
+const connection = redisConnection(env.REDIS_URL);
+const events = new Queue<WaEvent>(WA_EVENTS_QUEUE, {
+  connection,
+  defaultJobOptions: { removeOnComplete: 200, removeOnFail: 200 },
+});
+const sessions = new SessionManager(env, async (event) => {
+  await events.add(event.type, event);
+});
+
+// Un reinicio pierde las sesiones en memoria: se borra lo que haya quedado en disco y el API marca
+// como cerradas las que creía abiertas.
+await rm(env.SESSIONS_DIR, { recursive: true, force: true });
+await mkdir(env.SESSIONS_DIR, { recursive: true });
+await events.add('reset', { type: 'reset' });
+
+const worker = new Worker<WaCommand>(
+  WA_COMMANDS_QUEUE,
+  async (job: Job<WaCommand>) => {
+    const cmd = job.data;
+    switch (cmd.type) {
+      case 'start':
+        await sessions.start(cmd.orgId, cmd.allow, cmd.expiresAt);
+        break;
+      case 'stop':
+        await sessions.stop(cmd.orgId, cmd.reason);
+        break;
+      case 'send':
+        await sessions.send(cmd.orgId, cmd.to, cmd.text);
+        break;
+    }
+  },
+  { connection, concurrency: 6 },
+);
+worker.on('failed', (job, err) =>
+  log('warn', 'orden falló', { type: job?.data.type, orgId: job?.data.orgId, error: err.message }),
+);
+log('info', 'gateway de WhatsApp listo');
+
+let shuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  log('info', 'cerrando', { signal, sessions: sessions.size });
+  await worker.close();
+  await sessions.stopAll('El servicio de WhatsApp se reinició.');
+  await events.close();
+  process.exit(0);
+}
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));

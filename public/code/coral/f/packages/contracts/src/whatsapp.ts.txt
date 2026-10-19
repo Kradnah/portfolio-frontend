@@ -1,0 +1,81 @@
+import { z } from 'zod';
+
+/**
+ * WhatsApp de la demo con whatsapp-web.js. El API y el gateway (apps/wa-gateway, con Chromium) se
+ * hablan por dos colas BullMQ en Redis: órdenes hacia el gateway y eventos de vuelta.
+ */
+export const WA_COMMANDS_QUEUE = 'wa-commands';
+export const WA_EVENTS_QUEUE = 'wa-events';
+
+export const WA_LIMITS = {
+  /** Sesiones simultáneas (cada una es un Chromium de ~250 MB). */
+  sessions: 3,
+  /** Números de terceros a los que el bot puede responder, además del chat propio. */
+  allowed: 3,
+  /** Vida máxima de una sesión. */
+  ttlMs: 4 * 60 * 60 * 1000,
+  /** Tiempo para escanear el QR antes de cerrar. */
+  qrMs: 3 * 60 * 1000,
+  /** Mensajes entrantes por minuto y sesión. */
+  perMinute: 15,
+} as const;
+
+/** Las respuestas del bot empiezan con esto: en el chat propio permite distinguirlas (y no responderse a sí mismo). */
+export const WA_BOT_PREFIX = '🪸 ';
+
+/** Número con indicativo, solo dígitos ("+57 300 123 4567" → "573001234567"). */
+export const PhoneNumber = z
+  .string()
+  .transform((s) => s.replace(/\D/g, ''))
+  .pipe(z.string().regex(/^\d{8,15}$/, 'Número con indicativo de país, p. ej. +57 300 123 4567'));
+
+export const ConnectWhatsappRequest = z.strictObject({
+  allow: z.array(PhoneNumber).max(WA_LIMITS.allowed),
+  /** El visitante leyó el aviso (WhatsApp no permite clientes no oficiales). */
+  accept: z.literal(true),
+});
+export type ConnectWhatsappRequest = z.infer<typeof ConnectWhatsappRequest>;
+
+export const WaStatus = z.enum(['idle', 'starting', 'qr', 'ready', 'closed']);
+export type WaStatus = z.infer<typeof WaStatus>;
+
+export const WaStateDto = z.object({
+  status: WaStatus,
+  /** QR como data URL (solo en `qr`). */
+  qr: z.string().nullable(),
+  /** Número conectado, enmascarado ("+57 ••• ••• 4567"). */
+  number: z.string().nullable(),
+  allow: z.array(z.string()),
+  expiresAt: z.string().nullable(),
+  /** Por qué se cerró (solo en `closed`). */
+  reason: z.string().nullable(),
+  /** Cupos libres para conectar (de WA_LIMITS.sessions). */
+  slotsFree: z.number().int(),
+});
+export type WaStateDto = z.infer<typeof WaStateDto>;
+
+export type WaCommand =
+  | { type: 'start'; orgId: string; allow: string[]; expiresAt: number }
+  | { type: 'stop'; orgId: string; reason: string }
+  | { type: 'send'; orgId: string; to: string; text: string };
+
+export type WaEvent =
+  | { type: 'qr'; orgId: string; qr: string }
+  | { type: 'ready'; orgId: string; number: string }
+  | {
+      type: 'inbound';
+      orgId: string;
+      /** Número del remitente (en el chat propio, el del visitante). */
+      from: string;
+      name: string | null;
+      text: string;
+      messageId: string;
+    }
+  | { type: 'closed'; orgId: string; reason: string }
+  /** El gateway arrancó (o se reinició): ninguna sesión anterior sigue abierta. */
+  | { type: 'reset' };
+
+/** "+57 ••• ••• 4567": en el panel no se muestra el número completo. */
+export function maskPhone(digits: string): string {
+  return `+${digits.slice(0, Math.max(1, digits.length - 10))} ••• ••• ${digits.slice(-4)}`;
+}

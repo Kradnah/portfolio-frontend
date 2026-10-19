@@ -1,0 +1,201 @@
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { WA_BOT_PREFIX, WA_LIMITS, type WaEvent } from '@coral/contracts';
+import QRCode from 'qrcode';
+import wweb from 'whatsapp-web.js';
+import type { Env } from './env.js';
+import { canSendTo, classify, RateLimiter, type SessionView } from './filter.js';
+import { log } from './log.js';
+
+const { Client, LocalAuth } = wweb;
+type WClient = InstanceType<typeof Client>;
+
+interface Session extends SessionView {
+  orgId: string;
+  client: WClient;
+  status: 'starting' | 'qr' | 'ready';
+  /** Último chat de cada número (WhatsApp puede usar ids @lid en vez del número). */
+  chats: Map<string, string>;
+  limiter: RateLimiter;
+  timers: NodeJS.Timeout[];
+  closing: boolean;
+}
+
+export type Emit = (event: WaEvent) => Promise<void>;
+
+/**
+ * Una sesión de WhatsApp Web (un Chromium) por sandbox. Nada se guarda fuera de la memoria y la
+ * carpeta de autenticación, que se borra al cerrar.
+ */
+export class SessionManager {
+  private readonly sessions = new Map<string, Session>();
+
+  constructor(
+    private readonly env: Env,
+    private readonly emit: Emit,
+  ) {}
+
+  get size(): number {
+    return this.sessions.size;
+  }
+
+  async start(orgId: string, allow: string[], expiresAt: number): Promise<void> {
+    if (this.sessions.has(orgId)) return;
+    if (this.sessions.size >= WA_LIMITS.sessions) {
+      await this.emit({
+        type: 'closed',
+        orgId,
+        reason: 'No hay cupo: ya hay 3 sesiones abiertas.',
+      });
+      return;
+    }
+    const client = new Client({
+      authStrategy: new LocalAuth({ clientId: orgId, dataPath: this.env.SESSIONS_DIR }),
+      puppeteer: {
+        headless: true,
+        executablePath: this.env.CHROME_PATH,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-default-browser-check',
+        ],
+      },
+      qrMaxRetries: 10,
+    });
+    const session: Session = {
+      orgId,
+      client,
+      status: 'starting',
+      me: '',
+      allow,
+      readyAt: Number.POSITIVE_INFINITY,
+      chats: new Map(),
+      limiter: new RateLimiter(WA_LIMITS.perMinute),
+      timers: [],
+      closing: false,
+    };
+    this.sessions.set(orgId, session);
+    const ttl = Math.min(expiresAt - Date.now(), WA_LIMITS.ttlMs);
+    session.timers.push(
+      setTimeout(() => void this.stop(orgId, 'Se cumplió el tiempo de la demo.'), Math.max(ttl, 0)),
+      setTimeout(() => {
+        if (session.status !== 'ready') void this.stop(orgId, 'No se escaneó el QR a tiempo.');
+      }, WA_LIMITS.qrMs),
+    );
+
+    client.on('qr', (qr: string) => {
+      session.status = 'qr';
+      void QRCode.toDataURL(qr, { margin: 1, width: 300 }).then((url) =>
+        this.emit({ type: 'qr', orgId, qr: url }),
+      );
+    });
+    client.on('ready', () => {
+      session.status = 'ready';
+      session.me = client.info.wid.user;
+      session.readyAt = Date.now();
+      session.chats.set(session.me, client.info.wid._serialized);
+      log('info', 'sesión lista', { orgId, sessions: this.sessions.size });
+      void this.emit({ type: 'ready', orgId, number: session.me });
+    });
+    client.on('message_create', (msg) => {
+      void this.onMessage(session, msg).catch((err: unknown) =>
+        log('warn', 'mensaje no procesado', { orgId, error: String(err) }),
+      );
+    });
+    client.on(
+      'disconnected',
+      () => void this.stop(orgId, 'Se desvinculó desde el teléfono.', false),
+    );
+    client.on(
+      'auth_failure',
+      () => void this.stop(orgId, 'WhatsApp rechazó la vinculación.', false),
+    );
+
+    log('info', 'abriendo sesión', { orgId, sessions: this.sessions.size });
+    client.initialize().catch((err: unknown) => {
+      log('error', 'no se pudo abrir WhatsApp Web', { orgId, error: String(err) });
+      void this.stop(orgId, 'No se pudo abrir WhatsApp Web. Intenta de nuevo.', false);
+    });
+  }
+
+  private async onMessage(session: Session, msg: wweb.Message): Promise<void> {
+    if (session.status !== 'ready' || session.closing) return;
+    const decision = classify(
+      {
+        from: msg.from,
+        to: msg.to,
+        fromMe: msg.fromMe,
+        type: msg.type,
+        body: msg.body,
+        isStatus: msg.isStatus,
+        timestamp: msg.timestamp,
+      },
+      session,
+    );
+    if (decision.kind === 'ignore') return;
+
+    let from = session.me;
+    let name: string | null = 'Tú (WhatsApp)';
+    if (decision.kind === 'third-party') {
+      // El id del chat puede ser un @lid: el número real sale del contacto.
+      const contact = await msg.getContact();
+      if (!contact.number || !session.allow.includes(contact.number)) return;
+      from = contact.number;
+      name = contact.pushname || contact.name || null;
+    }
+    if (!session.limiter.take()) return;
+    session.chats.set(from, decision.chatId);
+    await this.emit({
+      type: 'inbound',
+      orgId: session.orgId,
+      from,
+      name,
+      text: msg.body.slice(0, 2000),
+      messageId: msg.id._serialized,
+    });
+  }
+
+  async send(orgId: string, to: string, text: string): Promise<void> {
+    const session = this.sessions.get(orgId);
+    if (!session || session.status !== 'ready' || session.closing) return;
+    if (!canSendTo(to, session)) {
+      log('warn', 'envío bloqueado: número no permitido', { orgId });
+      return;
+    }
+    const chatId = session.chats.get(to) ?? `${to}@c.us`;
+    await session.client.sendMessage(chatId, `${WA_BOT_PREFIX}${text}`);
+  }
+
+  /**
+   * Cierra la sesión: la desvincula del teléfono (logout), cierra Chromium y borra la carpeta de
+   * autenticación. `logout` es false cuando WhatsApp ya la desvinculó.
+   */
+  async stop(orgId: string, reason: string, logout = true): Promise<void> {
+    const session = this.sessions.get(orgId);
+    if (!session || session.closing) return;
+    session.closing = true;
+    session.timers.forEach(clearTimeout);
+    if (logout && session.status === 'ready') {
+      await withTimeout(session.client.logout(), 10_000).catch(() => undefined);
+    }
+    await withTimeout(session.client.destroy(), 10_000).catch(() => undefined);
+    await rm(join(this.env.SESSIONS_DIR, `session-${orgId}`), { recursive: true, force: true });
+    this.sessions.delete(orgId);
+    log('info', 'sesión cerrada', { orgId, sessions: this.sessions.size });
+    await this.emit({ type: 'closed', orgId, reason });
+  }
+
+  async stopAll(reason: string): Promise<void> {
+    await Promise.allSettled([...this.sessions.keys()].map((id) => this.stop(id, reason)));
+  }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}

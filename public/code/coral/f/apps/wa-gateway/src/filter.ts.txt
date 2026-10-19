@@ -1,0 +1,75 @@
+import { WA_BOT_PREFIX } from '@coral/contracts';
+
+/** Lo mínimo de un mensaje de whatsapp-web.js que hace falta para decidir si se atiende. */
+export interface IncomingMessage {
+  from: string;
+  to: string;
+  fromMe: boolean;
+  type: string;
+  body: string;
+  isStatus: boolean;
+  /** Segundos (como lo da WhatsApp). */
+  timestamp: number;
+}
+
+export interface SessionView {
+  /** Número del visitante (solo dígitos). */
+  me: string;
+  /** Números de terceros permitidos. */
+  allow: string[];
+  /** Cuándo quedó lista la sesión (ms): lo anterior es historial y se ignora. */
+  readyAt: number;
+}
+
+export type Decision =
+  | { kind: 'self'; chatId: string }
+  | { kind: 'third-party'; chatId: string }
+  | { kind: 'ignore'; reason: string };
+
+const isGroupOrBroadcast = (id: string): boolean =>
+  id.endsWith('@g.us') || id.endsWith('@broadcast') || id.endsWith('@newsletter');
+
+/**
+ * Primer filtro, sin tocar WhatsApp: qué mensajes pueden llegar al bot. Solo el chat del visitante
+ * consigo mismo y, si los agregó, chats 1 a 1 con hasta 3 números (eso se confirma después con el
+ * número real del contacto). Nunca grupos, estados, canales ni el historial previo.
+ */
+export function classify(msg: IncomingMessage, session: SessionView): Decision {
+  if (msg.isStatus || isGroupOrBroadcast(msg.from) || isGroupOrBroadcast(msg.to)) {
+    return { kind: 'ignore', reason: 'grupo o estado' };
+  }
+  if (msg.type !== 'chat' || !msg.body.trim()) return { kind: 'ignore', reason: 'no es texto' };
+  if (msg.timestamp * 1000 < session.readyAt - 2000) return { kind: 'ignore', reason: 'historial' };
+
+  if (msg.fromMe) {
+    // Lo que el visitante escribe en "Mensaje para ti": de él y para él. Las respuestas del bot
+    // también salen de su cuenta, por eso llevan el prefijo y se descartan aquí.
+    const selfChat = msg.from === msg.to || msg.to === `${session.me}@c.us`;
+    if (!selfChat) return { kind: 'ignore', reason: 'mensaje propio a otro chat' };
+    if (msg.body.startsWith(WA_BOT_PREFIX.trim()))
+      return { kind: 'ignore', reason: 'respuesta del bot' };
+    return { kind: 'self', chatId: msg.to };
+  }
+
+  if (!session.allow.length) return { kind: 'ignore', reason: 'sin números permitidos' };
+  return { kind: 'third-party', chatId: msg.from };
+}
+
+/** Solo se envía al propio visitante o a un número que él permitió. */
+export function canSendTo(number: string, session: SessionView): boolean {
+  return number === session.me || session.allow.includes(number);
+}
+
+/** Ventana deslizante de un minuto: true si el mensaje entra en el límite. */
+export class RateLimiter {
+  private readonly hits: number[] = [];
+
+  constructor(private readonly perMinute: number) {}
+
+  take(now = Date.now()): boolean {
+    while (this.hits.length && now - this.hits[0]! > 60_000) this.hits.shift();
+    if (this.hits.length >= this.perMinute) return false;
+    this.hits.push(now);
+    return true;
+  }
+}

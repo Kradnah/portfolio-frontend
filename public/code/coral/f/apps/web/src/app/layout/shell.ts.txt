@@ -24,7 +24,7 @@ const NAV: NavItem[] = [
   { label: 'Carta', path: '/menu' },
   { label: 'Actividad del bot', path: '/activity' },
   { label: 'Árbol de decisiones', path: '/flows' },
-  { label: 'WhatsApp', path: '/whatsapp', soon: 'C4' },
+  { label: 'WhatsApp', path: '/whatsapp' },
 ];
 
 @Component({

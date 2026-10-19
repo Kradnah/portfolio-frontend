@@ -204,7 +204,10 @@
           "packages/contracts/src/**",
           "README.md",
           "turbo.json",
-          "package.json"
+          "package.json",
+          "apps/wa-gateway/src/**",
+          "apps/wa-gateway/test/**",
+          "apps/wa-gateway/Dockerfile"
         ],
         "exclude": [
           "apps/api/src/generated/**",
@@ -242,6 +245,13 @@
         "note": {
           "es": "Editor recursivo del árbol: cada paso con su tipo, texto y opciones, con autoguardado.",
           "en": "The recursive tree editor: each step with its type, text and options, autosaved."
+        }
+      },
+      {
+        "path": "apps/wa-gateway/src/filter.ts",
+        "note": {
+          "es": "Qué mensajes de WhatsApp puede ver el bot: solo el chat propio y números permitidos; nunca grupos, estados ni historial.",
+          "en": "Which WhatsApp messages the bot may see: only the self-chat and allowed numbers; never groups, statuses or history."
         }
       },
       {

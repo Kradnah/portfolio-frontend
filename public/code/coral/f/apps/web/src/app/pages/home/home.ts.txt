@@ -53,7 +53,8 @@ import { AuthService } from '../../core/auth/auth.service';
             <a class="btn" routerLink="/flows">Editar el árbol</a>
           </div>
           <p class="mono mt-5 text-xs text-muted">
-            Próximamente: conecta tu propio WhatsApp y prueba el bot desde tu teléfono.
+            ¿Tienes el teléfono a mano? Conecta tu WhatsApp en la sección WhatsApp y habla con el
+            bot desde ahí.
           </p>
         } @else {
           <p class="font-medium">

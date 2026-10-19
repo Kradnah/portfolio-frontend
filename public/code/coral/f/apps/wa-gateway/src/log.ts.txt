@@ -1,0 +1,9 @@
+/** Logs en JSON de una línea. Nunca incluyen textos de mensajes ni números de teléfono. */
+export function log(
+  level: 'info' | 'warn' | 'error',
+  msg: string,
+  data: Record<string, unknown> = {},
+): void {
+  const line = JSON.stringify({ time: new Date().toISOString(), level, msg, ...data });
+  (level === 'info' ? process.stdout : process.stderr).write(`${line}\n`);
+}

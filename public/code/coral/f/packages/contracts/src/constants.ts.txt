@@ -11,6 +11,7 @@ export const PanelEvent = {
   MessageCreated: 'message.created',
   ConversationUpdated: 'conversation.updated',
   SandboxExpired: 'sandbox.expired',
+  WhatsappState: 'whatsapp.state',
 } as const;
 
 /** Eventos del widget (namespace /widget, una sala por conversación). */

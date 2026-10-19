@@ -27,6 +27,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/flows/flows').then((m) => m.FlowsPage),
       },
       {
+        path: 'whatsapp',
+        loadComponent: () => import('./pages/whatsapp/whatsapp').then((m) => m.WhatsappPage),
+      },
+      {
         path: 'activity',
         loadComponent: () => import('./pages/activity/activity').then((m) => m.ActivityPage),
       },

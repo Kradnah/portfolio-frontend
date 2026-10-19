@@ -1,0 +1,225 @@
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import {
+  type ConnectWhatsappRequest,
+  maskPhone,
+  PanelEvent,
+  WA_COMMANDS_QUEUE,
+  WA_EVENTS_QUEUE,
+  WA_LIMITS,
+  type WaCommand,
+  type WaEvent,
+  type WaStateDto,
+  type WaStatus,
+} from '@coral/contracts';
+import type { Job } from 'bullmq';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { QueueService } from '../../infra/queue/queue.service.js';
+import { RedisService } from '../../infra/redis/redis.service.js';
+import { ConversationsService } from '../conversations/conversations.service.js';
+import { DemoService } from '../demo/demo.service.js';
+import { RealtimeService } from '../realtime/realtime.service.js';
+
+const ACTIVE = 'wa:active';
+const stateKey = (orgId: string) => `wa:state:${orgId}`;
+/** El estado vive un poco más que la sesión más larga posible. */
+const STATE_TTL_S = 5 * 60 * 60;
+
+/** Reserva un cupo si queda alguno (atómico: dos visitantes a la vez no pasan del límite). */
+const RESERVE = `
+if redis.call('SISMEMBER', KEYS[1], ARGV[1]) == 1 then return 1 end
+if redis.call('SCARD', KEYS[1]) < tonumber(ARGV[2]) then
+  redis.call('SADD', KEYS[1], ARGV[1])
+  return 1
+end
+return 0`;
+
+interface StoredState {
+  status: WaStatus;
+  qr?: string;
+  number?: string;
+  allow?: string;
+  expiresAt?: string;
+  reason?: string;
+}
+
+/**
+ * WhatsApp de la demo. El API guarda el estado de cada sesión en Redis y le da órdenes al gateway
+ * (apps/wa-gateway); el gateway responde con eventos (QR, lista, mensajes, cerrada).
+ */
+@Injectable()
+export class WhatsappService implements OnModuleInit {
+  private readonly logger = new Logger(WhatsappService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly queues: QueueService,
+    private readonly redis: RedisService,
+    private readonly conversations: ConversationsService,
+    private readonly realtime: RealtimeService,
+    private readonly demo: DemoService,
+  ) {}
+
+  onModuleInit(): void {
+    this.queues.work(WA_EVENTS_QUEUE, (job: Job<WaEvent>) => this.onEvent(job.data), 4);
+    this.conversations.registerOutbound('WHATSAPP', async (conversation, message) => {
+      const contact = await this.prisma.contact.findUnique({
+        where: { id: conversation.contactId },
+        select: { externalId: true },
+      });
+      if (!contact) return;
+      await this.command({
+        type: 'send',
+        orgId: conversation.organizationId,
+        to: contact.externalId,
+        text: message.text,
+      });
+    });
+    // Al borrar el sandbox se cierra la sesión (logout y borrado de la autenticación).
+    this.demo.onTeardown(async (orgId) => {
+      if (await this.redis.client.sismember(ACTIVE, orgId)) {
+        await this.command({ type: 'stop', orgId, reason: 'Se borró la demo.' });
+      }
+      await this.redis.client.del(stateKey(orgId));
+    });
+  }
+
+  async get(orgId: string): Promise<WaStateDto> {
+    const raw = (await this.redis.client.hgetall(stateKey(orgId))) as unknown as StoredState;
+    await this.prune();
+    const used = await this.redis.client.scard(ACTIVE);
+    const mine = await this.redis.client.sismember(ACTIVE, orgId);
+    return {
+      status: raw.status ?? 'idle',
+      qr: raw.status === 'qr' ? (raw.qr ?? null) : null,
+      number: raw.number ?? null,
+      allow: raw.allow ? (JSON.parse(raw.allow) as string[]).map(maskPhone) : [],
+      expiresAt: raw.expiresAt ?? null,
+      reason: raw.reason ?? null,
+      slotsFree: Math.max(0, WA_LIMITS.sessions - used + (mine ? 1 : 0)),
+    };
+  }
+
+  async connect(orgId: string, body: ConnectWhatsappRequest): Promise<WaStateDto> {
+    const org = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { isDemo: true, expiresAt: true },
+    });
+    // Por ahora solo las demos: una cuenta real usará la API oficial de Meta (C7).
+    if (!org?.isDemo || !org.expiresAt) {
+      throw new ApiException(403, 'FORBIDDEN', 'WhatsApp Web solo está disponible en la demo.');
+    }
+    const current = await this.redis.client.hget(stateKey(orgId), 'status');
+    if (current === 'starting' || current === 'qr' || current === 'ready') return this.get(orgId);
+
+    await this.prune();
+    const ok = await this.redis.client.eval(RESERVE, 1, ACTIVE, orgId, String(WA_LIMITS.sessions));
+    if (ok !== 1) {
+      throw new ApiException(
+        429,
+        'RATE_LIMITED',
+        'Ya hay 3 sesiones de WhatsApp abiertas. Intenta en unos minutos.',
+      );
+    }
+    const expiresAt = Math.min(org.expiresAt.getTime(), Date.now() + WA_LIMITS.ttlMs);
+    const allow = [...new Set(body.allow)];
+    await this.setState(orgId, {
+      status: 'starting',
+      allow: JSON.stringify(allow),
+      expiresAt: new Date(expiresAt).toISOString(),
+      qr: '',
+      number: '',
+      reason: '',
+    });
+    await this.command({ type: 'start', orgId, allow, expiresAt });
+    return this.get(orgId);
+  }
+
+  async disconnect(orgId: string): Promise<WaStateDto> {
+    if (await this.redis.client.sismember(ACTIVE, orgId)) {
+      await this.command({ type: 'stop', orgId, reason: 'Desconectaste WhatsApp desde el panel.' });
+    }
+    return this.get(orgId);
+  }
+
+  private async onEvent(event: WaEvent): Promise<void> {
+    switch (event.type) {
+      case 'qr':
+        if (await this.isOpen(event.orgId))
+          await this.setState(event.orgId, { status: 'qr', qr: event.qr });
+        break;
+      case 'ready':
+        if (await this.isOpen(event.orgId)) {
+          await this.setState(event.orgId, {
+            status: 'ready',
+            qr: '',
+            number: maskPhone(event.number),
+          });
+        }
+        break;
+      case 'inbound':
+        await this.inbound(event);
+        return;
+      case 'closed':
+        await this.redis.client.srem(ACTIVE, event.orgId);
+        if (await this.redis.client.exists(stateKey(event.orgId))) {
+          await this.setState(event.orgId, { status: 'closed', qr: '', reason: event.reason });
+        }
+        break;
+      case 'reset':
+        for (const orgId of await this.redis.client.smembers(ACTIVE)) {
+          await this.setState(orgId, {
+            status: 'closed',
+            qr: '',
+            reason: 'El servicio de WhatsApp se reinició. Conéctate de nuevo.',
+          });
+          this.realtime.toOrg(orgId, PanelEvent.WhatsappState, await this.get(orgId));
+        }
+        await this.redis.client.del(ACTIVE);
+        return;
+    }
+    this.realtime.toOrg(event.orgId, PanelEvent.WhatsappState, await this.get(event.orgId));
+  }
+
+  private async inbound(event: Extract<WaEvent, { type: 'inbound' }>): Promise<void> {
+    const org = await this.prisma.organization.findUnique({
+      where: { id: event.orgId },
+      select: { id: true },
+    });
+    if (!org) {
+      await this.command({ type: 'stop', orgId: event.orgId, reason: 'La demo ya no existe.' });
+      return;
+    }
+    await this.conversations.inbound({
+      organizationId: event.orgId,
+      channel: 'WHATSAPP',
+      externalId: event.from,
+      name: event.name ?? undefined,
+      text: event.text,
+      externalMessageId: event.messageId,
+    });
+  }
+
+  private async isOpen(orgId: string): Promise<boolean> {
+    return (await this.redis.client.sismember(ACTIVE, orgId)) === 1;
+  }
+
+  private async setState(orgId: string, patch: Partial<StoredState>): Promise<void> {
+    const key = stateKey(orgId);
+    await this.redis.client.hset(key, patch as Record<string, string>);
+    await this.redis.client.expire(key, STATE_TTL_S);
+  }
+
+  /** Libera cupos de sesiones cuyo estado ya venció (p. ej. si el gateway se cayó sin avisar). */
+  private async prune(): Promise<void> {
+    for (const orgId of await this.redis.client.smembers(ACTIVE)) {
+      const status = await this.redis.client.hget(stateKey(orgId), 'status');
+      if (!status || status === 'closed') await this.redis.client.srem(ACTIVE, orgId);
+    }
+  }
+
+  private async command(cmd: WaCommand): Promise<void> {
+    await this.queues.queue(WA_COMMANDS_QUEUE).add(cmd.type, cmd);
+    if (cmd.type !== 'send') this.logger.log(`WhatsApp ${cmd.type} → ${cmd.orgId}`);
+  }
+}

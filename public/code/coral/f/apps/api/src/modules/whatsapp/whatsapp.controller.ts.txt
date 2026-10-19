@@ -1,0 +1,30 @@
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { ConnectWhatsappRequest, type WaStateDto } from '@coral/contracts';
+import { type AuthUser, CurrentUser } from '../../common/auth/auth.decorators.js';
+import { createZodDto } from '../../common/zod/zod-dto.js';
+import { WhatsappService } from './whatsapp.service.js';
+
+class ConnectWhatsappDto extends createZodDto(ConnectWhatsappRequest) {}
+
+/** Conexión del WhatsApp del visitante (whatsapp-web.js) a su demo. */
+@Controller('whatsapp')
+export class WhatsappController {
+  constructor(private readonly whatsapp: WhatsappService) {}
+
+  @Get()
+  get(@CurrentUser() user: AuthUser): Promise<WaStateDto> {
+    return this.whatsapp.get(user.organizationId);
+  }
+
+  @HttpCode(200)
+  @Post('connect')
+  connect(@CurrentUser() user: AuthUser, @Body() body: ConnectWhatsappDto): Promise<WaStateDto> {
+    return this.whatsapp.connect(user.organizationId, body);
+  }
+
+  @HttpCode(200)
+  @Post('disconnect')
+  disconnect(@CurrentUser() user: AuthUser): Promise<WaStateDto> {
+    return this.whatsapp.disconnect(user.organizationId);
+  }
+}
