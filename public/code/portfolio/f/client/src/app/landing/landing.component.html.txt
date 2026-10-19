@@ -48,6 +48,7 @@
     <ul class="nav-tabs">
       <li><a href="#experiencia">{{ t().nav.experience }}</a></li>
       <li><a href="#proyectos">{{ t().nav.projects }}</a></li>
+      <li><a href="#demos">{{ t().nav.lab }}</a></li>
       <li><a href="#ia">{{ t().nav.ai }}</a></li>
       <li><a href="#contacto">{{ t().nav.contact }}</a></li>
     </ul>
@@ -229,4 +230,5 @@
 
 <app-experience id="experiencia" />
 <app-projects id="proyectos" />
+<app-lab id="demos" />
 <app-contact id="contacto" />

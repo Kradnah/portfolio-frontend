@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ApiSession } from '../api-session';
 import { I18n } from '../i18n';
 
 interface Message {
@@ -30,7 +31,7 @@ export class AskAiComponent {
   protected readonly maxTurns = MAX_TURNS;
 
   private readonly log = viewChild<ElementRef<HTMLElement>>('log');
-  private session: string | null = null;
+  private readonly api = inject(ApiSession);
 
   protected askSuggested(item: { q: string; a: string }): void {
     if (this.busy()) return;
@@ -79,32 +80,11 @@ export class AskAiComponent {
       .map(({ role, content }) => ({ role, content }));
   }
 
-  private async post(messages: { role: string; content: string }[]): Promise<Response> {
-    const call = async () => {
-      this.session ??= await this.createSession();
-      return fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.session}` },
-        body: JSON.stringify({ messages, lang: this.i18n.lang() }),
-      });
-    };
-    let res = await call();
-    if (res.status === 401) {
-      // Sesión caducada: se pide otra una sola vez.
-      this.session = null;
-      res = await call();
-    }
-    return res;
-  }
-
-  private async createSession(): Promise<string> {
-    const res = await fetch('/api/chat/session', {
+  private post(messages: { role: string; content: string }[]): Promise<Response> {
+    return this.api.fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+      body: JSON.stringify({ messages, lang: this.i18n.lang() }),
     });
-    if (!res.ok) throw new Error('session');
-    return ((await res.json()) as { token: string }).token;
   }
 
   private async readStream(res: Response): Promise<void> {

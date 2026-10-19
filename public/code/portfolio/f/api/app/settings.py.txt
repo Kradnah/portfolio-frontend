@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     per_ip_daily: int = 40
     global_daily: int = 500
 
+    # Demo del analizador de llamadas: es una prueba, no una herramienta. Comparte la key (y su
+    # límite de crédito) con el chat; estos topes evitan que un día de abuso consuma el mes.
+    call_qa_max_seconds: int = 180
+    call_qa_max_chars: int = 6000
+    call_qa_max_tokens: int = 1500
+    call_qa_burst: int = 2
+    call_qa_burst_window_seconds: int = 600
+    call_qa_per_ip_daily: int = 3
+    call_qa_global_daily: int = 40
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -1,0 +1,228 @@
+<div class="page">
+  <header class="top">
+    <a class="back" routerLink="/">{{ t().calls.back }}</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+  </header>
+
+  <section class="intro">
+    <span class="kicker">{{ t().calls.kicker }}</span>
+    <h1 class="title">{{ t().calls.title }} <span class="hl">{{ t().calls.titleHl }}</span></h1>
+    <p class="sub">{{ t().calls.sub }}</p>
+    <ol class="steps">
+      @for (s of t().calls.steps; track $index) {
+        <li><span class="step-n">0{{ $index + 1 }}</span><strong>{{ s.t }}</strong><span>{{ s.d }}</span></li>
+      }
+    </ol>
+  </section>
+
+  @if (phase() !== 'done') {
+    <section class="input-card">
+      <div class="tabs" role="tablist">
+        @for (k of ['samples', 'upload', 'record']; track k) {
+          <button type="button" role="tab" class="tab" [class.on]="tab() === k" [attr.aria-selected]="tab() === k"
+                  [disabled]="busy() || recording()" (click)="tab.set($any(k))">{{ $any(t().calls.tabs)[k] }}</button>
+        }
+      </div>
+
+      <div class="panel">
+        @if (busy()) {
+          <div class="progress" aria-live="polite">
+            <p class="stage">{{ t().calls.stages[phase()] }}…</p>
+            <div class="bar" [class.indeterminate]="phase() !== 'download' || !download().total">
+              <span [style.width.%]="phase() === 'download' ? downloadPct() : 100"></span>
+            </div>
+            @if (phase() === 'download' && download().total) {
+              <p class="small">{{ (download().loaded / 1e6).toFixed(0) }} / {{ (download().total / 1e6).toFixed(0) }} MB</p>
+            }
+            @if (phase() === 'download' || phase() === 'transcribe') {
+              <p class="small muted">{{ t().calls.slowNote }}</p>
+            }
+          </div>
+        } @else {
+          @switch (tab()) {
+            @case ('samples') {
+              @if (samples().length) {
+                <div class="samples">
+                  @for (s of samples(); track s.id) {
+                    <button type="button" class="sample" (click)="openSample(s)">
+                      <span class="sample-co">{{ s.company }}</span>
+                      <strong>{{ s.title[i18n.lang()] }}</strong>
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="soon">{{ t().calls.samplesSoon }}</p>
+              }
+            }
+            @case ('upload') {
+              <label class="drop" [class.over]="dragging()"
+                     (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+                <input type="file" accept="audio/*,.m4a,.mp3,.wav,.ogg,.webm,.opus" (change)="onFileInput($event)" [disabled]="quota().remainingToday <= 0" />
+                <span class="drop-icon" aria-hidden="true">⬆</span>
+                <strong>{{ t().calls.dropTitle }}</strong>
+                <span class="small">{{ fill(t().calls.dropHint) }}</span>
+              </label>
+            }
+            @case ('record') {
+              <div class="rec">
+                <p>{{ fill(t().calls.recordHint) }}</p>
+                <button type="button" class="rec-btn" [class.on]="recording()" (click)="toggleRecording()"
+                        [disabled]="!recording() && quota().remainingToday <= 0">
+                  {{ recording() ? t().calls.recordStop : t().calls.recordStart }}
+                </button>
+                @if (recording()) {
+                  <p class="rec-time"><span class="rec-dot"></span>{{ t().calls.recording }} {{ clock(recSeconds()) }} / {{ clock(quota().maxSeconds) }}</p>
+                }
+              </div>
+            }
+          }
+
+          @if (tab() !== 'samples') {
+            <div class="options">
+              <label>{{ t().calls.audioLang }}
+                <select [value]="audioLang()" (change)="audioLang.set($any($event.target).value)">
+                  <option value="spanish">{{ t().calls.audioLangs.spanish }}</option>
+                  <option value="english">{{ t().calls.audioLangs.english }}</option>
+                </select>
+              </label>
+              <span class="small muted">{{ t().calls.consent }}</span>
+            </div>
+          }
+        }
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+      </div>
+
+      <aside class="limits">
+        <strong>{{ t().calls.limitsTitle }}</strong>
+        <ul>
+          @for (l of t().calls.limits; track $index) {<li>{{ fill(l) }}</li>}
+        </ul>
+        <p class="quota" [class.empty]="quota().remainingToday <= 0">
+          {{ quota().remainingToday > 0 ? fill(t().calls.remaining, { n: quota().remainingToday, total: quota().perDay }) : t().calls.noneLeft }}
+        </p>
+      </aside>
+    </section>
+  } @else {
+    <div class="result-bar">
+      <button type="button" class="again" (click)="reset()">← {{ t().calls.again }}</button>
+      @if (!sample()) {
+        <span class="small muted">{{ fill(t().calls.remaining, { n: quota().remainingToday, total: quota().perDay }) }}</span>
+      }
+    </div>
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="results">
+      <!-- Transcripción -->
+      <section class="card transcript">
+        <div class="card-bar">{{ t().calls.transcriptTitle }}</div>
+        @if (audioUrl(); as url) {
+          <audio #player class="player" controls [src]="url" (timeupdate)="onTimeUpdate()"></audio>
+        }
+        <ol class="segments">
+          @for (s of segments(); track $index; let i = $index) {
+            <li [id]="'seg-' + i" [class.active]="active() === i" [class.focused]="focused() === i">
+              <button type="button" class="seg" (click)="seek(i)">
+                <span class="seg-time">{{ clock(s.start) }}</span>
+                @if (result()) {
+                  <span class="role" [class]="'role role-' + role(i)">{{ t().calls.roles[role(i)] }}</span>
+                }
+                <span class="seg-text">{{ s.text }}</span>
+              </button>
+            </li>
+          }
+        </ol>
+        @if (result()) {
+          <p class="note">{{ t().calls.roleNote }}</p>
+        }
+      </section>
+
+      <!-- Análisis -->
+      @if (result(); as a) {
+        <section class="analysis">
+          <div class="card score-card" [class]="'card score-card tone-' + scoreTone()">
+            <div class="score">
+              <span class="score-label">{{ t().calls.overall }}</span>
+              @if (a.overall !== null) {
+                <span class="score-value">{{ a.overall }}<small>/100</small></span>
+              } @else {
+                <span class="score-value na">—</span>
+              }
+            </div>
+            <div class="score-meta">
+              <span class="tag">{{ t().calls.callType[a.callType] }}</span>
+              <span class="tag" [class]="'tag sent-' + a.customerSentiment">{{ t().calls.sentiment[a.customerSentiment] }}</span>
+              <h2 class="h">{{ t().calls.summaryTitle }}</h2>
+              <p>{{ a.summary }}</p>
+              @if (!a.isServiceCall) {
+                <p class="small muted">{{ t().calls.notService }}</p>
+              }
+            </div>
+          </div>
+
+          @if (a.isServiceCall) {
+            <div class="card">
+              <ul class="criteria">
+                @for (c of a.criteria; track c.key) {
+                  <li>
+                    <div class="crit-head">
+                      <strong>{{ t().calls.criteria[c.key] }}</strong>
+                      <span class="dots" [attr.aria-label]="c.score + '/5'">
+                        @for (on of dots(c.score); track $index) {<span [class.on]="on"></span>}
+                      </span>
+                    </div>
+                    <p>{{ c.comment }}</p>
+                    @for (e of c.evidence; track $index) {
+                      <button type="button" class="quote" (click)="seek(e.segment)">
+                        <span class="q-time">{{ clock(segments()[e.segment]?.start ?? 0) }}</span>“{{ e.quote }}”
+                      </button>
+                    }
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          <div class="card alerts">
+            <div class="card-bar warn">{{ t().calls.alertsTitle }}</div>
+            @if (a.alerts.length) {
+              <ul>
+                @for (al of a.alerts; track $index) {
+                  <li [class]="'sev-' + al.severity">
+                    @if (al.segment >= 0) {
+                      <button type="button" class="q-time link" (click)="seek(al.segment)">{{ clock(segments()[al.segment]?.start ?? 0) }}</button>
+                    }
+                    {{ al.text }}
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="pad muted">{{ t().calls.noAlerts }}</p>
+            }
+          </div>
+
+          @if (a.feedback.length) {
+            <div class="card">
+              <div class="card-bar ok">{{ t().calls.feedbackTitle }}</div>
+              <ol class="feedback">
+                @for (f of a.feedback; track $index) {<li>{{ f }}</li>}
+              </ol>
+            </div>
+          }
+
+          <p class="small muted">{{ t().calls.disclaimer }}</p>
+        </section>
+      }
+    </div>
+  }
+
+  <footer class="foot">
+    <a routerLink="/codigo/portfolio" [queryParams]="{ f: 'api/app/call_qa.py' }">{{ t().calls.codeLink }}</a>
+  </footer>
+</div>

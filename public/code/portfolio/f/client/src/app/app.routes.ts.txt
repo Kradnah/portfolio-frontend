@@ -9,5 +9,9 @@ export const routes: Routes = [
         path: 'codigo/:slug',
         loadComponent: () => import('./code/code-viewer.component').then(m => m.CodeViewerComponent)
     },
+    {
+        path: 'demos/llamadas',
+        loadComponent: () => import('./demos/calls/call-lab.component').then(m => m.CallLabComponent)
+    },
     { path: '**', redirectTo: '/' }
 ];

@@ -11,6 +11,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from . import call_qa
 from .limits import UsageLimiter
 from .llm import Llm, LlmError, OpenRouterLlm
 from .prompt import language_reminder, system_prompt
@@ -60,6 +61,12 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
         burst_window=settings.per_ip_burst_window_seconds,
         ip_daily=settings.per_ip_daily,
         global_daily=settings.global_daily,
+    )
+    qa_limiter = UsageLimiter(
+        burst=settings.call_qa_burst,
+        burst_window=settings.call_qa_burst_window_seconds,
+        ip_daily=settings.call_qa_per_ip_daily,
+        global_daily=settings.call_qa_global_daily,
     )
     # Turnos usados por sesión: {sid: (turnos, caduca_en)}.
     turns: dict[str, tuple[int, float]] = {}
@@ -147,9 +154,11 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
 
         # Solo los últimos turnos: acota el costo aunque el cliente envíe un historial largo.
         history = body.messages[-(settings.max_turns * 2) :]
-        messages = [{"role": "system", "content": system_prompt()}] + [
-            {"role": m.role, "content": m.content} for m in history
-        ] + [{"role": "system", "content": language_reminder(body.lang)}]
+        messages = (
+            [{"role": "system", "content": system_prompt()}]
+            + [{"role": m.role, "content": m.content} for m in history]
+            + [{"role": "system", "content": language_reminder(body.lang)}]
+        )
         log.info("chat ip=%s turno=%d chars=%d", anon(ip), used + 1, len(last.content))
 
         async def events() -> AsyncIterator[str]:
@@ -166,6 +175,51 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
+
+    @app.get("/api/demos/call-qa/quota")
+    async def call_qa_quota(request: Request) -> dict[str, int]:
+        return {
+            "remainingToday": qa_limiter.remaining(client_ip(request, settings)),
+            "perDay": settings.call_qa_per_ip_daily,
+            "maxSeconds": settings.call_qa_max_seconds,
+        }
+
+    @app.post("/api/demos/call-qa")
+    async def call_qa_analyze(
+        body: call_qa.CallQaRequest,
+        request: Request,
+        llm: Annotated[Llm, Depends(get_llm)],
+        authorization: Annotated[str | None, Header()] = None,
+    ):
+        if not (
+            authorization
+            and authorization.startswith("Bearer ")
+            and signer.verify(authorization[7:])
+        ):
+            raise HTTPException(401, "invalid_session")
+        try:
+            call_qa.check_size(
+                body, max_seconds=settings.call_qa_max_seconds, max_chars=settings.call_qa_max_chars
+            )
+        except call_qa.TranscriptTooLong as err:
+            raise HTTPException(422, err.reason) from err
+
+        ip = client_ip(request, settings)
+        verdict = qa_limiter.check(ip)
+        if not verdict.allowed:
+            log.info("call_qa limite ip=%s motivo=%s", anon(ip), verdict.reason)
+            return JSONResponse(
+                {"detail": verdict.reason},
+                status_code=429,
+                headers={"Retry-After": str(verdict.retry_after)},
+            )
+        try:
+            analysis = await call_qa.analyze(llm, body, max_tokens=settings.call_qa_max_tokens)
+        except (LlmError, call_qa.AnalysisFailed) as err:
+            log.warning("call_qa error %s", type(err).__name__)
+            qa_limiter.refund(ip)
+            raise HTTPException(502, "analysis_unavailable") from err
+        return {"analysis": analysis, "remainingToday": qa_limiter.remaining(ip)}
 
     return app
 

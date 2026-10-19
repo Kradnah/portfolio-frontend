@@ -61,6 +61,20 @@ class UsageLimiter:
         self._global += 1
         return Verdict(True)
 
+    def refund(self, ip: str) -> None:
+        """Devuelve un uso de `ip` (cuando el fallo fue nuestro, no del visitante)."""
+        if self._daily.get(ip, 0) > 0:
+            self._daily[ip] -= 1
+            self._global = max(0, self._global - 1)
+            window = self._recent.get(ip)
+            if window:
+                window.pop()
+
+    def remaining(self, ip: str) -> int:
+        """Usos que le quedan hoy a `ip` (sin contar la ráfaga)."""
+        self._roll_day()
+        return max(0, min(self.ip_daily - self._daily.get(ip, 0), self.global_daily - self._global))
+
     def _today(self) -> str:
         return datetime.fromtimestamp(self.clock(), TZ).date().isoformat()
 
