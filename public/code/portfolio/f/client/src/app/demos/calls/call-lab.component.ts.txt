@@ -24,7 +24,7 @@ export interface Analysis {
   feedback: string[];
 }
 
-/** Llamadas de ejemplo con transcripción y análisis precalculados (public/demos/llamadas/samples.json). */
+/** Llamadas de ejemplo con transcripción y análisis precalculados (public/demo-data/llamadas/samples.json). */
 interface Sample {
   id: string;
   title: { es: string; en: string };
@@ -99,7 +99,7 @@ export class CallLabComponent implements OnInit, OnDestroy {
       // Sin API (p. ej. en local) se muestran los límites por defecto.
     }
     try {
-      const res = await fetch('/demos/llamadas/samples.json', { cache: 'no-cache' });
+      const res = await fetch('/demo-data/llamadas/samples.json', { cache: 'no-cache' });
       if (res.ok && res.headers.get('content-type')?.includes('json')) {
         const list = (await res.json()) as Sample[];
         this.samples.set(list);

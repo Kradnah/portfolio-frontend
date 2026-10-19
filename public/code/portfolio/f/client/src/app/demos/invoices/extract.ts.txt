@@ -92,7 +92,9 @@ export async function readImage(file: Blob, progress: Progress): Promise<PageSca
 
 async function ocrCanvas(canvas: HTMLCanvasElement, progress: Progress): Promise<PageScan> {
   progress('ocr', 0);
-  const { createWorker } = await import('tesseract.js');
+  // tesseract.js es CommonJS: en el build de producción sus funciones quedan bajo `default`.
+  const mod = await import('tesseract.js');
+  const createWorker = mod.createWorker ?? (mod as unknown as { default: typeof mod }).default.createWorker;
   const worker = await createWorker('spa', 1, {
     logger: (m: { status: string; progress: number }) => {
       if (m.status === 'recognizing text') progress('ocr', m.progress);

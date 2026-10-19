@@ -50,6 +50,7 @@ server {
     # SPA fallback
     location / {
         add_header Cache-Control "no-cache";
-        try_files $uri $uri/ /index.html;
+        # Sin $uri/: una carpeta de public/ no debe tapar una ruta de la app (p. ej. /demos/...).
+        try_files $uri /index.html;
     }
 }

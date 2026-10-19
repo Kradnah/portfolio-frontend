@@ -99,11 +99,12 @@
           "package.json"
         ],
         "exclude": [
-          "**/*.webp",
+          "**/*.ico",
+          "**/*.pdf",
           "**/*.png",
           "**/*.svg",
-          "**/*.ico",
-          "**/*.pdf"
+          "**/*.webp",
+          "scripts/publish-apks.sh"
         ]
       },
       {
