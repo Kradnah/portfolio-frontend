@@ -13,5 +13,9 @@ export const routes: Routes = [
         path: 'demos/llamadas',
         loadComponent: () => import('./demos/calls/call-lab.component').then(m => m.CallLabComponent)
     },
+    {
+        path: 'demos/facturas',
+        loadComponent: () => import('./demos/invoices/invoice-lab.component').then(m => m.InvoiceLabComponent)
+    },
     { path: '**', redirectTo: '/' }
 ];

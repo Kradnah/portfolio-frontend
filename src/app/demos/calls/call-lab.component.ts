@@ -44,7 +44,7 @@ const MAX_BYTES = 15 * 1024 * 1024;
   standalone: true,
   imports: [RouterLink],
   templateUrl: './call-lab.component.html',
-  styleUrl: './call-lab.component.css',
+  styleUrls: ['../demo-shell.css', './call-lab.component.css'],
 })
 export class CallLabComponent implements OnInit, OnDestroy {
   protected readonly i18n = inject(I18n);
@@ -82,7 +82,7 @@ export class CallLabComponent implements OnInit, OnDestroy {
   });
   protected readonly scoreTone = computed(() => {
     const o = this.result()?.overall;
-    return o == null ? 'none' : o >= 75 ? 'good' : o >= 45 ? 'mid' : 'bad';
+    return o == null ? 'none' : o >= 85 ? 'good' : o >= 50 ? 'mid' : 'bad';
   });
 
   private worker?: Worker;

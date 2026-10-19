@@ -1,0 +1,190 @@
+<div class="page">
+  <header class="top">
+    <a class="back" routerLink="/">{{ t().invoices.back }}</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+  </header>
+
+  <section class="intro">
+    <span class="kicker">{{ t().invoices.kicker }}</span>
+    <h1 class="title">{{ t().invoices.title }} <span class="hl">{{ t().invoices.titleHl }}</span></h1>
+    <p class="sub">{{ t().invoices.sub }}</p>
+    <ol class="steps">
+      @for (s of t().invoices.steps; track $index) {
+        <li><span class="step-n">0{{ $index + 1 }}</span><strong>{{ s.t }}</strong><span>{{ s.d }}</span></li>
+      }
+    </ol>
+  </section>
+
+  @if (phase() !== 'done') {
+    <section class="input-card">
+      <div class="tabs" role="tablist">
+        @for (k of ['samples', 'upload']; track k) {
+          <button type="button" role="tab" class="tab" [class.on]="tab() === k" [attr.aria-selected]="tab() === k"
+                  [disabled]="busy()" (click)="tab.set($any(k))">{{ $any(t().invoices.tabs)[k] }}</button>
+        }
+      </div>
+
+      <div class="panel">
+        @if (busy()) {
+          <div class="progress" aria-live="polite">
+            <p class="stage">{{ t().invoices.stages[phase()] }}…</p>
+            <div class="bar" [class.indeterminate]="phase() !== 'ocr' || !ocrProgress()">
+              <span [style.width.%]="phase() === 'ocr' ? ocrProgress() : 100"></span>
+            </div>
+            @if (phase() === 'ocr') {
+              <p class="small muted">{{ ocrProgress() }}% · {{ t().invoices.ocrNote }}</p>
+            }
+          </div>
+        } @else {
+          @switch (tab()) {
+            @case ('samples') {
+              <p class="small muted">{{ t().invoices.samplesHint }}</p>
+              <div class="samples">
+                @for (s of samples(); track s.id) {
+                  <button type="button" class="sample" (click)="openSample(s)">
+                    <span class="sample-co">{{ s.extraction.fields.issuerName.value }}</span>
+                    <strong>{{ s.title[i18n.lang()] }}</strong>
+                  </button>
+                }
+              </div>
+            }
+            @case ('upload') {
+              <label class="drop" [class.over]="dragging()"
+                     (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+                <input type="file" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" (change)="onFileInput($event)"
+                       [disabled]="quota().remainingToday <= 0" />
+                <span class="drop-icon" aria-hidden="true">⬆</span>
+                <strong>{{ t().invoices.dropTitle }}</strong>
+                <span class="small">{{ fill(t().invoices.dropHint) }}</span>
+              </label>
+              <p class="small muted">{{ t().invoices.consent }}</p>
+            }
+          }
+        }
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+      </div>
+
+      <aside class="limits">
+        <strong>{{ t().invoices.limitsTitle }}</strong>
+        <ul>
+          @for (l of t().invoices.limits; track $index) {<li>{{ fill(l) }}</li>}
+        </ul>
+        <p class="quota" [class.empty]="quota().remainingToday <= 0">
+          {{ quota().remainingToday > 0 ? fill(t().invoices.remaining, { n: quota().remainingToday, total: quota().perDay }) : t().invoices.noneLeft }}
+        </p>
+      </aside>
+    </section>
+  } @else {
+    <div class="result-bar">
+      <button type="button" class="again" (click)="reset()">← {{ t().invoices.again }}</button>
+    </div>
+
+    @if (extraction(); as ex) {
+      <div class="results">
+        <!-- Documento con recuadros -->
+        <section class="card doc">
+          <div class="card-bar">
+            {{ t().invoices.pageTitle }}
+            <span class="badge">{{ pages()[0].ocr ? t().invoices.ocrBadge : t().invoices.pdfBadge }}</span>
+          </div>
+          <div class="doc-tools">
+            <label class="switch">
+              <input type="checkbox" [checked]="privacy()" (change)="privacy.set($any($event.target).checked)" />
+              <span>{{ t().invoices.privacy }}</span>
+            </label>
+            @if (privacy()) {
+              <button type="button" class="link-btn" (click)="downloadMasked()">⬇ {{ t().invoices.download }}</button>
+            } @else {
+              <span class="small muted">{{ t().invoices.privacyHint }}</span>
+            }
+          </div>
+          <div class="sheet">
+            <img [src]="pages()[0].image" alt="" />
+            @if (!privacy()) {
+              @for (b of boxes(); track b.key) {
+                <span class="box" [class]="'box st-' + b.status" [class.hot]="hover() === b.key" [style]="pos(b)"
+                      [title]="b.label" (mouseenter)="hover.set(b.key)" (mouseleave)="hover.set(null)"></span>
+              }
+            } @else {
+              @for (m of masks(); track $index) {
+                <span class="mask" [style]="pos(m)"></span>
+              }
+            }
+          </div>
+        </section>
+
+        <section class="side">
+          @if (!ex.isInvoice) {
+            <div class="card verdict v-none"><strong>{{ t().invoices.notInvoice }}</strong><p>{{ ex.notes }}</p></div>
+          } @else {
+            <div class="card verdict" [class]="'card verdict v-' + verdict()">
+              <span class="v-icon" aria-hidden="true">{{ verdict() === 'ok' ? '✓' : verdict() === 'warn' ? '!' : '✕' }}</span>
+              <div>
+                <strong>{{ verdict() === 'ok' ? t().invoices.verdictOk : verdict() === 'warn' ? t().invoices.verdictWarn : fill(t().invoices.verdictFail, { n: failures() }) }}</strong>
+                <p class="small">{{ ex.fields.issuerName.value }} · {{ ex.fields.invoiceNumber.value }} · {{ display('total') }}</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-bar">{{ t().invoices.checksTitle }}</div>
+              <ul class="checks">
+                @for (c of checks(); track c.id) {
+                  <li [class]="'st-' + c.status">
+                    <span class="c-icon" aria-hidden="true">{{ c.status === 'ok' ? '✓' : c.status === 'fail' ? '✕' : c.status === 'warn' ? '!' : '–' }}</span>
+                    <span>{{ checkText(c) }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-bar">{{ t().invoices.fieldsTitle }}</div>
+              <dl class="fields">
+                @for (k of fieldOrder; track k) {
+                  <div class="row" [class]="'row st-' + (status()[k] ?? 'none')" [class.hot]="hover() === k"
+                       (mouseenter)="hover.set(k)" (mouseleave)="hover.set(null)">
+                    <dt>{{ t().invoices.fields[k] }}</dt>
+                    <dd [class.missing]="ex.fields[k].value === null" [class.mono]="k === 'cufe'">
+                      {{ ex.fields[k].value === null ? t().invoices.notFound : display(k) }}
+                    </dd>
+                  </div>
+                }
+              </dl>
+            </div>
+
+            @if (ex.lines.length) {
+              <div class="card">
+                <div class="card-bar">{{ t().invoices.linesTitle }}</div>
+                <div class="table-wrap">
+                  <table class="lines">
+                    <thead><tr><th>{{ t().invoices.cols.desc }}</th><th>{{ t().invoices.cols.qty }}</th><th>{{ t().invoices.cols.unit }}</th><th>{{ t().invoices.cols.total }}</th></tr></thead>
+                    <tbody>
+                      @for (l of ex.lines; track $index; let i = $index) {
+                        <tr [class.bad]="badLines().has(i)" [class.hot]="hover() === 'line-' + i"
+                            (mouseenter)="hover.set('line-' + i)" (mouseleave)="hover.set(null)">
+                          <td>{{ l.description }}</td><td>{{ l.quantity }}</td><td>{{ money(l.unitPrice) }}</td><td>{{ money(l.total) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+            @if (ex.notes) {
+              <p class="small muted">{{ ex.notes }}</p>
+            }
+          }
+          <p class="small muted">{{ t().invoices.disclaimer }}</p>
+        </section>
+      </div>
+    }
+  }
+
+  <footer class="foot">
+    <a routerLink="/codigo/portfolio" [queryParams]="{ f: 'client/src/app/demos/invoices/checks.ts' }">{{ t().invoices.codeLink }}</a>
+  </footer>
+</div>

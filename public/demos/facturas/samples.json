@@ -1,0 +1,425 @@
+[
+ {
+  "id": "01",
+  "file": "factura-01-correcta.pdf",
+  "title": {
+   "es": "Factura correcta",
+   "en": "Valid invoice"
+  },
+  "extraction": {
+   "isInvoice": true,
+   "currency": "COP",
+   "fields": {
+    "issuerName": {
+     "value": "Papelería El Cuaderno S.A.S.",
+     "raw": "Papelería El Cuaderno S.A.S."
+    },
+    "issuerNit": {
+     "value": "900123456-8",
+     "raw": "NIT 900.123.456-8"
+    },
+    "customerName": {
+     "value": "Marta Lucía Gómez",
+     "raw": "Marta Lucía Gómez"
+    },
+    "customerId": {
+     "value": "52111222",
+     "raw": "CC 52.111.222"
+    },
+    "invoiceNumber": {
+     "value": "FEC-1042",
+     "raw": "No. FEC-1042"
+    },
+    "issueDate": {
+     "value": "2026-09-14",
+     "raw": "14/09/2026"
+    },
+    "dueDate": {
+     "value": "2026-10-14",
+     "raw": "14/10/2026"
+    },
+    "cufe": {
+     "value": "ccc54a5579b40c8d65a07d04384c89a4730adc864670291e9c9f373c260082a3cdbaa373a47c74b749bdc2008f4f5dd6",
+     "raw": "ccc54a5579b40c8d65a07d04384c89a4730adc864670291e9c9f373c260082a3 cdbaa373a47c74b749bdc2008f4f5dd6"
+    },
+    "subtotal": {
+     "value": 166000,
+     "raw": "$ 166.000"
+    },
+    "taxRate": {
+     "value": 19,
+     "raw": "19%"
+    },
+    "tax": {
+     "value": 31540,
+     "raw": "$ 31.540"
+    },
+    "total": {
+     "value": 197540,
+     "raw": "$ 197.540"
+    }
+   },
+   "lines": [
+    {
+     "description": "Cuaderno argollado 100 hojas",
+     "quantity": 10,
+     "unitPrice": 8500,
+     "total": 85000,
+     "raw": "Cuaderno argollado 100 hojas 10 $ 8.500 $ 85.000"
+    },
+    {
+     "description": "Resma papel carta",
+     "quantity": 2,
+     "unitPrice": 21900,
+     "total": 43800,
+     "raw": "Resma papel carta 2 $ 21.900 $ 43.800"
+    },
+    {
+     "description": "Caja de lápices x12",
+     "quantity": 3,
+     "unitPrice": 12400,
+     "total": 37200,
+     "raw": "Caja de lápices x12 3 $ 12.400 $ 37.200"
+    }
+   ],
+   "notes": ""
+  }
+ },
+ {
+  "id": "02",
+  "file": "factura-02-suma-de-items.pdf",
+  "title": {
+   "es": "Ítem mal multiplicado",
+   "en": "Wrong line total"
+  },
+  "extraction": {
+   "isInvoice": true,
+   "currency": "COP",
+   "fields": {
+    "issuerName": {
+     "value": "Ferretería La Tuerca Ltda.",
+     "raw": "Ferretería La Tuerca Ltda."
+    },
+    "issuerNit": {
+     "value": "800456789-1",
+     "raw": "NIT 800.456.789-1"
+    },
+    "customerName": {
+     "value": "Construcciones Ricaurte S.A.S.",
+     "raw": "Construcciones Ricaurte S.A.S."
+    },
+    "customerId": {
+     "value": "901234567",
+     "raw": "NIT 901.234.567"
+    },
+    "invoiceNumber": {
+     "value": "FT-77810",
+     "raw": "No. FT-77810"
+    },
+    "issueDate": {
+     "value": "2026-09-20",
+     "raw": "20/09/2026"
+    },
+    "dueDate": {
+     "value": "2026-10-05",
+     "raw": "05/10/2026"
+    },
+    "cufe": {
+     "value": "d0d19899dcab9e8f0bfb5fc61d976b947158674f5b6c70ff2d4ea3918e136c7ae8bffb001126a2cb9f229652c1153bc1",
+     "raw": "CUFE: d0d19899dcab9e8f0bfb5fc61d976b947158674f5b6c70ff2d4ea3918e136c7a e8bffb001126a2cb9f229652c115…"
+    },
+    "subtotal": {
+     "value": 426000,
+     "raw": "$ 426.000"
+    },
+    "taxRate": {
+     "value": 19,
+     "raw": "19%"
+    },
+    "tax": {
+     "value": 80940,
+     "raw": "$ 80.940"
+    },
+    "total": {
+     "value": 506940,
+     "raw": "$ 506.940"
+    }
+   },
+   "lines": [
+    {
+     "description": "Tornillo drywall 6x1 (caja)",
+     "quantity": 4,
+     "unitPrice": 18000,
+     "total": 72000,
+     "raw": "Tornillo drywall 6x1 (caja) 4 $ 18.000 $ 72.000"
+    },
+    {
+     "description": "Taladro percutor 650 W",
+     "quantity": 1,
+     "unitPrice": 289000,
+     "total": 298000,
+     "raw": "Taladro percutor 650 W 1 $ 289.000 $ 298.000"
+    },
+    {
+     "description": "Brocas para concreto x5",
+     "quantity": 2,
+     "unitPrice": 32500,
+     "total": 65000,
+     "raw": "Brocas para concreto x5 2 $ 32.500 $ 65.000"
+    }
+   ],
+   "notes": ""
+  }
+ },
+ {
+  "id": "03",
+  "file": "factura-03-iva-mal-calculado.pdf",
+  "title": {
+   "es": "IVA mal calculado",
+   "en": "Wrong VAT amount"
+  },
+  "extraction": {
+   "isInvoice": true,
+   "currency": "COP",
+   "fields": {
+    "issuerName": {
+     "value": "Café Tokio-3 S.A.S.",
+     "raw": "Café Tokio-3 S.A.S."
+    },
+    "issuerNit": {
+     "value": "901777333-0",
+     "raw": "NIT 901.777.333-0"
+    },
+    "customerName": {
+     "value": "Andrés Felipe Mejía",
+     "raw": "Andrés Felipe Mejía"
+    },
+    "customerId": {
+     "value": "1070123456",
+     "raw": "CC 1.070.123.456"
+    },
+    "invoiceNumber": {
+     "value": "T3-00451",
+     "raw": "No. T3-00451"
+    },
+    "issueDate": {
+     "value": "2026-10-02",
+     "raw": "02/10/2026"
+    },
+    "dueDate": {
+     "value": "2026-10-02",
+     "raw": "02/10/2026"
+    },
+    "cufe": {
+     "value": "8cedebd4b0c17ad63a9121611c657cf730c77ca3190d3a7af0701a0dbf8a0d0e10a1a6495e678cb9b62b7b014ad85f6a",
+     "raw": "8cedebd4b0c17ad63a9121611c657cf730c77ca3190d3a7af0701a0dbf8a0d0e 10a1a6495e678cb9b62b7b014ad85f6a"
+    },
+    "subtotal": {
+     "value": 160000,
+     "raw": "$ 160.000"
+    },
+    "taxRate": {
+     "value": 19,
+     "raw": "19%"
+    },
+    "tax": {
+     "value": 25600,
+     "raw": "$ 25.600"
+    },
+    "total": {
+     "value": 185600,
+     "raw": "$ 185.600"
+    }
+   },
+   "lines": [
+    {
+     "description": "Café de origen 500 g",
+     "quantity": 3,
+     "unitPrice": 32000,
+     "total": 96000,
+     "raw": "Café de origen 500 g 3 $ 32.000 $ 96.000"
+    },
+    {
+     "description": "Molienda especial",
+     "quantity": 3,
+     "unitPrice": 4000,
+     "total": 12000,
+     "raw": "Molienda especial 3 $ 4.000 $ 12.000"
+    },
+    {
+     "description": "Taza cerámica",
+     "quantity": 2,
+     "unitPrice": 26000,
+     "total": 52000,
+     "raw": "Taza cerámica 2 $ 26.000 $ 52.000"
+    }
+   ],
+   "notes": ""
+  }
+ },
+ {
+  "id": "04",
+  "file": "factura-04-nit-y-fechas.pdf",
+  "title": {
+   "es": "NIT y fechas inválidos",
+   "en": "Invalid tax ID and dates"
+  },
+  "extraction": {
+   "isInvoice": true,
+   "currency": "COP",
+   "fields": {
+    "issuerName": {
+     "value": "Soluciones NERV Tecnología S.A.S.",
+     "raw": "Soluciones NERV Tecnología S.A.S."
+    },
+    "issuerNit": {
+     "value": "901555222-2",
+     "raw": "NIT 901.555.222-2"
+    },
+    "customerName": {
+     "value": "Laura Camila Rodríguez",
+     "raw": "Laura Camila Rodríguez"
+    },
+    "customerId": {
+     "value": "1013555888",
+     "raw": "CC 1.013.555.888"
+    },
+    "invoiceNumber": {
+     "value": "NV-2026-118",
+     "raw": "No. NV-2026-118"
+    },
+    "issueDate": {
+     "value": "2026-10-10",
+     "raw": "10/10/2026"
+    },
+    "dueDate": {
+     "value": "2026-09-30",
+     "raw": "30/09/2026"
+    },
+    "cufe": {
+     "value": "d0a2e38a6ded268c35b92448ca85b9ae6cbedd0fefca8ffca24bcdf23717a9a64cc66de1240d01aad3151c119fcae03c",
+     "raw": "d0a2e38a6ded268c35b92448ca85b9ae6cbedd0fefca8ffca24bcdf23717a9a6 4cc66de1240d01aad3151c119fcae03c"
+    },
+    "subtotal": {
+     "value": 1770000,
+     "raw": "$ 1.770.000"
+    },
+    "taxRate": {
+     "value": 19,
+     "raw": "19%"
+    },
+    "tax": {
+     "value": 336300,
+     "raw": "$ 336.300"
+    },
+    "total": {
+     "value": 2106300,
+     "raw": "$ 2.106.300"
+    }
+   },
+   "lines": [
+    {
+     "description": "Licencia software de soporte (anual)",
+     "quantity": 1,
+     "unitPrice": 1200000,
+     "total": 1200000,
+     "raw": "Licencia software de soporte (anual) 1 $ 1.200.000 $ 1.200.000"
+    },
+    {
+     "description": "Horas de implementación",
+     "quantity": 6,
+     "unitPrice": 95000,
+     "total": 570000,
+     "raw": "Horas de implementación 6 $ 95.000 $ 570.000"
+    }
+   ],
+   "notes": ""
+  }
+ },
+ {
+  "id": "05",
+  "file": "factura-05-escaneada.pdf",
+  "title": {
+   "es": "Escaneada: el OCR se equivoca y las reglas lo detectan",
+   "en": "Scanned: OCR misreads and the rules catch it"
+  },
+  "extraction": {
+   "isInvoice": true,
+   "currency": "COP",
+   "fields": {
+    "issuerName": {
+     "value": "Panadería San Jorge",
+     "raw": "Panadería San Jorge"
+    },
+    "issuerNit": {
+     "value": "79888111-8",
+     "raw": "NIT 79.888.111-8"
+    },
+    "customerName": {
+     "value": "Jorge Enrique Salazar",
+     "raw": "Jorge Enrique Salazar"
+    },
+    "customerId": {
+     "value": "11222333",
+     "raw": "CC 11.222.333"
+    },
+    "invoiceNumber": {
+     "value": "PSJ-3310",
+     "raw": "No. PSJ-3310"
+    },
+    "issueDate": {
+     "value": "2026-10-12",
+     "raw": "12/10/2026"
+    },
+    "dueDate": {
+     "value": "2026-10-12",
+     "raw": "12/10/2026"
+    },
+    "cufe": {
+     "value": "a0a42f5ac540c20e3e3986fe11ccf52446eb76db20929bte86bcdf76caci8a78bs8cdf14907b61ededeeca73b232b",
+     "raw": "CUFE: a0a42f5ac540c20£3£3986fe11ccf52446eb7 6db£20929bTe86bcdf7£6cAcI8A 78bS8cdf14907b61edéddeeca73…"
+    },
+    "subtotal": {
+     "value": 108200,
+     "raw": "$ 108.200"
+    },
+    "taxRate": {
+     "value": 5,
+     "raw": "IVA 5%"
+    },
+    "tax": {
+     "value": 5410,
+     "raw": "$5.410"
+    },
+    "total": {
+     "value": 113610,
+     "raw": "$ 113.610"
+    }
+   },
+   "lines": [
+    {
+     "description": "Pan tajado integral",
+     "quantity": 4,
+     "unitPrice": 7800,
+     "total": 31200,
+     "raw": "Pan tajado integral 4 $ 7.800 $ 31.200"
+    },
+    {
+     "description": "Torta de cumpleaños mediana",
+     "quantity": 1,
+     "unitPrice": 58000,
+     "total": 58000,
+     "raw": "Torta de cumpleaños mediana 1 $ 58.000 $ 58.000"
+    },
+    {
+     "description": "Almojábanas x6 Za",
+     "quantity": 1,
+     "unitPrice": 9500,
+     "total": 19000,
+     "raw": "Almojábanas x6 Za $ 9.500 $ 19.000"
+    }
+   ],
+   "notes": ""
+  }
+ }
+]

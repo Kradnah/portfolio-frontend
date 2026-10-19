@@ -1,0 +1,15 @@
+{
+  "factura-01-correcta.pdf": [],
+  "factura-02-suma-de-items.pdf": [
+    "line_total",
+    "lines_sum"
+  ],
+  "factura-03-iva-mal-calculado.pdf": [
+    "tax"
+  ],
+  "factura-04-nit-y-fechas.pdf": [
+    "nit_dv",
+    "dates"
+  ],
+  "factura-05-escaneada.pdf": []
+}

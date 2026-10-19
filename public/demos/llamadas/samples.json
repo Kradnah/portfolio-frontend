@@ -1,0 +1,946 @@
+[
+ {
+  "id": "llamada-1-soporte",
+  "title": {
+   "es": "Soporte técnico bien atendido",
+   "en": "Well-handled tech support"
+  },
+  "company": "RedMagi Internet",
+  "audio": "/demos/llamadas/llamada-1-soporte.webm",
+  "segments": [
+   {
+    "start": 0.0,
+    "end": 4.22,
+    "text": "Buenas tardes, gracias por comunicarse con Red Maggy Internet."
+   },
+   {
+    "start": 4.78,
+    "end": 7.58,
+    "text": "Le hablo Laura. ¿Con quién tengo gusto?"
+   },
+   {
+    "start": 8.82,
+    "end": 11.1,
+    "text": "Hola, buenas tardes. Con Andrés Mejía."
+   },
+   {
+    "start": 11.76,
+    "end": 13.16,
+    "text": "Mucho gusto, Andrés."
+   },
+   {
+    "start": 14.12,
+    "end": 18.8,
+    "text": "Para ayudarle, ¿me confirma por favor el número de cédula del titular?"
+   },
+   {
+    "start": 19.44,
+    "end": 23.04,
+    "text": "Sí, 1-0-2-3-4-5-6-7."
+   },
+   {
+    "start": 23.94,
+    "end": 28.4,
+    "text": "Gracias. Ya tengo su cuenta. Cuénteme, ¿en qué le puedo ayudar?"
+   },
+   {
+    "start": 29.28,
+    "end": 36.86,
+    "text": "Desde ayer el Internet se me cae a cada rato y hoy tengo que trabajar desde la casa. Entonces imagínese, ya estoy desesperado."
+   },
+   {
+    "start": 37.74,
+    "end": 44.04,
+    "text": "Entiendo perfectamente, Andrés. Es muy incómodo cuando uno depende de la conexión para trabajar."
+   },
+   {
+    "start": 44.78,
+    "end": 50.24,
+    "text": "Vamos a revisarlo juntos. ¿Me puede decir qué luces ve encendidas en el módem?"
+   },
+   {
+    "start": 51.46,
+    "end": 53.82,
+    "text": "Hay una roja que dice luz."
+   },
+   {
+    "start": 54.22,
+    "end": 56.92,
+    "text": "Perfecto. Eso me ayuda mucho."
+   },
+   {
+    "start": 57.3,
+    "end": 60.76,
+    "text": "Esa luz indica que no está llegando señal por la fibra."
+   },
+   {
+    "start": 61.36,
+    "end": 67.58,
+    "text": "Revisé y en su sector hubo un daño en la red esta mañana. El equipo técnico ya lo está reparando."
+   },
+   {
+    "start": 68.6,
+    "end": 71.08,
+    "text": "Ah, ¿y eso cuánto se demora?"
+   },
+   {
+    "start": 71.74,
+    "end": 89.32,
+    "text": "El tiempo estimado es de dos horas. Le voy a dejar registrado el caso con el número RM48213 y apenas se restablezca le llega un mensaje de texto. Además, por las horas sin servicio, le aplico un descuento proporcional en su próxima factura."
+   },
+   {
+    "start": 90.06,
+    "end": 92.64,
+    "text": "Bueno, eso sí está bien. Gracias."
+   },
+   {
+    "start": 95.7,
+    "end": 97.04,
+    "text": "Con mucho gusto."
+   },
+   {
+    "start": 97.66,
+    "end": 104.22,
+    "text": "Si en dos horas sigue la luz roja, nos llama con ese número de caso y le agendamos visita técnica sin costo."
+   },
+   {
+    "start": 104.58,
+    "end": 106.9,
+    "text": "¿Hay algo más en lo que le pueda ayudar?"
+   },
+   {
+    "start": 107.36,
+    "end": 109.42,
+    "text": "No. Eso era todo."
+   },
+   {
+    "start": 110.2,
+    "end": 112.44,
+    "text": "Gracias por su paciencia, Andrés."
+   },
+   {
+    "start": 112.82,
+    "end": 114.42,
+    "text": "Que tenga una buena tarde."
+   }
+  ],
+  "analysis": {
+   "es": {
+    "isServiceCall": true,
+    "callType": "support",
+    "summary": "El cliente contacta por problemas de conexión a internet. El asesor identifica que hay una avería general en la zona y estima dos horas para la reparación, aplicando un descuento proporcional y ofreciendo una visita técnica si el problema persiste. El cliente acepta la solución.",
+    "customerSentiment": "neutral",
+    "overall": 100,
+    "roles": [
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Buenas tardes, gracias por comunicarse con Red Maggy Internet."
+       },
+       {
+        "segment": 1,
+        "quote": "Le hablo Laura. ¿Con quién tengo gusto?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "Se valida la identidad del cliente mediante el número de cédula antes de proceder.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Para ayudarle, ¿me confirma por favor el número de cédula del titular?"
+       },
+       {
+        "segment": 5,
+        "quote": "Sí, 1-0-2-3-4-5-6-7."
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 5,
+      "comment": "El asesor muestra comprensión ante la situación del cliente.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Entiendo perfectamente, Andrés. Es muy incómodo cuando uno depende de la conexión para trabajar."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 5,
+      "comment": "Se identifica la causa del problema, se informa sobre la solución y se ofrecen compensaciones y un plan de contingencia.",
+      "evidence": [
+       {
+        "segment": 13,
+        "quote": "Revisé y en su sector hubo un daño en la red esta mañana. El equipo técnico ya lo está reparando."
+       },
+       {
+        "segment": 15,
+        "quote": "Le voy a dejar registrado el caso con el número RM48213 y apenas se restablezca le llega un mensaje de texto. Además, por las horas sin servicio, le aplico un…"
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "El asesor proporciona información veraz y no realiza promesas indebidas.",
+      "evidence": [
+       {
+        "segment": 15,
+        "quote": "El tiempo estimado es de dos horas."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 5,
+      "comment": "Se resume la información, se acuerda un siguiente paso y se despide cordialmente.",
+      "evidence": [
+       {
+        "segment": 19,
+        "quote": "¿Hay algo más en lo que le pueda ayudar?"
+       },
+       {
+        "segment": 21,
+        "quote": "Gracias por su paciencia, Andrés."
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "Excelente manejo de la situación, identificando la causa raíz y ofreciendo soluciones concretas y compensaciones.",
+     "La empatía demostrada al inicio de la conversación ayudó a calmar al cliente.",
+     "Se cumplieron todos los pasos de la llamada de manera efectiva."
+    ]
+   },
+   "en": {
+    "isServiceCall": true,
+    "callType": "support",
+    "summary": "El cliente contacta por problemas de conexión a internet. El asesor identifica que hay una avería general en la zona y estima dos horas para la reparación, aplicando un descuento proporcional y ofreciendo una visita técnica si el problema persiste. El cliente acepta la solución.",
+    "customerSentiment": "neutral",
+    "overall": 100,
+    "roles": [
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Buenas tardes, gracias por comunicarse con Red Maggy Internet."
+       },
+       {
+        "segment": 1,
+        "quote": "Le hablo Laura. ¿Con quién tengo gusto?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "Se valida la identidad del cliente mediante el número de cédula antes de proceder.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Para ayudarle, ¿me confirma por favor el número de cédula del titular?"
+       },
+       {
+        "segment": 5,
+        "quote": "Sí, 1-0-2-3-4-5-6-7."
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 5,
+      "comment": "El asesor muestra comprensión ante la situación del cliente.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Entiendo perfectamente, Andrés. Es muy incómodo cuando uno depende de la conexión para trabajar."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 5,
+      "comment": "Se identifica la causa del problema, se informa sobre la solución y se ofrecen compensaciones y un plan de contingencia.",
+      "evidence": [
+       {
+        "segment": 13,
+        "quote": "Revisé y en su sector hubo un daño en la red esta mañana. El equipo técnico ya lo está reparando."
+       },
+       {
+        "segment": 15,
+        "quote": "Le voy a dejar registrado el caso con el número RM48213 y apenas se restablezca le llega un mensaje de texto. Además, por las horas sin servicio, le aplico un…"
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "El asesor proporciona información veraz y no realiza promesas indebidas.",
+      "evidence": [
+       {
+        "segment": 15,
+        "quote": "El tiempo estimado es de dos horas."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 5,
+      "comment": "Se resume la información, se acuerda un siguiente paso y se despide cordialmente.",
+      "evidence": [
+       {
+        "segment": 19,
+        "quote": "¿Hay algo más en lo que le pueda ayudar?"
+       },
+       {
+        "segment": 21,
+        "quote": "Gracias por su paciencia, Andrés."
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "Excelente manejo de la situación, identificando la causa raíz y ofreciendo soluciones concretas y compensaciones.",
+     "La empatía demostrada al inicio de la conversación ayudó a calmar al cliente.",
+     "Se cumplieron todos los pasos de la llamada de manera efectiva."
+    ]
+   }
+  }
+ },
+ {
+  "id": "llamada-2-cobranza",
+  "title": {
+   "es": "Cobranza con problemas de tono",
+   "en": "Collections call with tone issues"
+  },
+  "company": "Créditos Tokio-3",
+  "audio": "/demos/llamadas/llamada-2-cobranza.webm",
+  "segments": [
+   {
+    "start": 0.0,
+    "end": 1.66,
+    "text": "¿Aló? ¿Marcela Rodríguez?"
+   },
+   {
+    "start": 2.32,
+    "end": 4.26,
+    "text": "Sí. ¿Con quién hablo?"
+   },
+   {
+    "start": 4.78,
+    "end": 7.8,
+    "text": "Le llamo de Créditos Tokio 3 por la deuda."
+   },
+   {
+    "start": 8.48,
+    "end": 11.94,
+    "text": "Usted tiene la cuota vencida hace 45 días."
+   },
+   {
+    "start": 12.84,
+    "end": 19.1,
+    "text": "Sí. Mire, yo sé. Lo que pasa es que me quedé sin trabajo el mes pasado y..."
+   },
+   {
+    "start": 19.66,
+    "end": 22.44,
+    "text": "Señora, eso no es problema de nosotros."
+   },
+   {
+    "start": 22.86,
+    "end": 26.38,
+    "text": "La cuota es de 380 mil pesos y tiene que pagarla."
+   },
+   {
+    "start": 26.98,
+    "end": 32.5,
+    "text": "Yo quiero pagar, pero ahorita no tengo todo. ¿No hay forma de pagar por partes?"
+   },
+   {
+    "start": 33.0,
+    "end": 40.7,
+    "text": "No, eso no se puede. Si no paga hoy mismo, mañana le embargamos la cuenta y la reportamos a centrales de riesgo."
+   },
+   {
+    "start": 41.4,
+    "end": 48.18,
+    "text": "¿Mañana? Pero eso no puede ser así de rápido. Pues así es. Usted verá."
+   },
+   {
+    "start": 48.5,
+    "end": 52.04,
+    "text": "Bueno, voy a ver qué consigo. Listo."
+   }
+  ],
+  "analysis": {
+   "es": {
+    "isServiceCall": true,
+    "callType": "collections",
+    "summary": "La llamada es de un asesor de Créditos Tokio 3 para cobrar una deuda a Marcela Rodríguez. La cliente explica que se quedó sin trabajo y pregunta si puede pagar por partes, a lo que el asesor se niega y la amenaza con embargo y reporte a centrales de riesgo si no paga hoy. La cliente indica que verá qué consigue.",
+    "customerSentiment": "negative",
+    "overall": 7,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 0,
+      "comment": "El asesor no se presenta ni indica el nombre de la empresa al inicio de la llamada.",
+      "evidence": []
+     },
+     {
+      "key": "verification",
+      "score": 0,
+      "comment": "El asesor no verifica la identidad de la cliente antes de discutir la deuda.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "¿Aló? ¿Marcela Rodríguez?"
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 0,
+      "comment": "El asesor no muestra empatía ante la situación de desempleo de la cliente y la interrumpe.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Sí. Mire, yo sé. Lo que pasa es que me quedé sin trabajo el mes pasado y..."
+       },
+       {
+        "segment": 5,
+        "quote": "Señora, eso no es problema de nosotros."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 1,
+      "comment": "El asesor no ofrece alternativas de pago viables cuando la cliente las solicita y se niega a negociar.",
+      "evidence": [
+       {
+        "segment": 7,
+        "quote": "Yo quiero pagar, pero ahorita no tengo todo. ¿No hay forma de pagar por partes?"
+       },
+       {
+        "segment": 8,
+        "quote": "No, eso no se puede."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 1,
+      "comment": "El asesor amenaza a la cliente con embargo y reporte a centrales de riesgo al día siguiente si no paga, lo cual es una práctica coercitiva.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Si no paga hoy mismo, mañana le embargamos la cuenta y la reportamos a centrales de riesgo."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 0,
+      "comment": "La llamada termina abruptamente sin un acuerdo claro o un siguiente paso definido por parte del asesor.",
+      "evidence": [
+       {
+        "segment": 10,
+        "quote": "Bueno, voy a ver qué consigo. Listo."
+       }
+      ]
+     }
+    ],
+    "alerts": [
+     {
+      "severity": "high",
+      "text": "Amenaza de embargo y reporte a centrales de riesgo al día siguiente.",
+      "segment": 8
+     },
+     {
+      "severity": "medium",
+      "text": "Falta de verificación de identidad antes de discutir datos de deuda.",
+      "segment": 0
+     }
+    ],
+    "feedback": [
+     "Al inicio de la llamada, preséntate tú y la empresa para dar una mejor imagen.",
+     "Verifica siempre la identidad del cliente antes de hablar de su situación financiera o deudas.",
+     "Muestra empatía ante las dificultades del cliente y busca alternativas de pago flexibles en lugar de amenazar.",
+     "Asegúrate de acordar un siguiente paso concreto con el cliente antes de finalizar la llamada, como una fecha de pago o una revisión de opciones."
+    ]
+   },
+   "en": {
+    "isServiceCall": true,
+    "callType": "collections",
+    "summary": "La llamada es de un asesor de Créditos Tokio 3 para cobrar una deuda a Marcela Rodríguez. La cliente explica que se quedó sin trabajo y pregunta si puede pagar por partes, a lo que el asesor se niega y la amenaza con embargo y reporte a centrales de riesgo si no paga hoy. La cliente indica que verá qué consigue.",
+    "customerSentiment": "negative",
+    "overall": 7,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer",
+     "agent",
+     "agent",
+     "customer"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 0,
+      "comment": "El asesor no se presenta ni indica el nombre de la empresa al inicio de la llamada.",
+      "evidence": []
+     },
+     {
+      "key": "verification",
+      "score": 0,
+      "comment": "El asesor no verifica la identidad de la cliente antes de discutir la deuda.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "¿Aló? ¿Marcela Rodríguez?"
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 0,
+      "comment": "El asesor no muestra empatía ante la situación de desempleo de la cliente y la interrumpe.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Sí. Mire, yo sé. Lo que pasa es que me quedé sin trabajo el mes pasado y..."
+       },
+       {
+        "segment": 5,
+        "quote": "Señora, eso no es problema de nosotros."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 1,
+      "comment": "El asesor no ofrece alternativas de pago viables cuando la cliente las solicita y se niega a negociar.",
+      "evidence": [
+       {
+        "segment": 7,
+        "quote": "Yo quiero pagar, pero ahorita no tengo todo. ¿No hay forma de pagar por partes?"
+       },
+       {
+        "segment": 8,
+        "quote": "No, eso no se puede."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 1,
+      "comment": "El asesor amenaza a la cliente con embargo y reporte a centrales de riesgo al día siguiente si no paga, lo cual es una práctica coercitiva.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Si no paga hoy mismo, mañana le embargamos la cuenta y la reportamos a centrales de riesgo."
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 0,
+      "comment": "La llamada termina abruptamente sin un acuerdo claro o un siguiente paso definido por parte del asesor.",
+      "evidence": [
+       {
+        "segment": 10,
+        "quote": "Bueno, voy a ver qué consigo. Listo."
+       }
+      ]
+     }
+    ],
+    "alerts": [
+     {
+      "severity": "high",
+      "text": "Amenaza de embargo y reporte a centrales de riesgo al día siguiente.",
+      "segment": 8
+     },
+     {
+      "severity": "medium",
+      "text": "Falta de verificación de identidad antes de discutir datos de deuda.",
+      "segment": 0
+     }
+    ],
+    "feedback": [
+     "Al inicio de la llamada, preséntate tú y la empresa para dar una mejor imagen.",
+     "Verifica siempre la identidad del cliente antes de hablar de su situación financiera o deudas.",
+     "Muestra empatía ante las dificultades del cliente y busca alternativas de pago flexibles en lugar de amenazar.",
+     "Asegúrate de acordar un siguiente paso concreto con el cliente antes de finalizar la llamada, como una fecha de pago o una revisión de opciones."
+    ]
+   }
+  }
+ },
+ {
+  "id": "llamada-3-venta",
+  "title": {
+   "es": "Venta amable pero sin cierre",
+   "en": "Friendly sale with no close"
+  },
+  "company": "Seguros Geofront",
+  "audio": "/demos/llamadas/llamada-3-venta.webm",
+  "segments": [
+   {
+    "start": 0.0,
+    "end": 5.62,
+    "text": "Buenos días. Le habla Camila de Seguros Geofront. ¿Hablo con el señor Jorge Salazar?"
+   },
+   {
+    "start": 6.2,
+    "end": 7.64,
+    "text": "Sí, con él."
+   },
+   {
+    "start": 8.32,
+    "end": 14.56,
+    "text": "Qué gusto saludarlo, don Jorge. Lo llamo porque usted cotizó en nuestra página un seguro para su carro, ¿cierto?"
+   },
+   {
+    "start": 15.34,
+    "end": 17.56,
+    "text": "Ah, sí, la semana pasada."
+   },
+   {
+    "start": 18.54,
+    "end": 33.0,
+    "text": "Listo. Le cuento. Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor elegido y también tiene descuento en talleres aliados."
+   },
+   {
+    "start": 33.58,
+    "end": 36.2,
+    "text": "Ajá. ¿Y eso cuánto vale?"
+   },
+   {
+    "start": 36.96,
+    "end": 40.64,
+    "text": "Para su carro. Sale en 190 mil pesos mensuales."
+   },
+   {
+    "start": 41.22,
+    "end": 46.34,
+    "text": "Uy, eso está caro. Yo estoy pagando menos con otra aseguradora."
+   },
+   {
+    "start": 46.86,
+    "end": 51.08,
+    "text": "Ah, bueno, sí, entiendo. Es que el plan es muy completo."
+   },
+   {
+    "start": 52.66,
+    "end": 57.16,
+    "text": "Sí, me imagino. Bueno, déjeme lo pienso."
+   },
+   {
+    "start": 57.78,
+    "end": 61.4,
+    "text": "Claro que sí, don Jorge. Piénselo con calma."
+   },
+   {
+    "start": 61.76,
+    "end": 62.94,
+    "text": "Bueno, gracias."
+   },
+   {
+    "start": 63.44,
+    "end": 66.32,
+    "text": "A usted, que tenga un excelente día."
+   }
+  ],
+  "analysis": {
+   "es": {
+    "isServiceCall": true,
+    "callType": "sales",
+    "summary": "La llamada es una venta de seguro de carro. El asesor presenta el producto y su precio, pero el cliente considera que es caro y pide tiempo para pensarlo. La llamada termina sin un acuerdo concreto.",
+    "customerSentiment": "neutral",
+    "overall": 77,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Buenos días. Le habla Camila de Seguros Geofront. ¿Hablo con el señor Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "El asesor verifica la identidad del cliente al inicio de la llamada.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "¿Hablo con el señor Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 3,
+      "comment": "El asesor muestra algo de empatía al reconocer la objeción del cliente, pero podría haber profundizado más.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Ah, bueno, sí, entiendo. Es que el plan es muy completo."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 3,
+      "comment": "El asesor presenta el producto y su precio, pero no maneja la objeción de precio ni ofrece alternativas concretas cuando el cliente duda.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor eleg…"
+       },
+       {
+        "segment": 7,
+        "quote": "Uy, eso está caro. Yo estoy pagando menos con otra aseguradora."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "El asesor se comunica de forma respetuosa y no incurre en incumplimientos.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor eleg…"
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 2,
+      "comment": "El asesor no logra un acuerdo de siguiente paso concreto, solo deja la decisión en manos del cliente.",
+      "evidence": [
+       {
+        "segment": 10,
+        "quote": "Claro que sí, don Jorge. Piénselo con calma."
+       },
+       {
+        "segment": 12,
+        "quote": "A usted, que tenga un excelente día."
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "Al recibir una objeción de precio, intenta indagar más sobre qué aspectos del precio le parecen elevados al cliente o qué valor le da a la competencia.",
+     "Ofrece alternativas o beneficios adicionales que puedan justificar el precio o negociar un plan que se ajuste mejor al presupuesto del cliente.",
+     "Intenta concretar un siguiente paso, como agendar una nueva llamada para resolver dudas o enviar un resumen de la propuesta por correo electrónico, en lugar de solo dejarlo a la reflexión del cliente."
+    ]
+   },
+   "en": {
+    "isServiceCall": true,
+    "callType": "sales",
+    "summary": "La llamada es una venta de seguro de carro. El asesor presenta el producto y su precio, pero el cliente considera que es caro y pide tiempo para pensarlo. La llamada termina sin un acuerdo concreto.",
+    "customerSentiment": "neutral",
+    "overall": 77,
+    "roles": [
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent",
+     "customer",
+     "agent"
+    ],
+    "criteria": [
+     {
+      "key": "greeting",
+      "score": 5,
+      "comment": "El asesor saluda, se presenta e indica la empresa.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "Buenos días. Le habla Camila de Seguros Geofront. ¿Hablo con el señor Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "verification",
+      "score": 5,
+      "comment": "El asesor verifica la identidad del cliente al inicio de la llamada.",
+      "evidence": [
+       {
+        "segment": 0,
+        "quote": "¿Hablo con el señor Jorge Salazar?"
+       }
+      ]
+     },
+     {
+      "key": "empathy",
+      "score": 3,
+      "comment": "El asesor muestra algo de empatía al reconocer la objeción del cliente, pero podría haber profundizado más.",
+      "evidence": [
+       {
+        "segment": 8,
+        "quote": "Ah, bueno, sí, entiendo. Es que el plan es muy completo."
+       }
+      ]
+     },
+     {
+      "key": "resolution",
+      "score": 3,
+      "comment": "El asesor presenta el producto y su precio, pero no maneja la objeción de precio ni ofrece alternativas concretas cuando el cliente duda.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor eleg…"
+       },
+       {
+        "segment": 7,
+        "quote": "Uy, eso está caro. Yo estoy pagando menos con otra aseguradora."
+       }
+      ]
+     },
+     {
+      "key": "compliance",
+      "score": 5,
+      "comment": "El asesor se comunica de forma respetuosa y no incurre en incumplimientos.",
+      "evidence": [
+       {
+        "segment": 4,
+        "quote": "Nuestro plan Todo Riesgo Plus cubre daños, hurto, responsabilidad civil, asistencia en carretera a las 24 horas, carro de reemplazo por 10 días, conductor eleg…"
+       }
+      ]
+     },
+     {
+      "key": "closing",
+      "score": 2,
+      "comment": "El asesor no logra un acuerdo de siguiente paso concreto, solo deja la decisión en manos del cliente.",
+      "evidence": [
+       {
+        "segment": 10,
+        "quote": "Claro que sí, don Jorge. Piénselo con calma."
+       },
+       {
+        "segment": 12,
+        "quote": "A usted, que tenga un excelente día."
+       }
+      ]
+     }
+    ],
+    "alerts": [],
+    "feedback": [
+     "Al recibir una objeción de precio, intenta indagar más sobre qué aspectos del precio le parecen elevados al cliente o qué valor le da a la competencia.",
+     "Ofrece alternativas o beneficios adicionales que puedan justificar el precio o negociar un plan que se ajuste mejor al presupuesto del cliente.",
+     "Intenta concretar un siguiente paso, como agendar una nueva llamada para resolver dudas o enviar un resumen de la propuesta por correo electrónico, en lugar de solo dejarlo a la reflexión del cliente."
+    ]
+   }
+  }
+ }
+]

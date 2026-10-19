@@ -137,6 +137,20 @@
         }
       },
       {
+        "path": "client/src/app/demos/invoices/checks.ts",
+        "note": {
+          "es": "Validador de facturas: dígito de verificación del NIT (DIAN), sumas, IVA, fechas y CUFE con reglas fijas; la IA solo extrae.",
+          "en": "Invoice validator: DIAN tax-ID check digit, sums, VAT, dates and CUFE with fixed rules; the AI only extracts."
+        }
+      },
+      {
+        "path": "client/src/app/demos/invoices/extract.ts",
+        "note": {
+          "es": "Lectura en el navegador: pdf.js para PDF digitales, tesseract.js para escaneos, y ubicación de cada campo sobre la página.",
+          "en": "In-browser reading: pdf.js for digital PDFs, tesseract.js for scans, and locating each field on the page."
+        }
+      },
+      {
         "path": "api/app/limits.py",
         "note": {
           "es": "Límites de uso del chat por IP y globales, para que la IA no genere costos sorpresa.",
