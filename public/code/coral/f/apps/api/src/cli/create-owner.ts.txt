@@ -1,0 +1,115 @@
+/* eslint-disable no-console -- herramienta de línea de comandos: escribe en la terminal */
+/**
+ * Alta de una organización con su usuario dueño (OWNER). El panel no tiene registro público.
+ *
+ *   Local:      pnpm --filter @coral/api cli:create-owner -- --org "Mi restaurante" --email ana@ejemplo.com --name "Ana"
+ *   Producción: docker exec -it <contenedor-api> node dist/cli/create-owner.js --org ... --email ... --name ...
+ *
+ * Pide la contraseña sin mostrarla. Si el usuario ya existe, solo lo añade a la organización.
+ */
+import 'reflect-metadata';
+import { parseArgs } from 'node:util';
+import { Email, FullName, Password } from '@coral/contracts';
+import { hash } from '@node-rs/argon2';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { loadEnv } from '../config/env.js';
+import { PrismaClient } from '../generated/prisma/client.js';
+
+function askHidden(question: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const { stdin, stdout } = process;
+    if (!stdin.isTTY) {
+      reject(new Error('Ejecuta el comando en una terminal interactiva (docker exec -it).'));
+      return;
+    }
+    stdout.write(question);
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    let value = '';
+    const onData = (ch: string) => {
+      if (ch === '\r' || ch === '\n') {
+        stdin.setRawMode(false);
+        stdin.pause();
+        stdin.off('data', onData);
+        stdout.write('\n');
+        resolve(value);
+      } else if (ch === '\u0003') {
+        process.exit(130); // Ctrl+C
+      } else if (ch === '\u007f' || ch === '\b') {
+        value = value.slice(0, -1);
+      } else {
+        value += ch;
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
+const slugify = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48);
+
+async function main(): Promise<void> {
+  const { values } = parseArgs({
+    options: {
+      org: { type: 'string' },
+      email: { type: 'string' },
+      name: { type: 'string' },
+      demo: { type: 'boolean', default: false },
+    },
+  });
+  if (!values.org || !values.email || !values.name) {
+    console.error(
+      'Uso: create-owner --org "<organización>" --email <email> --name "<nombre>" [--demo]',
+    );
+    process.exit(2);
+  }
+  const email = Email.parse(values.email);
+  const fullName = FullName.parse(values.name);
+
+  const env = loadEnv();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: env.DATABASE_URL }),
+  });
+  try {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    let passwordHash: string | undefined;
+    if (!existing) {
+      const password = Password.parse(await askHidden('Contraseña (mín. 10 caracteres): '));
+      if ((await askHidden('Repite la contraseña: ')) !== password) {
+        console.error('Las contraseñas no coinciden.');
+        process.exit(1);
+      }
+      passwordHash = await hash(password, {
+        algorithm: 2,
+        memoryCost: 19_456,
+        timeCost: 2,
+        parallelism: 1,
+      });
+    }
+
+    const org = await prisma.organization.create({
+      data: { name: values.org, slug: slugify(values.org), isDemo: values.demo },
+    });
+    const user =
+      existing ??
+      (await prisma.user.create({ data: { email, fullName, passwordHash: passwordHash ?? null } }));
+    await prisma.membership.create({
+      data: { organizationId: org.id, userId: user.id, role: 'OWNER' },
+    });
+    console.log(`Organización "${org.name}" (${org.slug}) creada con ${email} como OWNER.`);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+main().catch((err: unknown) => {
+  console.error(err instanceof Error ? err.message : err);
+  process.exit(1);
+});

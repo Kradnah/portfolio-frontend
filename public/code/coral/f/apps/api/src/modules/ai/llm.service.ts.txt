@@ -1,0 +1,91 @@
+import { Injectable } from '@nestjs/common';
+import { InjectEnv } from '../../config/config.module.js';
+import type { Env } from '../../config/env.js';
+
+/** Mensajes en el formato de chat de OpenAI (OpenRouter lo usa igual). */
+export type ChatMessage =
+  | { role: 'system' | 'user'; content: string }
+  | { role: 'assistant'; content: string | null; tool_calls?: ToolCall[] }
+  | { role: 'tool'; tool_call_id: string; content: string };
+
+export interface ToolCall {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
+}
+
+export interface ToolDefinition {
+  type: 'function';
+  function: { name: string; description: string; parameters: Record<string, unknown> };
+}
+
+export interface LlmTurn {
+  content: string | null;
+  toolCalls: ToolCall[];
+  promptTokens: number;
+  completionTokens: number;
+  /** USD según OpenRouter. */
+  cost: number;
+}
+
+export class LlmError extends Error {}
+
+/** Cliente mínimo de OpenRouter: una vuelta de chat con herramientas. */
+@Injectable()
+export class LlmService {
+  constructor(@InjectEnv() private readonly env: Env) {}
+
+  get enabled(): boolean {
+    return Boolean(this.env.OPENROUTER_API_KEY);
+  }
+
+  get model(): string {
+    return this.env.OPENROUTER_MODEL;
+  }
+
+  async chat(messages: ChatMessage[], tools: ToolDefinition[], maxTokens = 500): Promise<LlmTurn> {
+    if (!this.env.OPENROUTER_API_KEY) throw new LlmError('Sin OPENROUTER_API_KEY');
+    let res: Response;
+    try {
+      res = await fetch(this.env.OPENROUTER_URL, {
+        method: 'POST',
+        signal: AbortSignal.timeout(30_000),
+        headers: {
+          Authorization: `Bearer ${this.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://crm.julian-lizcano.com',
+          'X-Title': 'Coral CRM (demo)',
+        },
+        body: JSON.stringify({
+          model: this.env.OPENROUTER_MODEL,
+          messages,
+          tools,
+          tool_choice: 'auto',
+          temperature: 0.3,
+          max_tokens: maxTokens,
+          // Pide a OpenRouter el costo real de la llamada en `usage.cost`.
+          usage: { include: true },
+          reasoning: { enabled: false },
+        }),
+      });
+    } catch (err) {
+      throw new LlmError(`Red: ${(err as Error).name}`);
+    }
+    if (!res.ok) throw new LlmError(`OpenRouter respondió ${res.status}`);
+    const data = (await res.json()) as {
+      choices?: { message?: { content?: string | null; tool_calls?: ToolCall[] } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number; cost?: number };
+      error?: { message?: string };
+    };
+    if (data.error) throw new LlmError(data.error.message ?? 'Error de OpenRouter');
+    const message = data.choices?.[0]?.message;
+    if (!message) throw new LlmError('Respuesta sin mensaje');
+    return {
+      content: message.content ?? null,
+      toolCalls: message.tool_calls ?? [],
+      promptTokens: data.usage?.prompt_tokens ?? 0,
+      completionTokens: data.usage?.completion_tokens ?? 0,
+      cost: data.usage?.cost ?? 0,
+    };
+  }
+}

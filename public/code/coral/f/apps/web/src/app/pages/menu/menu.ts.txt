@@ -1,0 +1,92 @@
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import type { ProductDto } from '@coral/contracts';
+import { firstValueFrom } from 'rxjs';
+
+const COP = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+/** Carta de la organización: lo que el bot consulta con la herramienta `search_menu`. */
+@Component({
+  selector: 'app-menu',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <header class="mb-5">
+      <p class="label text-muted">Catálogo</p>
+      <h1 class="text-3xl font-black italic">Carta de Casa Zhef</h1>
+      <p class="mt-1 max-w-2xl text-sm text-muted">
+        La carta real de
+        <a class="text-lime underline" href="https://casazhef.com" target="_blank" rel="noopener"
+          >casazhef.com</a
+        >. El bot la usa para responder y armar pedidos; en la demo los pedidos no son reales.
+      </p>
+    </header>
+    @for (group of groups(); track group.category) {
+      <section class="mb-8">
+        <h2
+          class="mono mb-3 inline-block bg-black px-3 py-1 text-sm font-bold uppercase tracking-widest text-coral"
+        >
+          {{ group.category }}
+        </h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          @for (p of group.items; track p.id) {
+            <article class="card flex flex-col overflow-hidden">
+              @if (p.image) {
+                <img
+                  class="aspect-[16/10] w-full border-b-2 border-black object-cover"
+                  [src]="p.image"
+                  [alt]="p.name"
+                  loading="lazy"
+                />
+              }
+              <div class="flex flex-1 flex-col gap-2 p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="text-lg font-black">{{ p.name }}</h3>
+                  <span class="mono shrink-0 font-bold text-lime">{{ price(p.price) }}</span>
+                </div>
+                @if (p.featured) {
+                  <span class="tag w-fit bg-coral text-black">Favorito</span>
+                }
+                <p class="text-sm text-muted">{{ p.description }}</p>
+                @if (p.options.sizes?.length) {
+                  <p class="text-xs"><strong>Tamaños:</strong> {{ options(p.options.sizes!) }}</p>
+                }
+                @if (p.options.toppings?.length) {
+                  <p class="text-xs">
+                    <strong>Opciones:</strong> {{ options(p.options.toppings!) }}
+                  </p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  `,
+})
+export class MenuPage {
+  private readonly http = inject(HttpClient);
+  private readonly products = signal<ProductDto[]>([]);
+  protected readonly groups = computed(() => {
+    const map = new Map<string, ProductDto[]>();
+    for (const p of this.products()) map.set(p.category, [...(map.get(p.category) ?? []), p]);
+    return [...map].map(([category, items]) => ({ category, items }));
+  });
+
+  constructor() {
+    void firstValueFrom(this.http.get<ProductDto[]>('/api/products')).then((p) =>
+      this.products.set(p),
+    );
+  }
+
+  protected price(n: number): string {
+    return COP.format(n);
+  }
+
+  protected options(list: { name: string; price?: number }[]): string {
+    return list.map((o) => (o.price ? `${o.name} (${COP.format(o.price)})` : o.name)).join(' · ');
+  }
+}

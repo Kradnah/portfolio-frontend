@@ -27,6 +27,32 @@
       </div>
     </article>
 
+    <!-- ░░ Coral ░░ -->
+    <article class="project saas-card" appReveal="0">
+      <a class="shot" href="https://crm.julian-lizcano.com" target="_blank" rel="noopener">
+        <img src="/projects/coral-inbox.webp" [alt]="t().projects.coralAlt" loading="lazy" width="1280" height="800" />
+      </a>
+      <div class="body">
+        <div class="tags">
+          <span class="tag tag-lime">{{ t().projects.demo }}</span>
+          <span class="tag">IA</span>
+        </div>
+        <h3 class="title">Coral</h3>
+        <p class="desc">{{ t().projects.coralDesc }}</p>
+        <ul class="points">
+          @for (p of t().projects.coralPoints; track $index) {<li>{{ p }}</li>}
+        </ul>
+        <ul class="stack">
+          <li>NestJS</li><li>Angular</li><li>Socket.IO</li><li>BullMQ</li><li>PostgreSQL</li><li>OpenRouter</li>
+        </ul>
+        <div class="actions">
+          <button type="button" class="saas-btn-primary btn" (click)="openCoralChat()">{{ t().projects.coralChat }}</button>
+          <a class="saas-btn-accent btn" href="https://crm.julian-lizcano.com" target="_blank" rel="noopener">{{ t().projects.coralTry }}</a>
+          <a class="saas-btn btn code-btn" routerLink="/codigo/coral">{{ t().projects.viewCode }}</a>
+        </div>
+      </div>
+    </article>
+
     <!-- ░░ rideapp ░░ -->
     <article class="project saas-card" appReveal="150">
       <div class="gallery">

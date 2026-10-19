@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, computed, inject } from '@angular/core';
 import { I18n } from '../i18n';
 import { AskAiComponent } from '../ask-ai/ask-ai.component';
 import { ContactComponent } from '../contact/contact.component';
@@ -10,6 +10,9 @@ import { StackCardComponent } from '../stack-card/stack-card.component';
 /** Repite la lista para que la cinta tenga el doble de ancho y el bucle (−50 %) no se note. */
 const loop = (words: string[]) => [...words, ...words, ...words, ...words];
 
+/** Widget de chat de Coral (el CRM con IA): el visitante habla con el bot de Casa Zhef desde aquí. */
+const CORAL_WIDGET = 'https://crm.julian-lizcano.com/widget.js';
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -17,7 +20,7 @@ const loop = (words: string[]) => [...words, ...words, ...words, ...words];
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css', './landing.motion.css'],
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit, OnDestroy {
   protected readonly headline = [...'Full-Stack'];
   protected readonly i18n = inject(I18n);
   protected readonly t = this.i18n.t;
@@ -25,6 +28,23 @@ export class LandingComponent {
   protected readonly marqueeB = computed(() => loop(this.t().hero.marqueeB));
 
   private readonly host = inject(ElementRef<HTMLElement>);
+  private widgetScript?: HTMLScriptElement;
+
+  ngOnInit(): void {
+    // Solo en la portada: en las demos el widget taparía sus propios controles.
+    if (typeof document === 'undefined' || document.querySelector('coral-chat-host')) return;
+    const script = document.createElement('script');
+    script.src = CORAL_WIDGET;
+    script.defer = true;
+    script.dataset['lang'] = this.i18n.lang();
+    document.body.append(script);
+    this.widgetScript = script;
+  }
+
+  ngOnDestroy(): void {
+    document.querySelector('coral-chat-host')?.remove();
+    this.widgetScript?.remove();
+  }
   private readonly parallax =
     typeof matchMedia !== 'undefined' &&
     matchMedia('(pointer: fine) and (min-width: 1101px) and (prefers-reduced-motion: no-preference)').matches;

@@ -1,0 +1,46 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  type OnInit,
+  signal,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
+
+/** Destino del enlace "Ver en el CRM" del widget: abre la demo del visitante y va a la bandeja. */
+@Component({
+  selector: 'app-claim',
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <main class="flex min-h-full items-center justify-center p-6">
+      <div class="card max-w-md p-6 text-center">
+        @if (error()) {
+          <h1 class="mb-2 text-2xl font-black">Esta demo ya no existe</h1>
+          <p class="mb-5 text-muted">Las demos se borran a las 4 horas. Puedes crear una nueva.</p>
+          <a class="btn btn-primary" routerLink="/login">Crear una demo nueva</a>
+        } @else {
+          <p class="font-bold">Abriendo tu conversación en el CRM…</p>
+        }
+      </div>
+    </main>
+  `,
+})
+export class ClaimPage implements OnInit {
+  /** Token del enlace (?t=…). */
+  readonly t = input<string>('');
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  protected readonly error = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    try {
+      await this.auth.claimDemo(this.t());
+      await this.router.navigateByUrl('/inbox', { replaceUrl: true });
+    } catch {
+      this.error.set(true);
+    }
+  }
+}

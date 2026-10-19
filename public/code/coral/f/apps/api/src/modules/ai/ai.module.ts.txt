@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { ConversationsModule } from '../conversations/conversations.module.js';
+import { AgentService } from './agent.service.js';
+import { LlmService } from './llm.service.js';
+import { OpsController } from './ops.controller.js';
+
+@Module({
+  imports: [ConversationsModule],
+  controllers: [OpsController],
+  providers: [AgentService, LlmService],
+})
+export class AiModule {}

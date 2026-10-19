@@ -1,0 +1,70 @@
+import { z } from 'zod';
+import { MemberRole } from './enums.js';
+
+export const PASSWORD_MIN_LENGTH = 10;
+export const PASSWORD_MAX_LENGTH = 128;
+
+export const Email = z.string().trim().toLowerCase().max(254).pipe(z.email());
+
+export const Password = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
+
+export const FullName = z.string().trim().min(2).max(100);
+
+export const LoginRequest = z.strictObject({
+  email: Email,
+  // En el login no se exige la longitud mínima: un error de formato revelaría la política.
+  password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+});
+export type LoginRequest = z.infer<typeof LoginRequest>;
+
+/** Cambio de organización activa (un usuario puede pertenecer a varias). */
+export const SwitchOrganizationRequest = z.strictObject({
+  organizationId: z.uuid(),
+});
+export type SwitchOrganizationRequest = z.infer<typeof SwitchOrganizationRequest>;
+
+/**
+ * Sesión del panel. El access token va en memoria (cabecera Authorization); el refresh token
+ * viaja solo en una cookie httpOnly y nunca llega al JavaScript.
+ */
+export const Session = z.object({
+  accessToken: z.string(),
+  /** Segundos hasta que caduca el access token. */
+  expiresIn: z.number().int().positive(),
+});
+export type Session = z.infer<typeof Session>;
+
+/** Contenido del access token. Sin email ni nombre. */
+export const AccessTokenClaims = z.object({
+  sub: z.uuid(),
+  /** Organización activa: todas las consultas del tenant se filtran por ella. */
+  org: z.uuid(),
+  role: MemberRole,
+  /** Sesión = familia de refresh tokens: revocarla invalida la sesión. */
+  sid: z.uuid(),
+  iat: z.number().int(),
+  exp: z.number().int(),
+});
+export type AccessTokenClaims = z.infer<typeof AccessTokenClaims>;
+
+export const OrganizationSummary = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  /** También es la clave del widget de la organización. */
+  slug: z.string(),
+  role: MemberRole,
+  /** Sandbox de la demo pública y cuándo se borra (null si no es demo). */
+  isDemo: z.boolean(),
+  expiresAt: z.string().nullable(),
+});
+export type OrganizationSummary = z.infer<typeof OrganizationSummary>;
+
+/** `GET /me`: usuario, organización activa y las demás a las que pertenece. */
+export const MeResponse = z.object({
+  id: z.uuid(),
+  email: z.string(),
+  fullName: z.string(),
+  organization: OrganizationSummary,
+  organizations: z.array(OrganizationSummary),
+});
+export type MeResponse = z.infer<typeof MeResponse>;

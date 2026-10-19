@@ -1,0 +1,103 @@
+import { Injectable } from '@nestjs/common';
+import type { LoginRequest, MemberRole } from '@coral/contracts';
+import type { RequestContext } from '../../common/auth/auth.decorators.js';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { PasswordService } from './password.service.js';
+import { SessionService } from './session.service.js';
+import { TokenService } from './token.service.js';
+
+export interface SessionResult {
+  accessToken: string;
+  expiresIn: number;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly passwords: PasswordService,
+    private readonly sessions: SessionService,
+    private readonly tokens: TokenService,
+  ) {}
+
+  async login(body: LoginRequest, ctx: RequestContext): Promise<SessionResult> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: body.email },
+      include: { memberships: { orderBy: { createdAt: 'asc' }, take: 1 } },
+    });
+    // Se verifica siempre (con un hash ficticio si no hay usuario) para no revelar qué emails existen.
+    const ok = await this.passwords.verify(user?.passwordHash, body.password);
+    const membership = user?.memberships[0];
+    if (!user || !ok || user.disabledAt || !membership) {
+      throw new ApiException(401, 'INVALID_CREDENTIALS', 'Email o contraseña incorrectos');
+    }
+
+    await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const refresh = await this.sessions.start(user.id, membership.organizationId, ctx);
+    return this.issue(user.id, membership.organizationId, membership.role, refresh);
+  }
+
+  /** Rota la sesión; con `organizationId`, además cambia la organización activa. */
+  async refresh(raw: string, ctx: RequestContext, organizationId?: string): Promise<SessionResult> {
+    if (organizationId) {
+      const familyId = await this.sessions.findFamily(raw);
+      const token = familyId
+        ? await this.prisma.refreshToken.findFirst({
+            where: { familyId },
+            select: { userId: true },
+          })
+        : null;
+      if (!token || !(await this.findMembership(token.userId, organizationId))) {
+        throw new ApiException(403, 'FORBIDDEN', 'No perteneces a esa organización');
+      }
+    }
+
+    const result = await this.sessions.rotate(raw, ctx, organizationId);
+    if (!result.ok) throw new ApiException(401, 'UNAUTHORIZED', 'Sesión no válida');
+
+    // El usuario pudo ser desactivado o expulsado de la organización desde el último login.
+    const membership = await this.findMembership(result.userId, result.organizationId);
+    if (!membership) {
+      await this.sessions.revokeFamily(result.refresh.familyId);
+      throw new ApiException(401, 'UNAUTHORIZED', 'Sesión no válida');
+    }
+    return this.issue(result.userId, result.organizationId, membership.role, result.refresh);
+  }
+
+  async logout(raw: string | undefined): Promise<void> {
+    if (!raw) return;
+    const familyId = await this.sessions.findFamily(raw);
+    if (familyId) await this.sessions.revokeFamily(familyId);
+  }
+
+  private findMembership(userId: string, organizationId: string) {
+    return this.prisma.membership.findFirst({
+      where: { userId, organizationId, user: { disabledAt: null } },
+      select: { role: true },
+    });
+  }
+
+  /** Emite el access token de una sesión ya abierta (p. ej. la de un sandbox de la demo). */
+  async issue(
+    userId: string,
+    organizationId: string,
+    role: MemberRole,
+    refresh: { raw: string; familyId: string; expiresAt: Date },
+  ): Promise<SessionResult> {
+    const accessToken = await this.tokens.signAccessToken({
+      sub: userId,
+      org: organizationId,
+      role,
+      sid: refresh.familyId,
+    });
+    return {
+      accessToken,
+      expiresIn: this.tokens.accessTtlSeconds,
+      refreshToken: refresh.raw,
+      refreshExpiresAt: refresh.expiresAt,
+    };
+  }
+}

@@ -1,0 +1,290 @@
+// Esquema de Coral. La URL de la BD está en prisma.config.ts (Prisma 7).
+// Multitenancy: toda tabla de negocio lleva organization_id y se filtra por la organización
+// activa del access token.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------------------
+// Identidad y tenants (Fase 0)
+// ---------------------------------------------------------------------------------------
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  AGENT
+}
+
+model Organization {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String
+  /// Identificador legible y único (URLs, widget).
+  slug      String   @unique
+  /// Sandbox de la demo pública: una copia por visitante que se borra entera al vencer.
+  isDemo    Boolean   @default(false) @map("is_demo")
+  /// Vencimiento del sandbox (solo demos). Un job borra la organización y todo lo suyo.
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  memberships   Membership[]
+  products      Product[]
+  contacts      Contact[]
+  conversations Conversation[]
+  messages      Message[]
+  aiRuns        AiRun[]
+  orders        Order[]
+  reservations  Reservation[]
+
+  @@index([isDemo, expiresAt])
+
+  @@map("organizations")
+}
+
+model User {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  email        String    @unique
+  fullName     String    @map("full_name")
+  passwordHash String?   @map("password_hash")
+  /// Usuario creado para un sandbox de la demo: se borra junto con su organización.
+  ephemeral    Boolean   @default(false)
+  disabledAt   DateTime? @map("disabled_at") @db.Timestamptz(3)
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  assigned      Conversation[]
+
+  @@map("users")
+}
+
+model Membership {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  organizationId String     @map("organization_id") @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  role           MemberRole
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+/// Refresh tokens rotativos: en BD solo el SHA-256. Una familia = una sesión.
+model RefreshToken {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  familyId       String    @map("family_id") @db.Uuid
+  /// Organización activa de la sesión: se conserva al rotar.
+  organizationId String    @map("organization_id") @db.Uuid
+  tokenHash      String    @unique @map("token_hash")
+  userAgent      String?   @map("user_agent")
+  ip             String?
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz(3)
+  replacedBy     String?   @map("replaced_by") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+// ---------------------------------------------------------------------------------------
+// Catálogo y conversaciones (C1)
+// ---------------------------------------------------------------------------------------
+
+/// Producto de la carta. Precio en pesos (sin decimales).
+model Product {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  category       String
+  name           String
+  description    String
+  price          Int
+  /// Tamaños y toppings: [{ name, price? }].
+  options        Json     @default("{}")
+  image          String?
+  featured       Boolean  @default(false)
+  available      Boolean  @default(true)
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+  @@map("products")
+}
+
+enum Channel {
+  WEB
+  WHATSAPP
+}
+
+/// Persona que escribe por un canal. `externalId`: id del visitante del widget o número de WhatsApp.
+model Contact {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  channel        Channel
+  externalId     String   @map("external_id")
+  name           String?
+  /// Lo que el bot recuerda del contacto (tool `remember`).
+  memory         Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+
+  @@unique([organizationId, channel, externalId])
+  @@map("contacts")
+}
+
+enum ConversationStatus {
+  /// Responde el bot (árbol de decisiones o IA).
+  BOT
+  /// La tomó un asesor: el bot no interviene.
+  HUMAN
+  CLOSED
+}
+
+model Conversation {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  contactId      String             @map("contact_id") @db.Uuid
+  channel        Channel
+  status         ConversationStatus @default(BOT)
+  assignedUserId String?            @map("assigned_user_id") @db.Uuid
+  unread         Int                @default(0)
+  lastMessageAt  DateTime           @default(now()) @map("last_message_at") @db.Timestamptz(3)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact      Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignedUser User?        @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  aiRuns       AiRun[]
+  orders       Order[]
+  reservations Reservation[]
+
+  @@index([organizationId, lastMessageAt(sort: Desc)])
+  @@index([contactId])
+  @@map("conversations")
+}
+
+enum Sender {
+  CONTACT
+  BOT
+  AGENT
+  SYSTEM
+}
+
+model Message {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  sender         Sender
+  text           String
+  /// Detalles del bot: herramientas usadas, nodo del árbol, costo… (para la bandeja).
+  meta           Json?
+  /// Id en el canal de origen (idempotencia de webhooks).
+  externalId     String?  @map("external_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, externalId])
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ---------------------------------------------------------------------------------------
+// Agente de IA (C2)
+// ---------------------------------------------------------------------------------------
+
+/// Una respuesta del agente: modelo, tokens, costo, latencia y herramientas (observabilidad de IA).
+model AiRun {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  conversationId   String   @map("conversation_id") @db.Uuid
+  model            String
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  /// Costo en USD según OpenRouter (`usage.cost`).
+  costUsd          Float    @default(0) @map("cost_usd")
+  latencyMs        Int      @default(0) @map("latency_ms")
+  iterations       Int      @default(1)
+  /// [{ name, args, result }]
+  toolCalls        Json     @default("[]") @map("tool_calls")
+  error            String?
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("ai_runs")
+}
+
+enum Fulfillment {
+  DELIVERY
+  PICKUP
+}
+
+/// Pedido creado por el agente (tool `create_order`). En la demo no es real.
+model Order {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  code           String
+  customerName   String?     @map("customer_name")
+  /// [{ name, option, quantity, unitPrice, subtotal }]
+  items          Json
+  total          Int
+  fulfillment    Fulfillment
+  address        String?
+  notes          String?
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("orders")
+}
+
+/// Reserva creada por el agente (tool `book_reservation`).
+model Reservation {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  code           String
+  name           String
+  people         Int
+  /// Fecha local (Girardot) AAAA-MM-DD y hora HH:MM.
+  date           String
+  time           String
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("reservations")
+}

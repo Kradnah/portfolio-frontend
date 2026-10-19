@@ -1,0 +1,22 @@
+/** Constantes sin dependencias: el panel las importa sin arrastrar Zod al bundle. */
+
+/** Cabecera del double-submit CSRF en las rutas que usan la cookie de sesión. */
+export const CSRF_HEADER = 'x-csrf-token';
+
+/** Ruta de Socket.IO (bajo /api para que Traefik la enrute al API). */
+export const SOCKET_PATH = '/api/socket.io';
+
+/** Eventos del panel (namespace por defecto, salas por organización). */
+export const PanelEvent = {
+  MessageCreated: 'message.created',
+  ConversationUpdated: 'conversation.updated',
+  SandboxExpired: 'sandbox.expired',
+} as const;
+
+/** Eventos del widget (namespace /widget, una sala por conversación). */
+export const WidgetEvent = {
+  Hello: 'widget.hello',
+  Send: 'widget.send',
+  Message: 'widget.message',
+  Typing: 'widget.typing',
+} as const;

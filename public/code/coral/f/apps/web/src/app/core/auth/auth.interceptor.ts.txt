@@ -1,0 +1,30 @@
+import { HttpErrorResponse, type HttpInterceptorFn, type HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, from, switchMap, throwError } from 'rxjs';
+import { AuthService } from './auth.service';
+
+const withToken = (req: HttpRequest<unknown>, token: string | null) =>
+  token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+
+/**
+ * Añade el access token a las peticiones del API. Si una responde 401, refresca la sesión una vez
+ * y reintenta; si el refresh falla, vuelve al login.
+ */
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Las rutas de sesión usan la cookie, no el access token.
+  if (!req.url.startsWith('/api/') || req.url.startsWith('/api/auth/')) return next(req);
+
+  const auth = inject(AuthService);
+  return next(withToken(req, auth.accessToken)).pipe(
+    catchError((err: unknown) => {
+      if (!(err instanceof HttpErrorResponse) || err.status !== 401) return throwError(() => err);
+      return from(auth.refresh()).pipe(
+        switchMap((ok) => {
+          if (ok) return next(withToken(req, auth.accessToken));
+          void auth.expire();
+          return throwError(() => err);
+        }),
+      );
+    }),
+  );
+};

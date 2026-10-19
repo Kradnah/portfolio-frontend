@@ -1,0 +1,276 @@
+import { Injectable } from '@nestjs/common';
+import {
+  type Channel,
+  type ConversationSummary,
+  type MessageDto,
+  PanelEvent,
+  WidgetEvent,
+} from '@coral/contracts';
+import { ApiException } from '../../common/errors/api.exception.js';
+import type { Contact, Conversation, Message, Prisma } from '../../generated/prisma/client.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { RealtimeService } from '../realtime/realtime.service.js';
+
+const HISTORY_LIMIT = 200;
+
+export const toMessageDto = (m: Message, withMeta = true): MessageDto => ({
+  id: m.id,
+  conversationId: m.conversationId,
+  sender: m.sender,
+  text: m.text,
+  meta: withMeta ? ((m.meta as Record<string, unknown> | null) ?? null) : undefined,
+  createdAt: m.createdAt.toISOString(),
+});
+
+const toSummary = (
+  c: Conversation & { contact: Contact; messages: Message[] },
+): ConversationSummary => ({
+  id: c.id,
+  channel: c.channel,
+  status: c.status,
+  unread: c.unread,
+  assignedUserId: c.assignedUserId,
+  lastMessageAt: c.lastMessageAt.toISOString(),
+  contact: {
+    id: c.contact.id,
+    channel: c.contact.channel,
+    name: c.contact.name,
+    externalId: c.contact.externalId,
+    memory: (c.contact.memory as Record<string, unknown>) ?? {},
+  },
+  lastMessage: c.messages[0] ? toMessageDto(c.messages[0]) : null,
+});
+
+export interface InboundMessage {
+  organizationId: string;
+  channel: Channel;
+  /** Id del visitante del widget o número de WhatsApp. */
+  externalId: string;
+  name?: string;
+  text: string;
+  /** Id del mensaje en el canal (idempotencia: un reintento del webhook no lo duplica). */
+  externalMessageId?: string;
+}
+
+/** Respuesta del bot o de un asesor que debe salir por el canal de la conversación. */
+export type Outbound = (conversation: Conversation, message: Message) => Promise<void> | void;
+
+@Injectable()
+export class ConversationsService {
+  /** Entregadores por canal (el widget emite por socket; WhatsApp publica en Redis). */
+  private readonly outbound = new Map<Channel, Outbound>();
+  /** Se llama tras guardar un mensaje del contacto en una conversación atendida por el bot. */
+  private botHandler?: (conversation: Conversation, message: Message) => void;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: RealtimeService,
+  ) {
+    this.outbound.set('WEB', (conversation, message) =>
+      this.realtime.toWidget(conversation.id, WidgetEvent.Message, toMessageDto(message, false)),
+    );
+  }
+
+  registerOutbound(channel: Channel, handler: Outbound): void {
+    this.outbound.set(channel, handler);
+  }
+
+  onBotTurn(handler: (conversation: Conversation, message: Message) => void): void {
+    this.botHandler = handler;
+  }
+
+  /** Conversación abierta del contacto (o una nueva). */
+  async openConversation(
+    organizationId: string,
+    channel: Channel,
+    externalId: string,
+    name?: string,
+  ): Promise<Conversation & { contact: Contact }> {
+    const contact = await this.prisma.contact.upsert({
+      where: { organizationId_channel_externalId: { organizationId, channel, externalId } },
+      create: { organizationId, channel, externalId, name: name ?? null },
+      update: name ? { name } : {},
+    });
+    const open = await this.prisma.conversation.findFirst({
+      where: { organizationId, contactId: contact.id, status: { not: 'CLOSED' } },
+      orderBy: { lastMessageAt: 'desc' },
+    });
+    const conversation =
+      open ??
+      (await this.prisma.conversation.create({
+        data: { organizationId, contactId: contact.id, channel },
+      }));
+    return { ...conversation, contact };
+  }
+
+  /** Mensaje del contacto: se guarda, se avisa al panel y, si atiende el bot, se le pasa el turno. */
+  async inbound(input: InboundMessage): Promise<{ conversation: Conversation; message: Message }> {
+    const conversation = await this.openConversation(
+      input.organizationId,
+      input.channel,
+      input.externalId,
+      input.name,
+    );
+    if (input.externalMessageId) {
+      const dup = await this.prisma.message.findUnique({
+        where: {
+          conversationId_externalId: {
+            conversationId: conversation.id,
+            externalId: input.externalMessageId,
+          },
+        },
+      });
+      if (dup) return { conversation, message: dup };
+    }
+    const [message, updated] = await this.prisma.$transaction([
+      this.prisma.message.create({
+        data: {
+          organizationId: input.organizationId,
+          conversationId: conversation.id,
+          sender: 'CONTACT',
+          text: input.text,
+          externalId: input.externalMessageId ?? null,
+        },
+      }),
+      this.prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { lastMessageAt: new Date(), unread: { increment: 1 } },
+      }),
+    ]);
+    this.realtime.toOrg(input.organizationId, PanelEvent.MessageCreated, toMessageDto(message));
+    await this.emitSummary(updated.id);
+    if (updated.status === 'BOT') this.botHandler?.(updated, message);
+    return { conversation: updated, message };
+  }
+
+  /** Respuesta del bot (árbol de decisiones o IA). */
+  async botReply(
+    organizationId: string,
+    conversationId: string,
+    text: string,
+    meta?: Prisma.InputJsonValue,
+  ): Promise<Message> {
+    return this.outgoing(organizationId, conversationId, 'BOT', text, meta);
+  }
+
+  /** Respuesta de un asesor: toma la conversación (el bot deja de responder). */
+  async agentReply(
+    organizationId: string,
+    userId: string,
+    conversationId: string,
+    text: string,
+  ): Promise<MessageDto> {
+    await this.find(organizationId, conversationId);
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: { status: 'HUMAN', assignedUserId: userId },
+    });
+    return toMessageDto(await this.outgoing(organizationId, conversationId, 'AGENT', text));
+  }
+
+  async setStatus(
+    organizationId: string,
+    userId: string,
+    conversationId: string,
+    status: 'BOT' | 'HUMAN' | 'CLOSED',
+  ): Promise<ConversationSummary> {
+    await this.find(organizationId, conversationId);
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: { status, assignedUserId: status === 'HUMAN' ? userId : null },
+    });
+    const note = {
+      BOT: 'El bot vuelve a atender la conversación.',
+      HUMAN: 'Un asesor tomó la conversación.',
+      CLOSED: 'Conversación cerrada.',
+    }[status];
+    await this.outgoing(organizationId, conversationId, 'SYSTEM', note);
+    return this.emitSummary(conversationId);
+  }
+
+  /** El agente pasa la conversación a un humano (queda sin asignar hasta que alguien la tome). */
+  async escalate(organizationId: string, conversationId: string): Promise<void> {
+    await this.prisma.conversation.updateMany({
+      where: { id: conversationId, organizationId },
+      data: { status: 'HUMAN', assignedUserId: null },
+    });
+    await this.outgoing(
+      organizationId,
+      conversationId,
+      'SYSTEM',
+      'El bot pasó la conversación a un asesor.',
+    );
+  }
+
+  async markRead(organizationId: string, conversationId: string): Promise<void> {
+    await this.prisma.conversation.updateMany({
+      where: { id: conversationId, organizationId },
+      data: { unread: 0 },
+    });
+  }
+
+  async list(organizationId: string): Promise<ConversationSummary[]> {
+    const rows = await this.prisma.conversation.findMany({
+      where: { organizationId },
+      orderBy: { lastMessageAt: 'desc' },
+      take: 100,
+      include: { contact: true, messages: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    });
+    return rows.map(toSummary);
+  }
+
+  async history(
+    organizationId: string,
+    conversationId: string,
+    withMeta = true,
+  ): Promise<MessageDto[]> {
+    await this.find(organizationId, conversationId);
+    const rows = await this.prisma.message.findMany({
+      where: { conversationId, organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: HISTORY_LIMIT,
+    });
+    return rows.reverse().map((m) => toMessageDto(m, withMeta));
+  }
+
+  private async find(organizationId: string, conversationId: string): Promise<Conversation> {
+    // Filtro por organización: un id de otro tenant responde igual que uno inexistente.
+    const conv = await this.prisma.conversation.findFirst({
+      where: { id: conversationId, organizationId },
+    });
+    if (!conv) throw new ApiException(404, 'NOT_FOUND', 'Conversación no encontrada');
+    return conv;
+  }
+
+  private async outgoing(
+    organizationId: string,
+    conversationId: string,
+    sender: 'BOT' | 'AGENT' | 'SYSTEM',
+    text: string,
+    meta?: Prisma.InputJsonValue,
+  ): Promise<Message> {
+    const [message, conversation] = await this.prisma.$transaction([
+      this.prisma.message.create({
+        data: { organizationId, conversationId, sender, text, meta: meta ?? undefined },
+      }),
+      this.prisma.conversation.update({
+        where: { id: conversationId },
+        data: { lastMessageAt: new Date() },
+      }),
+    ]);
+    this.realtime.toOrg(organizationId, PanelEvent.MessageCreated, toMessageDto(message));
+    if (sender !== 'SYSTEM') await this.outbound.get(conversation.channel)?.(conversation, message);
+    await this.emitSummary(conversationId);
+    return message;
+  }
+
+  private async emitSummary(conversationId: string): Promise<ConversationSummary> {
+    const c = await this.prisma.conversation.findUniqueOrThrow({
+      where: { id: conversationId },
+      include: { contact: true, messages: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    });
+    const summary = toSummary(c);
+    this.realtime.toOrg(c.organizationId, PanelEvent.ConversationUpdated, summary);
+    return summary;
+  }
+}

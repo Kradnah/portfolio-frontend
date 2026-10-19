@@ -1,0 +1,151 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  type OnDestroy,
+  signal,
+} from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { PanelEvent } from '@coral/contracts/constants';
+import { AuthService } from '../core/auth/auth.service';
+import { RealtimeService } from '../core/realtime.service';
+
+interface NavItem {
+  label: string;
+  path: string;
+  /** Etapa del plan en la que llega la sección. */
+  soon?: string;
+}
+
+const NAV: NavItem[] = [
+  { label: 'Inicio', path: '/' },
+  { label: 'Bandeja', path: '/inbox' },
+  { label: 'Carta', path: '/menu' },
+  { label: 'Actividad del bot', path: '/activity' },
+  { label: 'Árbol de decisiones', path: '/flows', soon: 'C3' },
+  { label: 'WhatsApp', path: '/whatsapp', soon: 'C4' },
+];
+
+@Component({
+  selector: 'app-shell',
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="flex min-h-[calc(100%-8px)]">
+      <aside class="flex w-60 shrink-0 flex-col border-r-[2.5px] border-black bg-panel">
+        <div class="border-b-[2.5px] border-black p-5">
+          <span class="text-3xl font-black tracking-tight"
+            >Coral<span class="text-coral">.</span></span
+          >
+          <p class="mono mt-1 text-[0.65rem] uppercase tracking-widest text-muted">CRM con IA</p>
+        </div>
+        <nav class="flex flex-1 flex-col gap-1 p-3">
+          @for (item of nav; track item.path) {
+            @if (item.soon) {
+              <span
+                class="flex items-center justify-between px-3 py-2 font-bold text-muted/50"
+                [title]="'Llega en la etapa ' + item.soon"
+              >
+                {{ item.label }} <span class="mono text-[0.6rem] uppercase">{{ item.soon }}</span>
+              </span>
+            } @else {
+              <a
+                class="border-2 border-transparent px-3 py-2 font-bold hover:border-black hover:bg-deep"
+                [routerLink]="item.path"
+                routerLinkActive="!border-black bg-coral text-black shadow-[2px_2px_0_#000]"
+                [routerLinkActiveOptions]="{ exact: true }"
+                >{{ item.label }}</a
+              >
+            }
+          }
+        </nav>
+        <p class="mono border-t-2 border-black p-3 text-[0.65rem] text-muted">
+          <span [class]="realtime.connected() ? 'text-lime' : 'text-alert'">●</span>
+          {{ realtime.connected() ? 'tiempo real activo' : 'sin conexión en vivo' }}
+        </p>
+      </aside>
+
+      <div class="flex min-w-0 flex-1 flex-col">
+        @if (auth.me(); as me) {
+          <header
+            class="flex flex-wrap items-center justify-between gap-4 border-b-[2.5px] border-black bg-panel px-6 py-3"
+          >
+            <span class="text-lg font-black">{{ me.organization.name }}</span>
+            <div class="flex items-center gap-3">
+              @if (me.organization.isDemo) {
+                <span
+                  class="mono border-2 border-coral px-2 py-1 text-xs text-coral"
+                  title="Al vencer se borra todo"
+                >
+                  Demo · se borra en {{ remaining() }}
+                </span>
+                <button class="btn py-1!" type="button" (click)="destroy()">
+                  Borrar mi demo ahora
+                </button>
+              } @else {
+                <span class="text-sm font-semibold">{{ me.fullName }}</span>
+                <span class="tag bg-lime text-black">{{ me.organization.role }}</span>
+                <button class="btn py-1!" type="button" (click)="auth.logout()">Salir</button>
+              }
+            </div>
+          </header>
+        }
+        <main class="flex-1 p-6">
+          <router-outlet />
+        </main>
+      </div>
+    </div>
+
+    @if (expired()) {
+      <div
+        class="fixed inset-0 z-50 grid place-items-center bg-black/70 p-6"
+        role="alertdialog"
+        aria-modal="true"
+      >
+        <div class="card max-w-md p-6 text-center">
+          <h2 class="mb-2 text-2xl font-black">Tu demo terminó</h2>
+          <p class="mb-5 text-muted">
+            Se borraron las conversaciones y todos los datos del sandbox.
+          </p>
+          <button class="btn btn-primary" type="button" (click)="auth.expire()">
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    }
+  `,
+})
+export class Shell implements OnDestroy {
+  protected readonly auth = inject(AuthService);
+  protected readonly realtime = inject(RealtimeService);
+  protected readonly nav = NAV;
+  protected readonly expired = signal(false);
+  private readonly now = signal(Date.now());
+  private readonly timer = setInterval(() => this.now.set(Date.now()), 30_000);
+  private readonly offExpired: () => void;
+
+  protected readonly remaining = computed(() => {
+    const at = this.auth.me()?.organization.expiresAt;
+    if (!at) return '';
+    const min = Math.max(0, Math.round((Date.parse(at) - this.now()) / 60_000));
+    return min >= 60 ? `${Math.floor(min / 60)} h ${min % 60} min` : `${min} min`;
+  });
+
+  constructor() {
+    this.realtime.connect();
+    this.offExpired = this.realtime.on(PanelEvent.SandboxExpired, () => this.expired.set(true));
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.timer);
+    this.offExpired();
+    this.realtime.disconnect();
+  }
+
+  protected async destroy(): Promise<void> {
+    if (!confirm('¿Borrar la demo ahora? Se eliminan todas sus conversaciones y datos.')) return;
+    this.realtime.disconnect();
+    await this.auth.destroyDemo();
+  }
+}

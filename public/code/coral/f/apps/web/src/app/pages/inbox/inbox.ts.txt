@@ -1,0 +1,335 @@
+import { HttpClient } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  type ElementRef,
+  inject,
+  type OnDestroy,
+  type OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
+import type { ConversationSummary, MessageDto } from '@coral/contracts';
+import { PanelEvent } from '@coral/contracts/constants';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth/auth.service';
+import { RealtimeService } from '../../core/realtime.service';
+import { CustomerSim } from './customer-sim';
+
+const STATUS_LABEL = { BOT: 'Bot', HUMAN: 'Asesor', CLOSED: 'Cerrada' } as const;
+
+interface BotRun {
+  model: string;
+  tools: { name: string; args: unknown; result: unknown }[];
+  costUsd: number;
+  tokens: number;
+  promptTokens?: number;
+  completionTokens?: number;
+  latencyMs: number;
+  iterations: number;
+  error: string | null;
+}
+
+@Component({
+  selector: 'app-inbox',
+  imports: [CustomerSim],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div
+      class="grid h-[calc(100vh-8.5rem)] min-h-[520px] grid-cols-1 gap-5 lg:grid-cols-[300px_minmax(0,1fr)_340px]"
+    >
+      <!-- Lista de conversaciones -->
+      <section class="card flex min-h-0 flex-col">
+        <header class="border-b-2 border-black bg-coral px-4 py-2">
+          <span class="mono text-xs font-bold uppercase tracking-widest text-black">Bandeja</span>
+        </header>
+        <ul class="flex-1 overflow-y-auto">
+          @for (c of conversations(); track c.id) {
+            <li>
+              <button
+                type="button"
+                class="block w-full border-b border-black px-4 py-3 text-left hover:bg-deep"
+                [class.bg-deep]="c.id === selectedId()"
+                [class.shadow-[inset_4px_0_0_var(--color-lime)]]="c.id === selectedId()"
+                (click)="select(c.id)"
+              >
+                <span class="flex items-center justify-between gap-2">
+                  <strong class="truncate">{{ c.contact.name ?? 'Visitante web' }}</strong>
+                  @if (c.unread) {
+                    <span class="tag bg-coral text-black">{{ c.unread }}</span>
+                  }
+                </span>
+                <span class="mt-1 flex items-center gap-2 text-xs">
+                  <span class="tag" [class]="statusClass(c.status)">{{ label(c.status) }}</span>
+                  <span class="mono text-muted">{{
+                    c.channel === 'WEB' ? 'web' : 'whatsapp'
+                  }}</span>
+                </span>
+                <span class="mt-1 block truncate text-sm text-muted">{{
+                  c.lastMessage?.text
+                }}</span>
+              </button>
+            </li>
+          } @empty {
+            <li class="p-5 text-sm text-muted">
+              Aún no hay conversaciones. Escribe desde
+              <strong class="text-ink">Simula un cliente</strong>
+              para crear la primera.
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Conversación -->
+      <section class="card flex min-h-0 flex-col">
+        @if (selected(); as c) {
+          <header
+            class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-black px-4 py-3"
+          >
+            <div>
+              <h2 class="text-lg font-black">{{ c.contact.name ?? 'Visitante web' }}</h2>
+              <p class="mono text-xs text-muted">
+                {{ c.channel === 'WEB' ? 'Widget web' : 'WhatsApp' }} · atiende:
+                <span [class]="c.status === 'BOT' ? 'text-lime' : 'text-coral'">{{
+                  label(c.status)
+                }}</span>
+              </p>
+            </div>
+            <div class="flex gap-2">
+              @if (c.status !== 'HUMAN') {
+                <button class="btn btn-primary py-1!" type="button" (click)="setStatus('take')">
+                  Tomar
+                </button>
+              }
+              @if (c.status !== 'BOT') {
+                <button class="btn btn-ok py-1!" type="button" (click)="setStatus('release')">
+                  Devolver al bot
+                </button>
+              }
+              @if (c.status !== 'CLOSED') {
+                <button class="btn py-1!" type="button" (click)="setStatus('close')">Cerrar</button>
+              }
+            </div>
+          </header>
+          <ol #scroller class="flex-1 space-y-3 overflow-y-auto p-4">
+            @for (m of messages(); track m.id) {
+              @if (m.sender === 'SYSTEM') {
+                <li class="mono text-center text-xs text-muted">— {{ m.text }} —</li>
+              } @else {
+                <li class="flex flex-col" [class.items-end]="m.sender !== 'CONTACT'">
+                  <span class="mono mb-1 text-[0.65rem] uppercase text-muted">
+                    {{ m.sender === 'CONTACT' ? 'Cliente' : m.sender === 'BOT' ? 'Bot' : 'Asesor' }}
+                    ·
+                    {{ time(m.createdAt) }}
+                  </span>
+                  <span
+                    class="max-w-[75%] border-2 border-black px-3 py-2 whitespace-pre-wrap shadow-[3px_3px_0_#000]"
+                    [class]="bubble(m)"
+                    >{{ m.text }}</span
+                  >
+                  @if (m.sender === 'BOT' && run(m); as r) {
+                    <details class="mt-2 w-full max-w-[75%] border-2 border-black bg-deep text-xs">
+                      <summary class="cursor-pointer px-3 py-1.5 text-muted">
+                        {{ r.tools.length ? 'Usó ' + toolNames(r) : 'Respondió sin herramientas' }}
+                        · {{ usd(r.costUsd) }} · {{ r.tokens }} tokens · {{ seconds(r.latencyMs) }}
+                      </summary>
+                      <ol class="space-y-2 border-t-2 border-black p-3">
+                        @for (t of r.tools; track $index) {
+                          <li>
+                            <p class="font-bold text-lime">{{ t.name }}</p>
+                            <pre class="mono mt-1 overflow-x-auto whitespace-pre-wrap text-ink">{{
+                              json(t.args)
+                            }}</pre>
+                            <pre
+                              class="mono mt-1 max-h-40 overflow-auto whitespace-pre-wrap text-muted"
+                            >
+→ {{ json(t.result) }}</pre>
+                          </li>
+                        }
+                        <li class="text-muted">
+                          Modelo: {{ r.model }} · vueltas: {{ r.iterations }}
+                        </li>
+                        @if (r.error) {
+                          <li class="text-alert">Error: {{ r.error }}</li>
+                        }
+                      </ol>
+                    </details>
+                  }
+                </li>
+              }
+            }
+          </ol>
+          <form class="flex gap-2 border-t-2 border-black p-3" (submit)="reply($event)">
+            <input
+              class="input"
+              name="reply"
+              maxlength="2000"
+              autocomplete="off"
+              aria-label="Respuesta"
+              [placeholder]="
+                c.status === 'BOT'
+                  ? 'Responder toma la conversación (el bot deja de contestar)'
+                  : 'Escribe tu respuesta'
+              "
+              [value]="draft()"
+              (input)="draft.set($any($event.target).value)"
+            />
+            <button class="btn btn-primary" type="submit" [disabled]="!draft().trim() || sending()">
+              Enviar
+            </button>
+          </form>
+        } @else {
+          <div class="flex flex-1 items-center justify-center p-8 text-center text-muted">
+            Elige una conversación de la lista.
+          </div>
+        }
+      </section>
+
+      <!-- Simulador -->
+      @if (widgetKey(); as key) {
+        <app-customer-sim [widgetKey]="key" />
+      }
+    </div>
+  `,
+})
+export class InboxPage implements OnInit, OnDestroy {
+  private readonly http = inject(HttpClient);
+  private readonly realtime = inject(RealtimeService);
+  private readonly auth = inject(AuthService);
+
+  protected readonly conversations = signal<ConversationSummary[]>([]);
+  protected readonly selectedId = signal<string | null>(null);
+  protected readonly messages = signal<MessageDto[]>([]);
+  protected readonly draft = signal('');
+  protected readonly sending = signal(false);
+  protected readonly selected = computed(
+    () => this.conversations().find((c) => c.id === this.selectedId()) ?? null,
+  );
+  protected readonly widgetKey = computed(() => this.auth.me()?.organization.slug ?? null);
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
+  private readonly unsubscribe: (() => void)[] = [];
+
+  async ngOnInit(): Promise<void> {
+    this.realtime.connect();
+    this.unsubscribe.push(
+      this.realtime.on<ConversationSummary>(PanelEvent.ConversationUpdated, (c) => this.upsert(c)),
+      this.realtime.on<MessageDto>(PanelEvent.MessageCreated, (m) => {
+        if (m.conversationId !== this.selectedId()) return;
+        this.messages.update((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
+        this.scrollDown();
+      }),
+    );
+    const list = await firstValueFrom(this.http.get<ConversationSummary[]>('/api/conversations'));
+    this.conversations.set(list);
+    if (list[0]) await this.select(list[0].id);
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe.forEach((u) => u());
+  }
+
+  protected async select(id: string): Promise<void> {
+    this.selectedId.set(id);
+    this.messages.set(
+      await firstValueFrom(this.http.get<MessageDto[]>(`/api/conversations/${id}/messages`)),
+    );
+    this.conversations.update((list) => list.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
+    this.scrollDown();
+  }
+
+  protected async reply(event: Event): Promise<void> {
+    event.preventDefault();
+    const id = this.selectedId();
+    const text = this.draft().trim();
+    if (!id || !text) return;
+    this.sending.set(true);
+    try {
+      await firstValueFrom(this.http.post(`/api/conversations/${id}/messages`, { text }));
+      this.draft.set('');
+    } finally {
+      this.sending.set(false);
+    }
+  }
+
+  protected async setStatus(action: 'take' | 'release' | 'close'): Promise<void> {
+    const id = this.selectedId();
+    if (!id) return;
+    this.upsert(
+      await firstValueFrom(
+        this.http.post<ConversationSummary>(`/api/conversations/${id}/${action}`, {}),
+      ),
+    );
+  }
+
+  protected label(status: keyof typeof STATUS_LABEL): string {
+    return STATUS_LABEL[status];
+  }
+
+  protected statusClass(status: keyof typeof STATUS_LABEL): string {
+    return status === 'BOT'
+      ? 'bg-lime text-black'
+      : status === 'HUMAN'
+        ? 'bg-coral text-black'
+        : 'text-muted';
+  }
+
+  protected bubble(m: MessageDto): string {
+    if (m.sender === 'CONTACT') return 'bg-deep';
+    if (m.sender === 'BOT') return 'bg-mid text-white';
+    return 'bg-coral text-black';
+  }
+
+  /** Detalle de la ejecución del agente guardado en el mensaje (si lo hay). */
+  protected run(m: MessageDto): BotRun | null {
+    const meta = m.meta as Partial<BotRun> | null | undefined;
+    if (!meta || !('model' in meta)) return null;
+    return {
+      model: meta.model ?? '',
+      tools: meta.tools ?? [],
+      costUsd: meta.costUsd ?? 0,
+      tokens: (meta.promptTokens ?? 0) + (meta.completionTokens ?? 0),
+      latencyMs: meta.latencyMs ?? 0,
+      iterations: meta.iterations ?? 1,
+      error: meta.error ?? null,
+    } as BotRun;
+  }
+
+  protected toolNames(r: BotRun): string {
+    return r.tools.map((t) => t.name).join(', ');
+  }
+
+  protected usd(n: number): string {
+    return n ? `US$${n.toFixed(5)}` : 'US$0';
+  }
+
+  protected seconds(ms: number): string {
+    return `${(ms / 1000).toFixed(1)} s`;
+  }
+
+  protected json(v: unknown): string {
+    return JSON.stringify(v, null, 1);
+  }
+
+  protected time(iso: string): string {
+    return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private upsert(c: ConversationSummary): void {
+    const viewing = c.id === this.selectedId();
+    const updated = viewing ? { ...c, unread: 0 } : c;
+    this.conversations.update((list) =>
+      [updated, ...list.filter((x) => x.id !== c.id)].sort((a, b) =>
+        b.lastMessageAt.localeCompare(a.lastMessageAt),
+      ),
+    );
+    if (!this.selectedId()) void this.select(c.id);
+  }
+
+  private scrollDown(): void {
+    setTimeout(() => {
+      const el = this.scroller()?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  }
+}

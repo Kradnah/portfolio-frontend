@@ -1,0 +1,141 @@
+import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import {
+  CSRF_HEADER,
+  LoginRequest,
+  type Session,
+  SwitchOrganizationRequest,
+} from '@coral/contracts';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { Public, ReqContext, type RequestContext } from '../../common/auth/auth.decorators.js';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { createZodDto } from '../../common/zod/zod-dto.js';
+import { AuthService, type SessionResult } from './auth.service.js';
+
+class LoginDto extends createZodDto(LoginRequest) {}
+class SwitchOrganizationDto extends createZodDto(SwitchOrganizationRequest) {}
+
+/**
+ * Cookies `__Host-`: obligan a Secure, Path=/ y sin Domain, así que no se comparten con otros
+ * subdominios de julian-lizcano.com ni pueden ser sobrescritas por ellos.
+ */
+export const REFRESH_COOKIE = '__Host-coral_rt';
+export const CSRF_COOKIE = '__Host-coral_csrf';
+
+const STRICT = { default: { limit: 5, ttl: 60_000 } };
+
+export function setSessionCookies(reply: FastifyReply, session: SessionResult): void {
+  const base = {
+    path: '/',
+    secure: true,
+    sameSite: 'strict' as const,
+    expires: session.refreshExpiresAt,
+  };
+  void reply.setCookie(REFRESH_COOKIE, session.refreshToken, { ...base, httpOnly: true });
+  // Double-submit: JS lee esta cookie y la repite en la cabecera X-CSRF-Token.
+  void reply.setCookie(CSRF_COOKIE, randomBytes(24).toString('base64url'), {
+    ...base,
+    httpOnly: false,
+  });
+}
+
+function clearSessionCookies(reply: FastifyReply): void {
+  for (const name of [REFRESH_COOKIE, CSRF_COOKIE]) {
+    void reply.clearCookie(name, { path: '/', secure: true, sameSite: 'strict' });
+  }
+}
+
+/** Las rutas que actúan con la cookie de sesión exigen que la cabecera CSRF coincida con su cookie. */
+function assertCsrf(req: FastifyRequest): void {
+  const cookie = req.cookies[CSRF_COOKIE];
+  const header = req.headers[CSRF_HEADER];
+  const ok =
+    typeof cookie === 'string' &&
+    typeof header === 'string' &&
+    cookie.length === header.length &&
+    timingSafeEqual(Buffer.from(cookie), Buffer.from(header));
+  if (!ok) throw new ApiException(403, 'FORBIDDEN', 'Falta el token CSRF');
+}
+
+const toSession = (s: SessionResult): Session => ({
+  accessToken: s.accessToken,
+  expiresIn: s.expiresIn,
+});
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly auth: AuthService) {}
+
+  @Public()
+  @Throttle(STRICT)
+  @HttpCode(200)
+  @Post('login')
+  async login(
+    @Body() body: LoginDto,
+    @ReqContext() ctx: RequestContext,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<Session> {
+    const session = await this.auth.login(body, ctx);
+    setSessionCookies(reply, session);
+    return toSession(session);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('refresh')
+  refresh(
+    @Req() req: FastifyRequest,
+    @ReqContext() ctx: RequestContext,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<Session> {
+    return this.rotate(req, ctx, reply);
+  }
+
+  /** Cambia la organización activa: rota la sesión y devuelve un access token de la nueva. */
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('switch-organization')
+  switchOrganization(
+    @Body() body: SwitchOrganizationDto,
+    @Req() req: FastifyRequest,
+    @ReqContext() ctx: RequestContext,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<Session> {
+    return this.rotate(req, ctx, reply, body.organizationId);
+  }
+
+  @Public()
+  @HttpCode(204)
+  @Post('logout')
+  async logout(
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<void> {
+    assertCsrf(req);
+    await this.auth.logout(req.cookies[REFRESH_COOKIE]);
+    clearSessionCookies(reply);
+  }
+
+  private async rotate(
+    req: FastifyRequest,
+    ctx: RequestContext,
+    reply: FastifyReply,
+    organizationId?: string,
+  ): Promise<Session> {
+    assertCsrf(req);
+    const raw = req.cookies[REFRESH_COOKIE];
+    if (!raw) throw new ApiException(401, 'UNAUTHORIZED', 'Sin sesión');
+    try {
+      const session = await this.auth.refresh(raw, ctx, organizationId);
+      setSessionCookies(reply, session);
+      return toSession(session);
+    } catch (err) {
+      // Un 403 (organización ajena) no invalida la sesión actual.
+      if (!(err instanceof ApiException && err.status === 403)) clearSessionCookies(reply);
+      throw err;
+    }
+  }
+}

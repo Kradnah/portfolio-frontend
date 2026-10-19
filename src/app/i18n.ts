@@ -160,6 +160,16 @@ const ES = {
       'Monorepo con contratos Zod compartidos y tests de integración con Testcontainers.',
     ],
     apk: { pasajero: 'pasajero', conductor: 'conductor' } as Record<string, string>,
+    coralAlt: 'Bandeja de Coral: conversación con el bot y herramientas usadas',
+    coralDesc:
+      'CRM de atención al cliente con IA, hecho desde cero. Un agente responde con la carta real de Casa Zhef, toma pedidos y reservas, y un asesor puede tomar la conversación en tiempo real.',
+    coralPoints: [
+      'Agente con herramientas (carta, pedidos, reservas, memoria, pasar a humano) y su costo por respuesta a la vista.',
+      'Demo aislada por visitante que se borra entera a las 4 horas; widget embebible en cualquier web.',
+      'NestJS, Socket.IO con Redis, colas BullMQ, PostgreSQL y multiempresa con aislamiento por tenant.',
+    ],
+    coralChat: 'Habla con el bot aquí',
+    coralTry: 'Abrir el CRM ↗',
   },
   code: {
     back: '← Volver al portfolio',
@@ -564,6 +574,16 @@ const EN: Dict = {
       'Monorepo with shared Zod contracts and integration tests with Testcontainers.',
     ],
     apk: { pasajero: 'rider', conductor: 'driver' },
+    coralAlt: 'Coral inbox: a conversation with the bot and the tools it used',
+    coralDesc:
+      "An AI customer-service CRM built from scratch. An agent answers with Casa Zhef's real menu, takes orders and bookings, and a human agent can take over the conversation in real time.",
+    coralPoints: [
+      'Agent with tools (menu, orders, bookings, memory, hand-off) and the cost of every reply on display.',
+      'An isolated demo per visitor that is fully deleted after 4 hours; an embeddable widget for any site.',
+      'NestJS, Socket.IO on Redis, BullMQ queues, PostgreSQL and multi-tenant isolation.',
+    ],
+    coralChat: 'Chat with the bot here',
+    coralTry: 'Open the CRM ↗',
   },
   code: {
     back: '← Back to portfolio',

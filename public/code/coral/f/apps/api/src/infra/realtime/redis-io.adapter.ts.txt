@@ -1,0 +1,38 @@
+import type { INestApplicationContext } from '@nestjs/common';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { SOCKET_PATH } from '@coral/contracts';
+import type { Server, ServerOptions } from 'socket.io';
+import type { Env } from '../../config/env.js';
+import { RedisService } from '../redis/redis.service.js';
+
+/**
+ * Socket.IO bajo /api (Traefik ya enruta /api al API) y con el adaptador de Redis, para que los
+ * eventos lleguen a todos los clientes aunque haya más de una réplica.
+ */
+export class RedisIoAdapter extends IoAdapter {
+  constructor(
+    private readonly app: INestApplicationContext,
+    private readonly env: Env,
+  ) {
+    super(app);
+  }
+
+  override createIOServer(port: number, options?: Partial<ServerOptions>): Server {
+    const server = super.createIOServer(port, {
+      ...(options as ServerOptions),
+      path: SOCKET_PATH,
+      serveClient: false,
+      // El panel usa el mismo origen; el widget puede estar incrustado en otros sitios.
+      cors: { origin: this.env.CORS_ORIGINS, credentials: false },
+      maxHttpBufferSize: 64 * 1024,
+      pingInterval: 25_000,
+      pingTimeout: 20_000,
+    }) as Server;
+    const redis = this.app.get(RedisService);
+    server.adapter(
+      createAdapter(redis.createSubscriber('io-pub'), redis.createSubscriber('io-sub')),
+    );
+    return server;
+  }
+}

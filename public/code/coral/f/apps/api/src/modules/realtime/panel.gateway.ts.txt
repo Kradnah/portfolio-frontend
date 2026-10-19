@@ -1,0 +1,51 @@
+import { Logger } from '@nestjs/common';
+import { type OnGatewayConnection, type OnGatewayInit, WebSocketGateway } from '@nestjs/websockets';
+import type { Namespace, Socket } from 'socket.io';
+import { SessionRevocationService } from '../auth/session-revocation.service.js';
+import { TokenService } from '../auth/token.service.js';
+import { orgRoom, RealtimeService } from './realtime.service.js';
+
+/**
+ * Socket del panel. Autentica con el mismo access token (en `auth.token`, nunca en la URL) y une
+ * al asesor a la sala de su organización activa: solo recibe eventos de su tenant.
+ */
+@WebSocketGateway()
+export class PanelGateway implements OnGatewayInit, OnGatewayConnection {
+  private readonly logger = new Logger(PanelGateway.name);
+
+  constructor(
+    private readonly tokens: TokenService,
+    private readonly revocations: SessionRevocationService,
+    private readonly realtime: RealtimeService,
+  ) {}
+
+  afterInit(ns: Namespace): void {
+    this.realtime.registerPanel(ns);
+    // Autenticación en el middleware: la conexión solo se acepta con un token válido.
+    ns.use((client, next) => {
+      void this.authenticate(client).then(
+        (ok) => next(ok ? undefined : new Error('UNAUTHORIZED')),
+        (err: Error) => {
+          this.logger.warn(`Conexión del panel rechazada: ${err.message}`);
+          next(new Error('UNAVAILABLE'));
+        },
+      );
+    });
+  }
+
+  private async authenticate(client: Socket): Promise<boolean> {
+    const token = (client.handshake.auth as { token?: unknown }).token;
+    const claims = typeof token === 'string' ? await this.tokens.verifyAccessToken(token) : null;
+    if (!claims || (await this.revocations.isRevoked(claims.sid))) return false;
+    client.data = { userId: claims.sub, organizationId: claims.org, exp: claims.exp };
+    return true;
+  }
+
+  async handleConnection(client: Socket): Promise<void> {
+    const data = client.data as { organizationId: string; exp: number };
+    await client.join(orgRoom(data.organizationId));
+    // El access token caduca: el panel reconecta con uno nuevo. Aquí se corta al vencer.
+    setTimeout(() => client.disconnect(true), Math.max(0, data.exp * 1000 - Date.now())).unref();
+    this.logger.debug(`Panel conectado org=${data.organizationId}`);
+  }
+}

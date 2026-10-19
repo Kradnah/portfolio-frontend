@@ -1,0 +1,365 @@
+import { randomBytes } from 'node:crypto';
+import { z } from 'zod';
+import type { Prisma, Product } from '../../generated/prisma/client.js';
+import type { PrismaService } from '../../infra/prisma/prisma.service.js';
+import type { ToolDefinition } from './llm.service.js';
+
+/** Contexto de una ejecución: la conversación y su organización. */
+export interface ToolContext {
+  prisma: PrismaService;
+  organizationId: string;
+  conversationId: string;
+  contactId: string;
+  /** Se pone en true si el agente pasa la conversación a un humano. */
+  escalated: boolean;
+}
+
+/** Horario de Casa Zhef (hora de Colombia): día de la semana (0 = domingo) → [abre, cierra]. */
+export const OPENING_HOURS: Record<number, [string, string]> = {
+  5: ['18:00', '22:00'],
+  6: ['17:30', '23:00'],
+  0: ['17:30', '22:00'],
+};
+
+const norm = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const code = (prefix: string) => `${prefix}-${randomBytes(2).toString('hex').toUpperCase()}`;
+
+type Options = {
+  sizes?: { name: string; price?: number }[];
+  toppings?: { name: string; price?: number }[];
+};
+
+/** Producto por nombre aproximado ("waffle de camarones" → "Waffle Camarones"). */
+export function matchProduct(products: Product[], name: string): Product | null {
+  const q = norm(name);
+  const words = q
+    .split(' ')
+    .filter((w) => w.length > 2 && !['de', 'con', 'del', 'los', 'las'].includes(w));
+  let best: Product | null = null;
+  let bestScore = 0;
+  for (const p of products) {
+    const n = norm(p.name);
+    if (n === q) return p;
+    const score = words.filter((w) => n.includes(w)).length / Math.max(1, words.length);
+    if (score > bestScore) {
+      bestScore = score;
+      best = p;
+    }
+  }
+  return bestScore >= 0.5 ? best : null;
+}
+
+function optionPrice(product: Product, option?: string): { name: string | null; price: number } {
+  if (!option) return { name: null, price: product.price };
+  const opts = (product.options as Options) ?? {};
+  const all = [...(opts.sizes ?? []), ...(opts.toppings ?? [])];
+  const found =
+    all.find((o) => norm(o.name) === norm(option)) ??
+    all.find((o) => norm(o.name).includes(norm(option)));
+  return { name: found?.name ?? option, price: found?.price ?? product.price };
+}
+
+const SearchMenu = z.object({
+  query: z.string().max(80).optional(),
+  category: z.string().max(40).optional(),
+});
+const CreateOrder = z.object({
+  items: z
+    .array(
+      z.object({
+        product: z.string().min(1).max(80),
+        quantity: z.number().int().min(1).max(20),
+        option: z.string().max(60).optional(),
+      }),
+    )
+    .min(1)
+    .max(15),
+  fulfillment: z.enum(['delivery', 'pickup']),
+  address: z.string().max(160).optional(),
+  customer_name: z.string().max(60).optional(),
+  notes: z.string().max(200).optional(),
+});
+const BookReservation = z.object({
+  name: z.string().min(1).max(60),
+  people: z.number().int().min(1).max(12),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^\d{2}:\d{2}$/),
+  notes: z.string().max(200).optional(),
+});
+const Remember = z.object({ key: z.string().min(1).max(30), value: z.string().min(1).max(120) });
+const Escalate = z.object({ reason: z.string().min(1).max(200) });
+
+export const TOOL_DEFINITIONS: ToolDefinition[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'search_menu',
+      description:
+        'Busca en la carta de Casa Zhef. Úsala siempre antes de mencionar productos o precios.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: {
+            type: 'string',
+            description: 'Palabras a buscar (ingrediente, nombre). Vacío = toda la carta.',
+          },
+          category: { type: 'string', description: 'Waffles, Para Compartir o Especialidades.' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_order',
+      description:
+        'Crea un pedido cuando el cliente confirmó qué quiere y si es a domicilio (con dirección) o para recoger.',
+      parameters: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                product: {
+                  type: 'string',
+                  description: 'Nombre del producto tal como está en la carta.',
+                },
+                quantity: { type: 'integer', minimum: 1 },
+                option: { type: 'string', description: 'Tamaño o topping elegido, si aplica.' },
+              },
+              required: ['product', 'quantity'],
+            },
+          },
+          fulfillment: { type: 'string', enum: ['delivery', 'pickup'] },
+          address: { type: 'string' },
+          customer_name: { type: 'string' },
+          notes: { type: 'string' },
+        },
+        required: ['items', 'fulfillment'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'book_reservation',
+      description:
+        'Reserva mesa. Solo viernes 6–10 pm, sábados 5:30–11 pm y domingos 5:30–10 pm (hora de Colombia).',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          people: { type: 'integer', minimum: 1, maximum: 12 },
+          date: { type: 'string', description: 'AAAA-MM-DD' },
+          time: { type: 'string', description: 'HH:MM en 24 h' },
+          notes: { type: 'string' },
+        },
+        required: ['name', 'people', 'date', 'time'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'remember',
+      description:
+        'Guarda un dato útil del cliente para próximas conversaciones (nombre, alergia, dirección habitual, preferencia).',
+      parameters: {
+        type: 'object',
+        properties: { key: { type: 'string' }, value: { type: 'string' } },
+        required: ['key', 'value'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'escalate_to_human',
+      description:
+        'Pasa la conversación a un asesor humano: quejas, pedidos especiales, algo que no puedes resolver o si el cliente lo pide.',
+      parameters: {
+        type: 'object',
+        properties: { reason: { type: 'string' } },
+        required: ['reason'],
+      },
+    },
+  },
+];
+
+/** Ejecuta una herramienta. Devuelve lo que ve el modelo (JSON) — nunca lanza: los errores van en el resultado. */
+export async function runTool(
+  name: string,
+  rawArgs: string,
+  ctx: ToolContext,
+): Promise<Record<string, unknown>> {
+  let args: unknown;
+  try {
+    args = JSON.parse(rawArgs || '{}');
+  } catch {
+    return { error: 'Argumentos no son JSON válido' };
+  }
+  try {
+    switch (name) {
+      case 'search_menu':
+        return await searchMenu(SearchMenu.parse(args), ctx);
+      case 'create_order':
+        return await createOrder(CreateOrder.parse(args), ctx);
+      case 'book_reservation':
+        return await bookReservation(BookReservation.parse(args), ctx);
+      case 'remember':
+        return await remember(Remember.parse(args), ctx);
+      case 'escalate_to_human':
+        ctx.escalated = true;
+        return {
+          ok: true,
+          reason: Escalate.parse(args).reason,
+          note: 'Un asesor humano continuará la conversación.',
+        };
+      default:
+        return { error: `Herramienta desconocida: ${name}` };
+    }
+  } catch (err) {
+    if (err instanceof z.ZodError)
+      return {
+        error: 'Argumentos inválidos',
+        issues: err.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+      };
+    return { error: 'No se pudo ejecutar la herramienta' };
+  }
+}
+
+async function searchMenu(args: z.infer<typeof SearchMenu>, ctx: ToolContext) {
+  const products = await ctx.prisma.product.findMany({
+    where: { organizationId: ctx.organizationId, available: true },
+    orderBy: { sortOrder: 'asc' },
+  });
+  const q = args.query ? norm(args.query) : '';
+  const words = q.split(' ').filter((w) => w.length > 2);
+  const filtered = products.filter((p) => {
+    if (args.category && norm(p.category) !== norm(args.category)) return false;
+    if (!words.length) return true;
+    const text = norm(`${p.name} ${p.description} ${JSON.stringify(p.options)}`);
+    return words.some((w) => text.includes(w));
+  });
+  return {
+    results: (filtered.length ? filtered : products).slice(0, 10).map((p) => ({
+      name: p.name,
+      category: p.category,
+      price: p.price,
+      description: p.description,
+      options: p.options,
+    })),
+    note: filtered.length ? undefined : 'Sin coincidencias exactas; esta es la carta completa.',
+    currency: 'COP',
+  };
+}
+
+async function createOrder(args: z.infer<typeof CreateOrder>, ctx: ToolContext) {
+  if (args.fulfillment === 'delivery' && !args.address)
+    return { error: 'Falta la dirección para el domicilio' };
+  const products = await ctx.prisma.product.findMany({
+    where: { organizationId: ctx.organizationId, available: true },
+  });
+  const items: {
+    name: string;
+    option: string | null;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+  }[] = [];
+  const missing: string[] = [];
+  for (const it of args.items) {
+    const p = matchProduct(products, it.product);
+    if (!p) {
+      missing.push(it.product);
+      continue;
+    }
+    const opt = optionPrice(p, it.option);
+    items.push({
+      name: p.name,
+      option: opt.name,
+      quantity: it.quantity,
+      unitPrice: opt.price,
+      subtotal: opt.price * it.quantity,
+    });
+  }
+  if (missing.length) return { error: 'Productos que no están en la carta', missing };
+  const total = items.reduce((n, i) => n + i.subtotal, 0);
+  const order = await ctx.prisma.order.create({
+    data: {
+      organizationId: ctx.organizationId,
+      conversationId: ctx.conversationId,
+      code: code('P'),
+      customerName: args.customer_name ?? null,
+      items: items as unknown as Prisma.InputJsonValue,
+      total,
+      fulfillment: args.fulfillment === 'delivery' ? 'DELIVERY' : 'PICKUP',
+      address: args.address ?? null,
+      notes: args.notes ?? null,
+    },
+  });
+  return {
+    ok: true,
+    code: order.code,
+    items,
+    total,
+    currency: 'COP',
+    note: 'Pedido de demostración: no se prepara ni se cobra.',
+  };
+}
+
+/** Fecha y hora actuales en Colombia (UTC-5, sin horario de verano). */
+function nowInColombia(): Date {
+  return new Date(Date.now() - 5 * 60 * 60 * 1000);
+}
+
+async function bookReservation(args: z.infer<typeof BookReservation>, ctx: ToolContext) {
+  const day = new Date(`${args.date}T12:00:00Z`).getUTCDay();
+  const hours = OPENING_HOURS[day];
+  if (!hours) return { error: 'Ese día no abrimos. Abrimos viernes, sábados y domingos.' };
+  if (args.time < hours[0] || args.time > hours[1])
+    return { error: `Ese día atendemos de ${hours[0]} a ${hours[1]}.` };
+  const local = nowInColombia().toISOString();
+  if (`${args.date}T${args.time}` < local.slice(0, 16))
+    return { error: 'Esa fecha y hora ya pasaron.' };
+  const r = await ctx.prisma.reservation.create({
+    data: {
+      organizationId: ctx.organizationId,
+      conversationId: ctx.conversationId,
+      code: code('R'),
+      name: args.name,
+      people: args.people,
+      date: args.date,
+      time: args.time,
+      notes: args.notes ?? null,
+    },
+  });
+  return {
+    ok: true,
+    code: r.code,
+    name: r.name,
+    people: r.people,
+    date: r.date,
+    time: r.time,
+    note: 'Reserva de demostración.',
+  };
+}
+
+async function remember(args: z.infer<typeof Remember>, ctx: ToolContext) {
+  const contact = await ctx.prisma.contact.findUniqueOrThrow({ where: { id: ctx.contactId } });
+  const memory = { ...((contact.memory as Record<string, string>) ?? {}), [args.key]: args.value };
+  const keys = Object.keys(memory);
+  if (keys.length > 10) delete memory[keys[0]!];
+  await ctx.prisma.contact.update({ where: { id: ctx.contactId }, data: { memory } });
+  return { ok: true, memory };
+}

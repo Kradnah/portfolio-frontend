@@ -1,0 +1,127 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import type { MeResponse, SandboxResponse, Session } from '@coral/contracts';
+import { CSRF_HEADER } from '@coral/contracts/constants';
+import { firstValueFrom } from 'rxjs';
+
+/** Debe coincidir con CSRF_COOKIE del API (apps/api/src/modules/auth/auth.controller.ts). */
+const CSRF_COOKIE = '__Host-coral_csrf';
+
+function readCookie(name: string): string | null {
+  const prefix = `${name}=`;
+  const found = document.cookie.split('; ').find((c) => c.startsWith(prefix));
+  return found ? decodeURIComponent(found.slice(prefix.length)) : null;
+}
+
+/**
+ * Sesión del panel. El access token vive solo en memoria (se pierde al recargar y se recupera con
+ * la cookie httpOnly del refresh token), así un XSS no puede robar una sesión de larga duración.
+ */
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+
+  private readonly token = signal<string | null>(null);
+  readonly me = signal<MeResponse | null>(null);
+  readonly isAuthenticated = computed(() => this.me() !== null);
+
+  /** Un solo refresh a la vez: varias peticiones con 401 simultáneas esperan al mismo. */
+  private refreshing: Promise<boolean> | null = null;
+
+  get accessToken(): string | null {
+    return this.token();
+  }
+
+  /** Al arrancar la app: si hay sesión en cookie, recupera el access token y el usuario. */
+  async restore(): Promise<void> {
+    if (!readCookie(CSRF_COOKIE)) return;
+    if (await this.refresh()) await this.loadMe();
+  }
+
+  async login(email: string, password: string): Promise<void> {
+    const session = await firstValueFrom(
+      this.http.post<Session>('/api/auth/login', { email, password }),
+    );
+    this.token.set(session.accessToken);
+    await this.loadMe();
+  }
+
+  /** "Entrar como demo": crea un sandbox de 4 horas con la carta de Casa Zhef. */
+  async enterDemo(): Promise<void> {
+    const res = await firstValueFrom(this.http.post<SandboxResponse>('/api/demo/sandbox', {}));
+    this.token.set(res.accessToken);
+    await this.loadMe();
+  }
+
+  /** "Ver en el CRM" desde el widget del portfolio: abre esa misma demo en el panel. */
+  async claimDemo(token: string): Promise<void> {
+    const session = await firstValueFrom(this.http.post<Session>('/api/demo/claim', { token }));
+    this.token.set(session.accessToken);
+    await this.loadMe();
+  }
+
+  /** Borra el sandbox de inmediato (y con él todas las conversaciones de la demo). */
+  async destroyDemo(): Promise<void> {
+    try {
+      await firstValueFrom(this.http.delete('/api/demo/sandbox'));
+    } finally {
+      await this.expire();
+    }
+  }
+
+  refresh(): Promise<boolean> {
+    this.refreshing ??= this.sessionCall('/api/auth/refresh', {}).finally(() => {
+      this.refreshing = null;
+    });
+    return this.refreshing;
+  }
+
+  async switchOrganization(organizationId: string): Promise<void> {
+    if (await this.sessionCall('/api/auth/switch-organization', { organizationId })) {
+      await this.loadMe();
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await firstValueFrom(this.http.post('/api/auth/logout', {}, { headers: this.csrfHeaders() }));
+    } finally {
+      this.clear();
+      await this.router.navigateByUrl('/login');
+    }
+  }
+
+  /** Sesión caducada o revocada: limpia el estado y vuelve al login. */
+  async expire(): Promise<void> {
+    this.clear();
+    await this.router.navigateByUrl('/login');
+  }
+
+  private async sessionCall(url: string, body: object): Promise<boolean> {
+    try {
+      const session = await firstValueFrom(
+        this.http.post<Session>(url, body, { headers: this.csrfHeaders() }),
+      );
+      this.token.set(session.accessToken);
+      return true;
+    } catch {
+      this.clear();
+      return false;
+    }
+  }
+
+  private async loadMe(): Promise<void> {
+    this.me.set(await firstValueFrom(this.http.get<MeResponse>('/api/me')));
+  }
+
+  private csrfHeaders(): HttpHeaders {
+    return new HttpHeaders({ [CSRF_HEADER]: readCookie(CSRF_COOKIE) ?? '' });
+  }
+
+  private clear(): void {
+    this.token.set(null);
+    this.me.set(null);
+  }
+}

@@ -1,0 +1,61 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
+
+@Component({
+  selector: 'app-home',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
+  template: `
+    @if (auth.me(); as me) {
+      <section class="card max-w-3xl p-6">
+        <p class="label text-muted">{{ me.organization.isDemo ? 'Tu demo' : 'Bienvenido' }}</p>
+        <h1 class="mb-3 text-3xl font-black italic">{{ me.organization.name }}</h1>
+        @if (me.organization.isDemo) {
+          <p class="mb-5 text-muted">
+            Este sandbox es solo tuyo y se borra solo a las 4 horas (o cuando pulses
+            <strong class="text-ink">Borrar mi demo ahora</strong>). Prueba esto:
+          </p>
+          <ol class="grid gap-3 sm:grid-cols-3">
+            <li class="border-2 border-black bg-deep p-4">
+              <span class="mono font-black text-coral">01</span>
+              <p class="mt-1 font-bold">Escribe como cliente</p>
+              <p class="text-sm text-muted">
+                En la Bandeja, usa «Simula un cliente»: el bot responde con la carta real, toma
+                pedidos y reservas.
+              </p>
+            </li>
+            <li class="border-2 border-black bg-deep p-4">
+              <span class="mono font-black text-coral">02</span>
+              <p class="mt-1 font-bold">Responde como asesor</p>
+              <p class="text-sm text-muted">
+                El mensaje llega en tiempo real; contesta o toma la conversación.
+              </p>
+            </li>
+            <li class="border-2 border-black bg-deep p-4">
+              <span class="mono font-black text-coral">03</span>
+              <p class="mt-1 font-bold">Mira qué hizo la IA</p>
+              <p class="text-sm text-muted">
+                Cada respuesta muestra sus herramientas y su costo; los pedidos y reservas quedan en
+                «Actividad del bot».
+              </p>
+            </li>
+          </ol>
+          <a class="btn btn-primary mt-5" routerLink="/inbox">Ir a la bandeja →</a>
+          <p class="mono mt-5 text-xs text-muted">
+            Próximamente: árbol de decisiones y conexión con tu propio WhatsApp.
+          </p>
+        } @else {
+          <p class="font-medium">
+            Estás en <strong>{{ me.organization.name }}</strong> como
+            <span class="tag bg-lime text-black">{{ me.organization.role }}</span
+            >.
+          </p>
+        }
+      </section>
+    }
+  `,
+})
+export class HomePage {
+  protected readonly auth = inject(AuthService);
+}

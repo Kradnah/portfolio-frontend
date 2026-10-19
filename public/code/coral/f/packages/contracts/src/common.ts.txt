@@ -1,0 +1,32 @@
+import { z } from 'zod';
+
+export const Uuid = z.uuid();
+
+export const ErrorCode = z.enum([
+  'VALIDATION_FAILED',
+  'UNAUTHORIZED',
+  'FORBIDDEN',
+  'NOT_FOUND',
+  'CONFLICT',
+  'RATE_LIMITED',
+  'INVALID_CREDENTIALS',
+  'SERVICE_UNAVAILABLE',
+  'INTERNAL',
+]);
+export type ErrorCode = z.infer<typeof ErrorCode>;
+
+/** Forma única de todos los errores del API. */
+export const ApiError = z.object({
+  code: ErrorCode,
+  message: z.string(),
+  details: z.unknown().optional(),
+  requestId: z.string().optional(),
+});
+export type ApiError = z.infer<typeof ApiError>;
+
+/** Respuesta de `/health/live` y `/health/ready`. */
+export const HealthResponse = z.object({
+  status: z.enum(['ok', 'error']),
+  checks: z.record(z.string(), z.enum(['up', 'down'])).optional(),
+});
+export type HealthResponse = z.infer<typeof HealthResponse>;

@@ -1,0 +1,179 @@
+// Carta real de Casa Zhef (casazhef.com), copiada de CasaZhef/backend/src/menu/menu.data.ts.
+// Semilla de cada sandbox de la demo. Precios en pesos colombianos.
+
+export interface SeedProduct {
+  category: string;
+  name: string;
+  description: string;
+  price: number;
+  options: {
+    sizes?: { name: string; price?: number }[];
+    toppings?: { name: string; price?: number }[];
+  };
+  image: string | null;
+  featured: boolean;
+  sortOrder: number;
+}
+
+export const CASA_ZHEF_MENU: SeedProduct[] = [
+  {
+    category: 'Waffles',
+    name: 'Waffle Ropa Vieja',
+    description:
+      'Base salada con carne desmechada de res, maíz tierno y salsa especial de la casa.',
+    price: 19000,
+    options: {},
+    image:
+      'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=600&h=500&fit=crop&auto=format',
+    featured: false,
+    sortOrder: 0,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle Dulce Tentación',
+    description: 'Base dulce con chips de chocolate, frutas de temporada y salsas.',
+    price: 16500,
+    options: {},
+    image: 'https://casazhef.com/menu/waffle-dulce-tentacion.webp',
+    featured: false,
+    sortOrder: 1,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle Pollo Champiñón',
+    description: 'Base salada con topping cremoso de pollo y champiñones salteados.',
+    price: 18000,
+    options: {},
+    image: 'https://casazhef.com/menu/waffle-pollo-champinon.webp',
+    featured: false,
+    sortOrder: 2,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle Camarones',
+    description: 'Base salada con camarones al ajillo, toque de limón y cilantro fresco.',
+    price: 22000,
+    options: {},
+    image: 'https://casazhef.com/menu/waffle-camarones.webp',
+    featured: true,
+    sortOrder: 3,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle tipo Pizza',
+    description: 'Base salada, salsa napolitana de la casa, queso gratinado y toppings',
+    price: 15000,
+    options: {
+      toppings: [
+        {
+          name: 'Hawaiana',
+        },
+        {
+          name: 'Maiz - Tocineta - Chorizo',
+        },
+        {
+          name: 'Peperoni',
+        },
+        {
+          name: 'Mexicano (Carne molida y jalapeños)',
+        },
+      ],
+    },
+    image: 'https://casazhef.com/menu/waffle-pizza-hawaiana.webp',
+    featured: false,
+    sortOrder: 4,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle Sanduche',
+    description:
+      'Pan de waffle Base salada, queso mozarella tajado, jamón y relleno pollo champiñon',
+    price: 8000,
+    options: {},
+    image: 'https://casazhef.com/menu/waffle-sanduche.webp',
+    featured: false,
+    sortOrder: 5,
+  },
+  {
+    category: 'Waffles',
+    name: 'Waffle Burger',
+    description:
+      'Pan de waffle base salada, queso mozzarella tajado, carne de hamburguesa, tocineta, piña caramelizada y papa cabello angel.',
+    price: 12000,
+    options: {},
+    image: 'https://casazhef.com/menu/waffle-burger.webp',
+    featured: false,
+    sortOrder: 6,
+  },
+  {
+    category: 'Para Compartir',
+    name: 'Tostones Gratinados',
+    description:
+      '4 patacones crujientes gratinados con queso. Elige tu topping: Ropa Vieja, Pollo Champiñones o Camarones.',
+    price: 16000,
+    options: {
+      toppings: [
+        {
+          name: 'Ropa Vieja',
+          price: 16000,
+        },
+        {
+          name: 'Pollo Champiñones',
+          price: 15000,
+        },
+        {
+          name: 'Camarones',
+          price: 18000,
+        },
+      ],
+    },
+    image: 'https://casazhef.com/menu/tostones-carne.webp',
+    featured: false,
+    sortOrder: 7,
+  },
+  {
+    category: 'Para Compartir',
+    name: 'Yin Yang',
+    description:
+      'Brócoli en salsa de queso gratinado con ropa vieja - Pollo Champi - Camarones. Un equilibrio único de sabores.',
+    price: 22000,
+    options: {
+      toppings: [
+        {
+          name: 'Ropa Vieja',
+        },
+        {
+          name: 'Pollo Champiñones',
+        },
+        {
+          name: 'Camarones',
+        },
+      ],
+    },
+    image:
+      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=340&fit=crop&auto=format',
+    featured: false,
+    sortOrder: 8,
+  },
+  {
+    category: 'Especialidades',
+    name: 'Ceviche de Camarón',
+    description: 'Acompañado de moneditas de plátano y Coca-Cola personal.',
+    price: 18500,
+    options: {
+      sizes: [
+        {
+          name: 'Mediano',
+          price: 18500,
+        },
+        {
+          name: 'Grande',
+          price: 22500,
+        },
+      ],
+    },
+    image: 'https://casazhef.com/menu/ceviche-grande.webp',
+    featured: true,
+    sortOrder: 9,
+  },
+];

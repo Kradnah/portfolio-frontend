@@ -1,0 +1,19 @@
+import { describe, expect, it } from 'vitest';
+import type { Product } from '../src/generated/prisma/client.js';
+import { matchProduct } from '../src/modules/ai/tools.js';
+import { CASA_ZHEF_MENU } from '../src/modules/demo/casa-zhef.menu.js';
+
+const products = CASA_ZHEF_MENU.map((p, i) => ({ ...p, id: String(i) }) as unknown as Product);
+
+describe('matchProduct', () => {
+  it('encuentra productos por nombre aproximado, sin tildes ni palabras vacías', () => {
+    expect(matchProduct(products, 'waffle de camarones')?.name).toBe('Waffle Camarones');
+    expect(matchProduct(products, 'Waffle Pollo Champinon')?.name).toBe('Waffle Pollo Champiñón');
+    expect(matchProduct(products, 'ropa vieja')?.name).toBe('Waffle Ropa Vieja');
+  });
+
+  it('no inventa: devuelve null si no hay coincidencia suficiente', () => {
+    expect(matchProduct(products, 'hamburguesa doble')).toBeNull();
+    expect(matchProduct(products, 'sushi')).toBeNull();
+  });
+});

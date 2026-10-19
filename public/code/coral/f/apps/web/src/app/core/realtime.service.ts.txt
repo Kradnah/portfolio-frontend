@@ -1,0 +1,59 @@
+import { inject, Injectable, signal } from '@angular/core';
+import { PanelEvent, SOCKET_PATH } from '@coral/contracts/constants';
+import { io, type Socket } from 'socket.io-client';
+import { AuthService } from './auth/auth.service';
+
+type Handler = (payload: unknown) => void;
+
+/**
+ * Socket del panel. Se autentica con el access token en memoria; si el servidor corta la conexión
+ * (token vencido), renueva la sesión y reconecta.
+ */
+@Injectable({ providedIn: 'root' })
+export class RealtimeService {
+  private readonly auth = inject(AuthService);
+  private socket: Socket | null = null;
+  private readonly handlers = new Map<string, Set<Handler>>();
+  readonly connected = signal(false);
+
+  connect(): void {
+    if (this.socket) return;
+    const socket = io({
+      path: SOCKET_PATH,
+      transports: ['websocket'],
+      // Función: se evalúa en cada (re)conexión, con el token vigente.
+      auth: (cb) => cb({ token: this.auth.accessToken }),
+    });
+    socket.on('connect', () => this.connected.set(true));
+    socket.on('disconnect', (reason) => {
+      this.connected.set(false);
+      if (reason === 'io server disconnect') void this.reconnectWithFreshToken();
+    });
+    socket.on('connect_error', (err) => {
+      if (err.message === 'UNAUTHORIZED') void this.reconnectWithFreshToken();
+    });
+    for (const event of Object.values(PanelEvent)) {
+      socket.on(event, (payload: unknown) => this.handlers.get(event)?.forEach((h) => h(payload)));
+    }
+    this.socket = socket;
+  }
+
+  disconnect(): void {
+    this.socket?.disconnect();
+    this.socket = null;
+    this.connected.set(false);
+  }
+
+  /** Suscripción a un evento; devuelve la función para cancelarla. */
+  on<T>(event: string, handler: (payload: T) => void): () => void {
+    const set = this.handlers.get(event) ?? new Set<Handler>();
+    set.add(handler as Handler);
+    this.handlers.set(event, set);
+    return () => set.delete(handler as Handler);
+  }
+
+  private async reconnectWithFreshToken(): Promise<void> {
+    if (!(await this.auth.refresh())) return void this.auth.expire();
+    this.socket?.connect();
+  }
+}

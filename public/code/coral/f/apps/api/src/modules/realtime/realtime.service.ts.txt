@@ -1,0 +1,39 @@
+import { Injectable } from '@nestjs/common';
+import type { Namespace } from 'socket.io';
+
+export const orgRoom = (organizationId: string) => `org:${organizationId}`;
+export const convRoom = (conversationId: string) => `conv:${conversationId}`;
+
+/**
+ * Punto único para emitir eventos. Los gateways registran sus namespaces al iniciar; el resto
+ * del API emite sin conocer Socket.IO.
+ */
+@Injectable()
+export class RealtimeService {
+  private panel?: Namespace;
+  private widget?: Namespace;
+
+  registerPanel(ns: Namespace): void {
+    this.panel = ns;
+  }
+
+  registerWidget(ns: Namespace): void {
+    this.widget = ns;
+  }
+
+  /** A todos los asesores conectados de la organización. */
+  toOrg(organizationId: string, event: string, payload: unknown): void {
+    this.panel?.to(orgRoom(organizationId)).emit(event, payload);
+  }
+
+  /** Al visitante del widget en esa conversación. */
+  toWidget(conversationId: string, event: string, payload: unknown): void {
+    this.widget?.to(convRoom(conversationId)).emit(event, payload);
+  }
+
+  /** Desconecta a todos (panel y widget) de una organización, p. ej. al vencer el sandbox. */
+  disconnectOrg(organizationId: string): void {
+    this.panel?.in(orgRoom(organizationId)).disconnectSockets(true);
+    this.widget?.in(orgRoom(organizationId)).disconnectSockets(true);
+  }
+}

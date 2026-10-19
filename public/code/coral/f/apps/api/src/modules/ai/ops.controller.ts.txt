@@ -1,0 +1,69 @@
+import { Controller, Get } from '@nestjs/common';
+import { type AuthUser, CurrentUser } from '../../common/auth/auth.decorators.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+
+/** Lo que el agente hizo en la organización: pedidos, reservas y el uso de la IA. */
+@Controller()
+export class OpsController {
+  constructor(private readonly prisma: PrismaService) {}
+
+  @Get('orders')
+  orders(@CurrentUser() user: AuthUser) {
+    return this.prisma.order.findMany({
+      where: { organizationId: user.organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  @Get('reservations')
+  reservations(@CurrentUser() user: AuthUser) {
+    return this.prisma.reservation.findMany({
+      where: { organizationId: user.organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  /** Observabilidad de la IA: totales y las últimas ejecuciones. */
+  @Get('ai/usage')
+  async usage(@CurrentUser() user: AuthUser) {
+    const where = { organizationId: user.organizationId };
+    const [agg, runs] = await Promise.all([
+      this.prisma.aiRun.aggregate({
+        where,
+        _count: true,
+        _sum: { costUsd: true, promptTokens: true, completionTokens: true },
+        _avg: { latencyMs: true },
+      }),
+      this.prisma.aiRun.findMany({ where, orderBy: { createdAt: 'desc' }, take: 50 }),
+    ]);
+    const errors = runs.filter((r) => r.error).length;
+    const toolCounts: Record<string, number> = {};
+    for (const r of runs) {
+      for (const t of (r.toolCalls as { name: string }[]) ?? []) {
+        toolCounts[t.name] = (toolCounts[t.name] ?? 0) + 1;
+      }
+    }
+    return {
+      runs: agg._count,
+      costUsd: agg._sum.costUsd ?? 0,
+      promptTokens: agg._sum.promptTokens ?? 0,
+      completionTokens: agg._sum.completionTokens ?? 0,
+      avgLatencyMs: Math.round(agg._avg.latencyMs ?? 0),
+      recentErrors: errors,
+      toolCounts,
+      recent: runs.map((r) => ({
+        id: r.id,
+        conversationId: r.conversationId,
+        model: r.model,
+        costUsd: r.costUsd,
+        latencyMs: r.latencyMs,
+        tokens: r.promptTokens + r.completionTokens,
+        tools: ((r.toolCalls as { name: string }[]) ?? []).map((t) => t.name),
+        error: r.error,
+        createdAt: r.createdAt,
+      })),
+    };
+  }
+}

@@ -1,0 +1,5 @@
+import { z } from 'zod';
+
+/** Rol del usuario dentro de una organización (tenant). */
+export const MemberRole = z.enum(['OWNER', 'ADMIN', 'AGENT']);
+export type MemberRole = z.infer<typeof MemberRole>;

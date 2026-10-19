@@ -1,0 +1,135 @@
+@import 'tailwindcss';
+
+/* Estilo brutalista del portfolio (julian-lizcano.com) con la paleta del EVA-01:
+   morado de fondo, naranja de NERV como acento y verde neón para estados "ok". */
+@theme {
+  --color-coral: #ff7a00;
+  --color-coral-soft: rgb(255 122 0 / 0.16);
+  --color-lime: #8be000;
+  --color-ink: #ece6f5;
+  --color-muted: #b8a8d4;
+  --color-eva: #2a1745;
+  --color-panel: #160b26;
+  --color-deep: #0d0618;
+  --color-mid: #6b3fa0;
+  --color-alert: #e0233c;
+  --shadow-hard: 4px 4px 0 #000;
+  --shadow-hard-sm: 2px 2px 0 #000;
+  --shadow-hard-lg: 6px 6px 0 #000;
+  --font-sans: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', Consolas, 'Courier New', monospace;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    background: var(--color-eva);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 90% 0%, rgb(107 63 160 / 0.35), transparent 40%), var(--color-eva);
+  }
+
+  /* Franja de peligro de NERV arriba de todo. */
+  body::before {
+    content: '';
+    display: block;
+    height: 8px;
+    background: repeating-linear-gradient(-45deg, #ff7a00 0 12px, #000 12px 24px);
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-panel);
+    border: 2.5px solid #000;
+    box-shadow: var(--shadow-hard);
+  }
+
+  .input {
+    width: 100%;
+    background: var(--color-deep);
+    color: var(--color-ink);
+    border: 2px solid #000;
+    padding: 0.6rem 0.75rem;
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.1s ease;
+  }
+
+  .input:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: 0 0 0 2px var(--color-lime);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 2px solid #000;
+    background: var(--color-deep);
+    color: var(--color-ink);
+    padding: 0.55rem 1rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-hard-sm);
+    cursor: pointer;
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.1s ease;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-hard);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-coral);
+    color: #000;
+  }
+
+  .btn-ok {
+    background: var(--color-lime);
+    color: #000;
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tag {
+    display: inline-block;
+    border: 2px solid #000;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+  }
+}

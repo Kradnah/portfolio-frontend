@@ -1,0 +1,76 @@
+import { z } from 'zod';
+
+export const Channel = z.enum(['WEB', 'WHATSAPP']);
+export type Channel = z.infer<typeof Channel>;
+
+export const ConversationStatus = z.enum(['BOT', 'HUMAN', 'CLOSED']);
+export type ConversationStatus = z.infer<typeof ConversationStatus>;
+
+export const Sender = z.enum(['CONTACT', 'BOT', 'AGENT', 'SYSTEM']);
+export type Sender = z.infer<typeof Sender>;
+
+/** Texto de un mensaje: límite común del widget, WhatsApp y el panel. */
+export const MessageText = z.string().trim().min(1).max(2000);
+
+export const MessageDto = z.object({
+  id: z.uuid(),
+  conversationId: z.uuid(),
+  sender: Sender,
+  text: z.string(),
+  /** Detalles del bot (herramientas, nodo del árbol, costo); solo se envía al panel. */
+  meta: z.record(z.string(), z.unknown()).nullable().optional(),
+  createdAt: z.string(),
+});
+export type MessageDto = z.infer<typeof MessageDto>;
+
+export const ContactDto = z.object({
+  id: z.uuid(),
+  channel: Channel,
+  name: z.string().nullable(),
+  externalId: z.string(),
+  memory: z.record(z.string(), z.unknown()),
+});
+export type ContactDto = z.infer<typeof ContactDto>;
+
+export const ConversationSummary = z.object({
+  id: z.uuid(),
+  channel: Channel,
+  status: ConversationStatus,
+  unread: z.number().int(),
+  assignedUserId: z.uuid().nullable(),
+  lastMessageAt: z.string(),
+  contact: ContactDto,
+  lastMessage: MessageDto.nullable(),
+});
+export type ConversationSummary = z.infer<typeof ConversationSummary>;
+
+/** Respuesta de un asesor desde la bandeja. */
+export const AgentReplyRequest = z.strictObject({ text: MessageText });
+export type AgentReplyRequest = z.infer<typeof AgentReplyRequest>;
+
+export const ProductOption = z.object({ name: z.string(), price: z.number().int().optional() });
+
+export const ProductDto = z.object({
+  id: z.uuid(),
+  category: z.string(),
+  name: z.string(),
+  description: z.string(),
+  price: z.number().int(),
+  options: z.object({
+    sizes: z.array(ProductOption).optional(),
+    toppings: z.array(ProductOption).optional(),
+  }),
+  image: z.string().nullable(),
+  featured: z.boolean(),
+  available: z.boolean(),
+});
+export type ProductDto = z.infer<typeof ProductDto>;
+
+/** `POST /demo/sandbox`: sesión del sandbox y su vencimiento. */
+export const SandboxResponse = z.object({
+  accessToken: z.string(),
+  expiresIn: z.number().int(),
+  sandboxExpiresAt: z.string(),
+  widgetKey: z.string(),
+});
+export type SandboxResponse = z.infer<typeof SandboxResponse>;

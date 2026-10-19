@@ -1,0 +1,236 @@
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, inject, type OnDestroy, signal } from '@angular/core';
+import { PanelEvent } from '@coral/contracts/constants';
+import { firstValueFrom } from 'rxjs';
+import { RealtimeService } from '../../core/realtime.service';
+
+interface OrderRow {
+  id: string;
+  code: string;
+  customerName: string | null;
+  items: { name: string; option: string | null; quantity: number; subtotal: number }[];
+  total: number;
+  fulfillment: 'DELIVERY' | 'PICKUP';
+  address: string | null;
+  createdAt: string;
+}
+
+interface ReservationRow {
+  id: string;
+  code: string;
+  name: string;
+  people: number;
+  date: string;
+  time: string;
+  createdAt: string;
+}
+
+interface Usage {
+  runs: number;
+  costUsd: number;
+  promptTokens: number;
+  completionTokens: number;
+  avgLatencyMs: number;
+  recentErrors: number;
+  toolCounts: Record<string, number>;
+  recent: {
+    id: string;
+    model: string;
+    costUsd: number;
+    latencyMs: number;
+    tokens: number;
+    tools: string[];
+    error: string | null;
+    createdAt: string;
+  }[];
+}
+
+const COP = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+/** Lo que hizo el agente en esta demo: pedidos, reservas y el uso (y costo) de la IA. */
+@Component({
+  selector: 'app-activity',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <header class="mb-5">
+      <h1 class="text-2xl font-black">Actividad del bot</h1>
+      <p class="mt-1 text-sm text-muted">
+        Pedidos y reservas que creó el agente, y cuánto costó cada respuesta de la IA. Se actualiza
+        en vivo.
+      </p>
+    </header>
+
+    <section class="card mb-5 p-5">
+      <h2 class="mb-3 font-black text-coral">Uso de la IA</h2>
+      @if (usage(); as u) {
+        <dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <dt class="text-xs text-muted">Respuestas</dt>
+            <dd class="text-2xl font-black tabular-nums">{{ u.runs }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted">Costo total</dt>
+            <dd class="text-2xl font-black tabular-nums">US$ {{ u.costUsd.toFixed(4) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted">Latencia promedio</dt>
+            <dd class="text-2xl font-black tabular-nums">
+              {{ (u.avgLatencyMs / 1000).toFixed(1) }} s
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted">Errores recientes</dt>
+            <dd class="text-2xl font-black tabular-nums" [class.text-alert]="u.recentErrors > 0">
+              {{ u.recentErrors }}
+            </dd>
+          </div>
+        </dl>
+        @if (tools(u).length) {
+          <p class="mt-4 text-sm">
+            <span class="text-muted">Herramientas usadas:</span>
+            @for (t of tools(u); track t.name) {
+              <span class="ml-3 font-bold"
+                >{{ t.name }} <span class="text-lime tabular-nums">{{ t.n }}</span></span
+              >
+            }
+          </p>
+        }
+        @if (u.recent.length) {
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-xs text-muted">
+                  <th class="py-2 pr-4 font-normal">Hora</th>
+                  <th class="py-2 pr-4 font-normal">Herramientas</th>
+                  <th class="py-2 pr-4 text-right font-normal">Tokens</th>
+                  <th class="py-2 pr-4 text-right font-normal">Latencia</th>
+                  <th class="py-2 text-right font-normal">Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of u.recent.slice(0, 12); track r.id) {
+                  <tr class="border-t border-black">
+                    <td class="py-2 pr-4 tabular-nums">{{ time(r.createdAt) }}</td>
+                    <td class="py-2 pr-4" [class.text-alert]="r.error">
+                      {{ r.error ? 'Error: ' + r.error : r.tools.join(', ') || '—' }}
+                    </td>
+                    <td class="py-2 pr-4 text-right tabular-nums">{{ r.tokens }}</td>
+                    <td class="py-2 pr-4 text-right tabular-nums">
+                      {{ (r.latencyMs / 1000).toFixed(1) }} s
+                    </td>
+                    <td class="py-2 text-right tabular-nums">US$ {{ r.costUsd.toFixed(5) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="mt-4 text-sm text-muted">
+            El bot aún no ha respondido. Escribe desde el simulador de la bandeja.
+          </p>
+        }
+      }
+    </section>
+
+    <div class="grid gap-5 xl:grid-cols-2">
+      <section class="card p-5">
+        <h2 class="mb-3 font-black text-coral">Pedidos</h2>
+        @for (o of orders(); track o.id) {
+          <article class="border-t border-black py-3 first:border-t-0">
+            <p class="flex justify-between gap-3">
+              <strong>{{ o.code }} · {{ o.customerName ?? 'Cliente' }}</strong>
+              <span class="font-black text-lime tabular-nums">{{ cop(o.total) }}</span>
+            </p>
+            <p class="text-sm text-muted">
+              {{
+                o.fulfillment === 'DELIVERY' ? 'Domicilio · ' + (o.address ?? '') : 'Para recoger'
+              }}
+              · {{ time(o.createdAt) }}
+            </p>
+            <ul class="mt-1 text-sm">
+              @for (i of o.items; track $index) {
+                <li>
+                  {{ i.quantity }} × {{ i.name }}{{ i.option ? ' (' + i.option + ')' : '' }} —
+                  {{ cop(i.subtotal) }}
+                </li>
+              }
+            </ul>
+          </article>
+        } @empty {
+          <p class="text-sm text-muted">
+            Sin pedidos. Prueba en el simulador: «quiero dos waffles de camarones para recoger».
+          </p>
+        }
+      </section>
+
+      <section class="card p-5">
+        <h2 class="mb-3 font-black text-coral">Reservas</h2>
+        @for (r of reservations(); track r.id) {
+          <article class="flex justify-between gap-3 border-t border-black py-3 first:border-t-0">
+            <div>
+              <strong>{{ r.code }} · {{ r.name }}</strong>
+              <p class="text-sm text-muted">{{ r.people }} personas</p>
+            </div>
+            <p class="text-right font-bold tabular-nums">{{ r.date }}<br />{{ r.time }}</p>
+          </article>
+        } @empty {
+          <p class="text-sm text-muted">
+            Sin reservas. Prueba: «quiero reservar para 4 el sábado a las 7 pm».
+          </p>
+        }
+      </section>
+    </div>
+  `,
+})
+export class ActivityPage implements OnDestroy {
+  private readonly http = inject(HttpClient);
+  private readonly realtime = inject(RealtimeService);
+  protected readonly orders = signal<OrderRow[]>([]);
+  protected readonly reservations = signal<ReservationRow[]>([]);
+  protected readonly usage = signal<Usage | null>(null);
+  private readonly off: () => void;
+  private reloadTimer?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    void this.load();
+    // Cada mensaje del bot puede traer un pedido, una reserva o un costo nuevo.
+    this.off = this.realtime.on(PanelEvent.MessageCreated, () => {
+      clearTimeout(this.reloadTimer);
+      this.reloadTimer = setTimeout(() => void this.load(), 600);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.off();
+    clearTimeout(this.reloadTimer);
+  }
+
+  private async load(): Promise<void> {
+    const [orders, reservations, usage] = await Promise.all([
+      firstValueFrom(this.http.get<OrderRow[]>('/api/orders')),
+      firstValueFrom(this.http.get<ReservationRow[]>('/api/reservations')),
+      firstValueFrom(this.http.get<Usage>('/api/ai/usage')),
+    ]);
+    this.orders.set(orders);
+    this.reservations.set(reservations);
+    this.usage.set(usage);
+  }
+
+  protected tools(u: Usage): { name: string; n: number }[] {
+    return Object.entries(u.toolCounts)
+      .map(([name, n]) => ({ name, n }))
+      .sort((a, b) => b.n - a.n);
+  }
+
+  protected cop(n: number): string {
+    return COP.format(n);
+  }
+
+  protected time(iso: string): string {
+    return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  }
+}

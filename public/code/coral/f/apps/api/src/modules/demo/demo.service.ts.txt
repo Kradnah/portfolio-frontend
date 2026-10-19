@@ -1,0 +1,193 @@
+import { randomBytes, randomUUID } from 'node:crypto';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import { PanelEvent, type SandboxResponse } from '@coral/contracts';
+import type { RequestContext } from '../../common/auth/auth.decorators.js';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { InjectEnv } from '../../config/config.module.js';
+import type { Env } from '../../config/env.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { QueueService } from '../../infra/queue/queue.service.js';
+import { RedisService } from '../../infra/redis/redis.service.js';
+import { AuthService } from '../auth/auth.service.js';
+import { SessionService } from '../auth/session.service.js';
+import { RealtimeService } from '../realtime/realtime.service.js';
+import { CASA_ZHEF_MENU } from './casa-zhef.menu.js';
+
+/** Duración de cada sandbox: tiempo de sobra para probar, sin quedarnos con nada después. */
+export const SANDBOX_TTL_MS = 4 * 60 * 60 * 1000;
+const CLEANUP_QUEUE = 'sandbox-cleanup';
+
+/** Hooks que se ejecutan al borrar un sandbox (p. ej. cerrar su sesión de WhatsApp). */
+export type SandboxTeardown = (organizationId: string) => Promise<void>;
+
+@Injectable()
+export class DemoService implements OnModuleInit {
+  private readonly logger = new Logger(DemoService.name);
+  private readonly teardowns: SandboxTeardown[] = [];
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+    private readonly queues: QueueService,
+    private readonly auth: AuthService,
+    private readonly sessions: SessionService,
+    private readonly realtime: RealtimeService,
+    @InjectEnv() private readonly env: Env,
+  ) {}
+
+  onTeardown(fn: SandboxTeardown): void {
+    this.teardowns.push(fn);
+  }
+
+  async onModuleInit(): Promise<void> {
+    // Cada 5 minutos se borran los sandboxes vencidos (y lo que quede de ellos tras un reinicio).
+    const queue = this.queues.queue(CLEANUP_QUEUE);
+    await queue.upsertJobScheduler('every-5-min', { every: 5 * 60 * 1000 }, { name: 'cleanup' });
+    this.queues.work(CLEANUP_QUEUE, () => this.cleanup());
+  }
+
+  /** Crea un sandbox con la carta de Casa Zhef y devuelve una sesión del panel en él. */
+  async createSandbox(
+    ctx: RequestContext,
+  ): Promise<SandboxResponse & { refresh: Awaited<ReturnType<SessionService['start']>> }> {
+    await this.checkLimits(ctx.ip ?? 'unknown');
+
+    const { org, user, expiresAt } = await this.provision();
+    const refresh = await this.sessions.start(user.id, org.id, ctx, expiresAt);
+    const session = await this.auth.issue(user.id, org.id, 'OWNER', refresh);
+    return {
+      accessToken: session.accessToken,
+      expiresIn: session.expiresIn,
+      sandboxExpiresAt: expiresAt.toISOString(),
+      widgetKey: org.slug,
+      refresh,
+    };
+  }
+
+  /**
+   * Sandbox para el widget del portfolio: sin sesión del panel. Devuelve la clave del widget y un
+   * token para abrir esta misma demo en el panel ("Ver en el CRM"), válido mientras viva el sandbox.
+   */
+  async createWidgetSandbox(ctx: RequestContext) {
+    await this.checkLimits(ctx.ip ?? 'unknown');
+    const { org, user, expiresAt } = await this.provision();
+    const claimToken = randomBytes(24).toString('base64url');
+    await this.redis.client.set(
+      `demo:claim:${claimToken}`,
+      `${user.id}:${org.id}`,
+      'PX',
+      Math.max(1, expiresAt.getTime() - Date.now()),
+    );
+    return { widgetKey: org.slug, claimToken, sandboxExpiresAt: expiresAt.toISOString() };
+  }
+
+  /** Abre en el panel el sandbox creado desde el widget. */
+  async claim(token: string, ctx: RequestContext) {
+    const value = await this.redis.client.get(`demo:claim:${token}`);
+    if (!value) throw new ApiException(404, 'NOT_FOUND', 'Esta demo ya no existe');
+    const [userId, organizationId] = value.split(':') as [string, string];
+    const org = await this.prisma.organization.findFirst({
+      where: { id: organizationId, isDemo: true },
+      select: { expiresAt: true },
+    });
+    if (!org?.expiresAt || org.expiresAt < new Date()) {
+      throw new ApiException(404, 'NOT_FOUND', 'Esta demo ya no existe');
+    }
+    const refresh = await this.sessions.start(userId, organizationId, ctx, org.expiresAt);
+    const session = await this.auth.issue(userId, organizationId, 'OWNER', refresh);
+    return { accessToken: session.accessToken, expiresIn: session.expiresIn, refresh };
+  }
+
+  /** Organización de demo con la carta de Casa Zhef y su usuario efímero. */
+  private async provision() {
+    const expiresAt = new Date(Date.now() + SANDBOX_TTL_MS);
+    const slug = `demo-${randomBytes(5).toString('hex')}`;
+    const { org, user } = await this.prisma.$transaction(async (tx) => {
+      const org = await tx.organization.create({
+        data: { name: 'Casa Zhef (demo)', slug, isDemo: true, expiresAt },
+      });
+      const user = await tx.user.create({
+        data: {
+          email: `demo+${randomUUID()}@sandbox.coral`,
+          fullName: 'Visitante de la demo',
+          ephemeral: true,
+          memberships: { create: { organizationId: org.id, role: 'OWNER' } },
+        },
+      });
+      await tx.product.createMany({
+        data: CASA_ZHEF_MENU.map((p) => ({ ...p, organizationId: org.id })),
+      });
+      return { org, user };
+    });
+    this.logger.log(`Sandbox ${slug} creado (vence ${expiresAt.toISOString()})`);
+    return { org, user, expiresAt };
+  }
+
+  /** El visitante pide borrar su sandbox ya, sin esperar al vencimiento. */
+  async destroy(organizationId: string): Promise<void> {
+    const org = await this.prisma.organization.findFirst({
+      where: { id: organizationId, isDemo: true },
+      select: { id: true, slug: true, memberships: { select: { userId: true } } },
+    });
+    if (!org)
+      throw new ApiException(403, 'FORBIDDEN', 'Solo se pueden borrar sandboxes de la demo');
+    await this.remove(org);
+  }
+
+  /** Borra los sandboxes vencidos: organización (en cascada, todo su contenido) y usuario efímero. */
+  async cleanup(): Promise<number> {
+    const expired = await this.prisma.organization.findMany({
+      where: { isDemo: true, expiresAt: { lt: new Date() } },
+      select: { id: true, slug: true, memberships: { select: { userId: true } } },
+      take: 100,
+    });
+    for (const org of expired) await this.remove(org);
+    return expired.length;
+  }
+
+  private async remove(org: {
+    id: string;
+    slug: string;
+    memberships: { userId: string }[];
+  }): Promise<void> {
+    this.realtime.toOrg(org.id, PanelEvent.SandboxExpired, {});
+    this.realtime.disconnectOrg(org.id);
+    for (const fn of this.teardowns) {
+      await fn(org.id).catch((err: Error) =>
+        this.logger.warn(`Teardown de ${org.slug} falló: ${err.message}`),
+      );
+    }
+    const userIds = org.memberships.map((m) => m.userId);
+    await this.prisma.$transaction([
+      this.prisma.organization.delete({ where: { id: org.id } }),
+      this.prisma.user.deleteMany({ where: { id: { in: userIds }, ephemeral: true } }),
+    ]);
+    this.logger.log(`Sandbox ${org.slug} borrado`);
+  }
+
+  private async checkLimits(ip: string): Promise<void> {
+    const day = new Date().toISOString().slice(0, 10);
+    const ipKey = `demo:ip:${day}:${ip}`;
+    const globalKey = `demo:global:${day}`;
+    const [ipCount, globalCount] = await Promise.all([
+      this.redis.client.incr(ipKey),
+      this.redis.client.incr(globalKey),
+    ]);
+    await Promise.all([
+      this.redis.client.expire(ipKey, 86_400),
+      this.redis.client.expire(globalKey, 86_400),
+    ]);
+    const perIp = this.env.DEMO_SANDBOX_PER_IP_DAILY;
+    if (ipCount > perIp || globalCount > this.env.DEMO_SANDBOX_GLOBAL_DAILY) {
+      // El intento rechazado no cuenta.
+      await Promise.all([this.redis.client.decr(ipKey), this.redis.client.decr(globalKey)]);
+      throw new ApiException(
+        429,
+        'RATE_LIMITED',
+        ipCount > perIp
+          ? `Ya creaste ${perIp} demos hoy. Vuelve mañana.`
+          : 'La demo alcanzó su límite de hoy. Vuelve mañana.',
+      );
+    }
+  }
+}

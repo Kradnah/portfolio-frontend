@@ -187,5 +187,77 @@
         }
       }
     ]
+  },
+  {
+    "slug": "coral",
+    "name": "Coral",
+    "sources": [
+      {
+        "repo": "D:/Server/Coral",
+        "ref": "main",
+        "include": [
+          "apps/api/src/**",
+          "apps/api/prisma/schema.prisma",
+          "apps/api/test/**",
+          "apps/web/src/**",
+          "apps/widget/src/**",
+          "packages/contracts/src/**",
+          "README.md",
+          "turbo.json",
+          "package.json"
+        ],
+        "exclude": [
+          "apps/api/src/generated/**",
+          "**/*.webp",
+          "**/*.png",
+          "**/*.ico",
+          "apps/api/test/helpers/env.ts"
+        ]
+      }
+    ],
+    "highlights": [
+      {
+        "path": "apps/api/src/modules/ai/agent.service.ts",
+        "note": {
+          "es": "El agente: debounce con BullMQ, ciclo de herramientas, límites de costo y una red de seguridad que no deja confirmar pedidos sin código.",
+          "en": "The agent: BullMQ debounce, the tool loop, cost limits and a safety net that never confirms an order without a code."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/ai/tools.ts",
+        "note": {
+          "es": "Herramientas del agente con validación Zod: carta, pedidos, reservas dentro del horario, memoria del cliente y paso a humano.",
+          "en": "The agent's tools with Zod validation: menu, orders, bookings within opening hours, customer memory and hand-off."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/demo/demo.service.ts",
+        "note": {
+          "es": "Demo aislada por visitante que se borra entera a las 4 horas, con límites por IP.",
+          "en": "An isolated demo per visitor, fully deleted after 4 hours, with per-IP limits."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/conversations/conversations.service.ts",
+        "note": {
+          "es": "Núcleo de la bandeja: mensajes entrantes idempotentes, bot ↔ humano y entrega por canal.",
+          "en": "The inbox core: idempotent inbound messages, bot ↔ human and per-channel delivery."
+        }
+      },
+      {
+        "path": "apps/widget/src/widget.ts",
+        "note": {
+          "es": "Widget embebible sin framework, con Shadow DOM, que crea la demo y la abre en el CRM.",
+          "en": "A framework-free embeddable widget with Shadow DOM that creates the demo and opens it in the CRM."
+        }
+      },
+      {
+        "path": "apps/api/src/modules/realtime/panel.gateway.ts",
+        "note": {
+          "es": "Socket.IO autenticado en el middleware: cada asesor solo recibe eventos de su organización.",
+          "en": "Socket.IO authenticated in middleware: each agent only receives their organisation's events."
+        }
+      }
+    ]
   }
 ]

@@ -1,0 +1,57 @@
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { AgentReplyRequest, type ConversationSummary, type MessageDto } from '@coral/contracts';
+import { type AuthUser, CurrentUser } from '../../common/auth/auth.decorators.js';
+import { createZodDto } from '../../common/zod/zod-dto.js';
+import { ConversationsService } from './conversations.service.js';
+
+class AgentReplyDto extends createZodDto(AgentReplyRequest) {}
+
+/** Bandeja del panel. Todo se filtra por la organización activa del token. */
+@Controller('conversations')
+export class ConversationsController {
+  constructor(private readonly conversations: ConversationsService) {}
+
+  @Get()
+  list(@CurrentUser() user: AuthUser): Promise<ConversationSummary[]> {
+    return this.conversations.list(user.organizationId);
+  }
+
+  @Get(':id/messages')
+  async messages(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<MessageDto[]> {
+    const messages = await this.conversations.history(user.organizationId, id);
+    await this.conversations.markRead(user.organizationId, id);
+    return messages;
+  }
+
+  @Post(':id/messages')
+  reply(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: AgentReplyDto,
+  ): Promise<MessageDto> {
+    return this.conversations.agentReply(user.organizationId, user.id, id, body.text);
+  }
+
+  /** El asesor toma la conversación: el bot deja de responder. */
+  @HttpCode(200)
+  @Post(':id/take')
+  take(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.conversations.setStatus(user.organizationId, user.id, id, 'HUMAN');
+  }
+
+  /** Devuelve la conversación al bot. */
+  @HttpCode(200)
+  @Post(':id/release')
+  release(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.conversations.setStatus(user.organizationId, user.id, id, 'BOT');
+  }
+
+  @HttpCode(200)
+  @Post(':id/close')
+  close(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.conversations.setStatus(user.organizationId, user.id, id, 'CLOSED');
+  }
+}

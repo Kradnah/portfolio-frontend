@@ -38,6 +38,13 @@ export class ProjectsComponent implements OnInit {
     }
   }
 
+  /** Abre el widget de Coral (cargado en la portada) sin salir de la página. */
+  protected openCoralChat(): void {
+    const launcher = document.querySelector('coral-chat-host')?.shadowRoot?.querySelector<HTMLButtonElement>('.launcher');
+    if (launcher) launcher.click();
+    else window.open('https://crm.julian-lizcano.com', '_blank', 'noopener');
+  }
+
   protected mb(bytes: number): string {
     return `${Math.round(bytes / 1_000_000)} MB`;
   }

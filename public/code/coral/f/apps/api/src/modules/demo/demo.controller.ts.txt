@@ -1,0 +1,76 @@
+import { Body, Controller, Delete, HttpCode, Post, Res } from '@nestjs/common';
+import { z } from 'zod';
+import { Throttle } from '@nestjs/throttler';
+import type { SandboxResponse, Session } from '@coral/contracts';
+import type { FastifyReply } from 'fastify';
+import {
+  type AuthUser,
+  CurrentUser,
+  Public,
+  ReqContext,
+  type RequestContext,
+} from '../../common/auth/auth.decorators.js';
+import { createZodDto } from '../../common/zod/zod-dto.js';
+import { setSessionCookies } from '../auth/auth.controller.js';
+import { DemoService } from './demo.service.js';
+
+class ClaimDto extends createZodDto(z.strictObject({ token: z.string().min(20).max(64) })) {}
+
+@Controller('demo')
+export class DemoController {
+  constructor(private readonly demo: DemoService) {}
+
+  /** "Entrar como demo": crea un sandbox de 4 horas y abre sesión en él. */
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(201)
+  @Post('sandbox')
+  async sandbox(
+    @ReqContext() ctx: RequestContext,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<SandboxResponse> {
+    const { refresh, ...result } = await this.demo.createSandbox(ctx);
+    setSessionCookies(reply, {
+      accessToken: result.accessToken,
+      expiresIn: result.expiresIn,
+      refreshToken: refresh.raw,
+      refreshExpiresAt: refresh.expiresAt,
+    });
+    return result;
+  }
+
+  /** "Borrar mi demo ahora": elimina el sandbox y todo su contenido de inmediato. */
+  @HttpCode(204)
+  @Delete('sandbox')
+  async destroy(@CurrentUser() user: AuthUser): Promise<void> {
+    await this.demo.destroy(user.organizationId);
+  }
+
+  /** Widget del portfolio: crea la demo del visitante sin abrir sesión en el panel. */
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(201)
+  @Post('widget')
+  widget(@ReqContext() ctx: RequestContext) {
+    return this.demo.createWidgetSandbox(ctx);
+  }
+
+  /** "Ver en el CRM": abre en el panel la demo creada desde el widget. */
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('claim')
+  async claim(
+    @Body() body: ClaimDto,
+    @ReqContext() ctx: RequestContext,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<Session> {
+    const { refresh, ...session } = await this.demo.claim(body.token, ctx);
+    setSessionCookies(reply, {
+      ...session,
+      refreshToken: refresh.raw,
+      refreshExpiresAt: refresh.expiresAt,
+    });
+    return session;
+  }
+}

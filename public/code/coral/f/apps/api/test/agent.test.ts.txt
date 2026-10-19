@@ -1,0 +1,16 @@
+import { describe, expect, it } from 'vitest';
+import { claimsBooking } from '../src/modules/ai/agent.service.js';
+
+describe('claimsBooking', () => {
+  it('detecta confirmaciones de pedido o reserva', () => {
+    expect(claimsBooking('Perfecto, Julian. Quedamos a la espera de tu visita.')).toBe(true);
+    expect(claimsBooking('Tu pedido quedó registrado con el código P-1A2B.')).toBe(true);
+    expect(claimsBooking('Listo, reserva confirmada para el sábado.')).toBe(true);
+    expect(claimsBooking('Your order has been placed!')).toBe(true);
+  });
+
+  it('no confunde preguntas o información con confirmaciones', () => {
+    expect(claimsBooking('¿Para cuántas personas sería la reserva?')).toBe(false);
+    expect(claimsBooking('Tenemos el Waffle Camarones a $22.000.')).toBe(false);
+  });
+});

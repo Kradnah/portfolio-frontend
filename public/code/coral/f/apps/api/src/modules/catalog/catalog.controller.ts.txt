@@ -1,0 +1,29 @@
+import { Controller, Get } from '@nestjs/common';
+import type { ProductDto } from '@coral/contracts';
+import { type AuthUser, CurrentUser } from '../../common/auth/auth.decorators.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+
+/** Carta de la organización (en la demo, la de Casa Zhef). */
+@Controller('products')
+export class CatalogController {
+  constructor(private readonly prisma: PrismaService) {}
+
+  @Get()
+  async list(@CurrentUser() user: AuthUser): Promise<ProductDto[]> {
+    const rows = await this.prisma.product.findMany({
+      where: { organizationId: user.organizationId },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+    return rows.map((p) => ({
+      id: p.id,
+      category: p.category,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      options: (p.options as ProductDto['options']) ?? {},
+      image: p.image,
+      featured: p.featured,
+      available: p.available,
+    }));
+  }
+}

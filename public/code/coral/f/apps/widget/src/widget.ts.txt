@@ -1,0 +1,282 @@
+// Widget de chat de Coral. Se inserta con:
+//   <script src="https://crm.julian-lizcano.com/widget.js" data-demo defer></script>
+// Con `data-demo`, la primera vez que se abre crea la demo del visitante (sandbox de 4 h) y ofrece
+// "Ver en el CRM" para abrir esa misma conversación en el panel. Shadow DOM: no hereda ni filtra
+// estilos de la página que lo aloja.
+
+import { SOCKET_PATH, WidgetEvent } from '@coral/contracts/constants';
+import { io, type Socket } from 'socket.io-client';
+
+interface Msg {
+  id: string;
+  sender: 'CONTACT' | 'BOT' | 'AGENT' | 'SYSTEM';
+  text: string;
+}
+
+interface Stored {
+  widgetKey: string;
+  claimToken: string;
+  sandboxExpiresAt: string;
+  visitorId: string;
+}
+
+const STORAGE = 'coral-widget';
+
+const TEXT = {
+  es: {
+    launcher: 'Habla con el bot de Casa Zhef',
+    title: 'Casa Zhef · bot de la demo',
+    note: 'Demo de Coral, el CRM con IA de Julian. Pide, reserva o pregunta por la carta: nada es real y todo se borra en 4 horas.',
+    crm: 'Ver en el CRM ↗',
+    placeholder: 'Escribe tu mensaje…',
+    send: 'Enviar',
+    typing: 'Escribiendo…',
+    hello:
+      '¡Hola! Soy el asistente de Casa Zhef. Pregúntame por la carta, haz un pedido o reserva una mesa.',
+    limit:
+      'Ya se crearon varias demos desde tu red hoy. Vuelve mañana o prueba el panel directamente.',
+    error: 'No pude conectar con la demo. Inténtalo de nuevo en un momento.',
+    close: 'Cerrar chat',
+    fast: 'Vas muy rápido: espera un minuto.',
+  },
+  en: {
+    launcher: 'Chat with the Casa Zhef bot',
+    title: 'Casa Zhef · demo bot',
+    note: "A demo of Coral, Julian's AI CRM. Order, book a table or ask about the menu: nothing is real and everything is deleted in 4 hours.",
+    crm: 'See it in the CRM ↗',
+    placeholder: 'Type your message…',
+    send: 'Send',
+    typing: 'Typing…',
+    hello:
+      "Hi! I'm the Casa Zhef assistant. Ask me about the menu, place an order or book a table.",
+    limit:
+      'Several demos were already created from your network today. Come back tomorrow or try the panel directly.',
+    error: "I couldn't connect to the demo. Please try again in a moment.",
+    close: 'Close chat',
+    fast: "You're going too fast: wait a minute.",
+  },
+};
+
+const STYLES = `
+:host { all: initial; }
+* { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.launcher { position: fixed; right: 20px; bottom: 20px; z-index: 2147483000; display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border: 2.5px solid #000; background: #ff7a00; color: #000; font-weight: 900; font-size: 15px; cursor: pointer;
+  box-shadow: 5px 5px 0 #000; transition: transform .1s, box-shadow .1s; }
+.launcher:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 #000; }
+.launcher:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #8be000; outline-offset: 2px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #000; animation: pulse 1.6s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,0,0,.5); } 100% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } }
+.panel { position: fixed; right: 20px; bottom: 20px; z-index: 2147483001; width: 380px; height: min(600px, calc(100vh - 40px));
+  display: flex; flex-direction: column; background: #160b26; color: #ece6f5; border: 2.5px solid #000; box-shadow: 8px 8px 0 #000; }
+.panel[hidden], .launcher[hidden] { display: none; }
+.stripe { height: 8px; background: repeating-linear-gradient(-45deg, #ff7a00 0 12px, #000 12px 24px); }
+.head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #000; }
+.head strong { flex: 1; font-size: 15px; color: #fff; }
+.crm { color: #8be000; font-size: 13px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.crm[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+.x { border: 0; background: none; color: #b8a8d4; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.note { margin: 0; padding: 10px 14px; font-size: 12px; line-height: 1.45; color: #b8a8d4; border-bottom: 2px solid #000; }
+.list { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.m { max-width: 85%; padding: 9px 12px; border: 2px solid #000; font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; }
+.m.me { align-self: flex-end; background: #8be000; color: #000; }
+.m.bot { align-self: flex-start; background: #2a1745; }
+.m.agent { align-self: flex-start; background: #ff7a00; color: #000; }
+.m.sys { align-self: center; border: 0; padding: 0; font-size: 11px; color: #b8a8d4; }
+.typing { font-size: 12px; color: #b8a8d4; }
+.form { display: flex; gap: 8px; padding: 12px; border-top: 2px solid #000; }
+.form input { flex: 1; min-width: 0; padding: 10px; border: 2px solid #000; background: #0d0618; color: #ece6f5; font-size: 14px; }
+.form button { padding: 10px 14px; border: 2px solid #000; background: #8be000; color: #000; font-weight: 900; cursor: pointer; }
+.form button:disabled { opacity: .5; cursor: not-allowed; }
+.status { margin: 0; padding: 8px 14px; font-size: 12px; color: #ffd5dc; }
+@media (max-width: 520px) {
+  .panel { right: 0; bottom: 0; width: 100vw; height: 100dvh; border: 0; box-shadow: none; }
+  .launcher { right: 12px; bottom: 12px; padding: 12px 14px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .dot { animation: none; } .launcher { transition: none; } }
+`;
+
+class CoralChat {
+  private readonly root: ShadowRoot;
+  private readonly t: (typeof TEXT)['es'];
+  private socket?: Socket;
+  private stored: Stored | null = null;
+  private readonly el: Record<string, HTMLElement> = {};
+
+  constructor(
+    host: HTMLElement,
+    private readonly api: string,
+    lang: 'es' | 'en',
+  ) {
+    this.t = TEXT[lang];
+    this.root = host.attachShadow({ mode: 'open' });
+    this.root.innerHTML = `
+      <style>${STYLES}</style>
+      <button class="launcher" type="button"><span class="dot" aria-hidden="true"></span><span></span></button>
+      <section class="panel" role="dialog" aria-modal="false" hidden>
+        <div class="stripe" aria-hidden="true"></div>
+        <div class="head"><strong></strong><a class="crm" target="_blank" rel="noopener" aria-disabled="true"></a>
+          <button class="x" type="button">×</button></div>
+        <p class="note"></p>
+        <div class="list" aria-live="polite"></div>
+        <p class="status" hidden></p>
+        <form class="form"><input maxlength="2000" autocomplete="off" /><button type="submit"></button></form>
+      </section>`;
+    const q = <T extends HTMLElement>(s: string) => this.root.querySelector(s) as T;
+    Object.assign(this.el, {
+      launcher: q('.launcher'),
+      panel: q('.panel'),
+      crm: q('.crm'),
+      list: q('.list'),
+      status: q('.status'),
+      form: q('.form'),
+      input: q('.form input'),
+      send: q('.form button'),
+    });
+    (q('.launcher span:last-child') as HTMLElement).textContent = this.t.launcher;
+    (q('.head strong') as HTMLElement).textContent = this.t.title;
+    this.el['crm']!.textContent = this.t.crm;
+    (q('.x') as HTMLElement).setAttribute('aria-label', this.t.close);
+    (q('.note') as HTMLElement).textContent = this.t.note;
+    (this.el['input'] as HTMLInputElement).placeholder = this.t.placeholder;
+    this.el['send']!.textContent = this.t.send;
+    this.el['panel']!.setAttribute('aria-label', this.t.title);
+
+    this.el['launcher']!.addEventListener('click', () => void this.open());
+    q('.x').addEventListener('click', () => this.close());
+    this.el['form']!.addEventListener('submit', (e) => {
+      e.preventDefault();
+      void this.send();
+    });
+  }
+
+  private async open(): Promise<void> {
+    this.el['launcher']!.hidden = true;
+    this.el['panel']!.hidden = false;
+    (this.el['input'] as HTMLInputElement).focus();
+    if (this.socket) return;
+    try {
+      this.stored = await this.session();
+    } catch (err) {
+      this.showStatus((err as Error).message === 'limit' ? this.t.limit : this.t.error);
+      return;
+    }
+    const crm = this.el['crm'] as HTMLAnchorElement;
+    crm.href = `${this.api}/demo/claim?t=${encodeURIComponent(this.stored.claimToken)}`;
+    crm.removeAttribute('aria-disabled');
+    this.connect();
+  }
+
+  private close(): void {
+    this.el['panel']!.hidden = true;
+    this.el['launcher']!.hidden = false;
+  }
+
+  /** La demo del visitante: la guardada en este navegador si sigue viva, o una nueva. */
+  private async session(): Promise<Stored> {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE) ?? 'null') as Stored | null;
+      if (saved && Date.parse(saved.sandboxExpiresAt) > Date.now() + 60_000) return saved;
+    } catch {
+      // Sin almacenamiento: se crea una demo por visita.
+    }
+    const res = await fetch(`${this.api}/api/demo/widget`, { method: 'POST' });
+    if (res.status === 429) throw new Error('limit');
+    if (!res.ok) throw new Error('error');
+    const data = (await res.json()) as Omit<Stored, 'visitorId'>;
+    const stored = { ...data, visitorId: crypto.randomUUID() };
+    try {
+      localStorage.setItem(STORAGE, JSON.stringify(stored));
+    } catch {
+      // Igual funciona durante esta visita.
+    }
+    return stored;
+  }
+
+  private connect(): void {
+    const s = this.stored!;
+    const socket = io(`${this.api}/widget`, {
+      path: SOCKET_PATH,
+      transports: ['websocket'],
+      auth: { key: s.widgetKey, visitorId: s.visitorId, name: 'Visitante del portfolio' },
+    });
+    socket.on('connect', async () => {
+      this.showStatus(null);
+      const hello = (await socket.emitWithAck(WidgetEvent.Hello)) as { messages: Msg[] };
+      this.el['list']!.textContent = '';
+      if (!hello.messages.length) this.add({ id: 'hello', sender: 'BOT', text: this.t.hello });
+      hello.messages.forEach((m) => this.add(m));
+    });
+    socket.on('connect_error', () => {
+      // La demo pudo vencer: se olvida y la próxima apertura crea otra.
+      try {
+        localStorage.removeItem(STORAGE);
+      } catch {
+        /* nada */
+      }
+      this.showStatus(this.t.error);
+    });
+    socket.on(WidgetEvent.Typing, (on: boolean) => this.typing(on));
+    socket.on(WidgetEvent.Message, (m: Msg) => {
+      this.typing(false);
+      this.add(m);
+    });
+    this.socket = socket;
+  }
+
+  private async send(): Promise<void> {
+    const input = this.el['input'] as HTMLInputElement;
+    const text = input.value.trim();
+    if (!text || !this.socket?.connected) return;
+    input.value = '';
+    const res = (await this.socket.emitWithAck(WidgetEvent.Send, { text })) as {
+      ok: boolean;
+      id?: string;
+      error?: string;
+    };
+    if (res.ok) this.add({ id: res.id!, sender: 'CONTACT', text });
+    else this.showStatus(res.error === 'RATE_LIMITED' ? this.t.fast : this.t.error);
+  }
+
+  private add(m: Msg): void {
+    const list = this.el['list']!;
+    if (m.id && list.querySelector(`[data-id="${CSS.escape(m.id)}"]`)) return;
+    const div = document.createElement('div');
+    div.className = `m ${{ CONTACT: 'me', BOT: 'bot', AGENT: 'agent', SYSTEM: 'sys' }[m.sender]}`;
+    div.dataset['id'] = m.id;
+    div.textContent = m.text;
+    list.querySelector('.typing')?.before(div) ?? list.append(div);
+    list.scrollTop = list.scrollHeight;
+  }
+
+  private typing(on: boolean): void {
+    const list = this.el['list']!;
+    let el = list.querySelector('.typing');
+    if (on && !el) {
+      el = document.createElement('div');
+      el.className = 'typing';
+      el.textContent = this.t.typing;
+      list.append(el);
+      list.scrollTop = list.scrollHeight;
+    } else if (!on) el?.remove();
+  }
+
+  private showStatus(text: string | null): void {
+    const status = this.el['status']!;
+    status.hidden = !text;
+    status.textContent = text ?? '';
+  }
+}
+
+// Arranque: un solo widget por página, configurado con los atributos del <script>.
+(() => {
+  const script = document.currentScript as HTMLScriptElement | null;
+  if (!script || document.querySelector('coral-chat-host')) return;
+  const api = script.dataset['api'] ?? new URL(script.src).origin;
+  const lang = (script.dataset['lang'] ?? document.documentElement.lang ?? 'es').startsWith('en')
+    ? 'en'
+    : 'es';
+  const host = document.createElement('coral-chat-host');
+  document.body.append(host);
+  new CoralChat(host, api, lang);
+})();

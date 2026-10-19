@@ -1,0 +1,14 @@
+import { type ExecutionContext, Injectable } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
+
+/**
+ * El límite por IP solo aplica a HTTP. Los gateways de Socket.IO tienen sus propios límites
+ * (por visitante) y el ThrottlerGuard no sabe leer la IP de un evento de socket.
+ */
+@Injectable()
+export class HttpThrottlerGuard extends ThrottlerGuard {
+  override canActivate(context: ExecutionContext): Promise<boolean> {
+    if (context.getType() !== 'http') return Promise.resolve(true);
+    return super.canActivate(context);
+  }
+}

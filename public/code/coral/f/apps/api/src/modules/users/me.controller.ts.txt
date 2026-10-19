@@ -1,0 +1,40 @@
+import { Controller, Get } from '@nestjs/common';
+import type { MeResponse, OrganizationSummary } from '@coral/contracts';
+import { type AuthUser, CurrentUser } from '../../common/auth/auth.decorators.js';
+import { ApiException } from '../../common/errors/api.exception.js';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+
+@Controller('me')
+export class MeController {
+  constructor(private readonly prisma: PrismaService) {}
+
+  @Get()
+  async me(@CurrentUser() auth: AuthUser): Promise<MeResponse> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: auth.id },
+      include: {
+        memberships: { include: { organization: true }, orderBy: { createdAt: 'asc' } },
+      },
+    });
+    if (!user) throw new ApiException(404, 'NOT_FOUND', 'Usuario no encontrado');
+
+    const organizations: OrganizationSummary[] = user.memberships.map((m) => ({
+      id: m.organization.id,
+      name: m.organization.name,
+      slug: m.organization.slug,
+      role: m.role,
+      isDemo: m.organization.isDemo,
+      expiresAt: m.organization.expiresAt?.toISOString() ?? null,
+    }));
+    const organization = organizations.find((o) => o.id === auth.organizationId);
+    if (!organization) throw new ApiException(403, 'FORBIDDEN', 'Sin acceso a la organización');
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      organization,
+      organizations,
+    };
+  }
+}

@@ -1,0 +1,31 @@
+import { generateKeyPairSync, randomUUID } from 'node:crypto';
+import { describe, expect, it } from 'vitest';
+import { TokenService } from '../src/modules/auth/token.service.js';
+import { testEnv } from './helpers/env.js';
+
+describe('TokenService', () => {
+  const tokens = new TokenService(testEnv());
+  const input = { sub: randomUUID(), org: randomUUID(), role: 'AGENT' as const, sid: randomUUID() };
+
+  it('firma y verifica un access token con la organización activa', async () => {
+    const claims = await tokens.verifyAccessToken(await tokens.signAccessToken(input));
+    expect(claims).toMatchObject(input);
+  });
+
+  it('rechaza tokens manipulados', async () => {
+    const token = await tokens.signAccessToken(input);
+    const [h, p, s] = token.split('.');
+    const payload = JSON.parse(Buffer.from(p!, 'base64url').toString());
+    payload.role = 'OWNER';
+    const forged = [h, Buffer.from(JSON.stringify(payload)).toString('base64url'), s].join('.');
+    expect(await tokens.verifyAccessToken(forged)).toBeNull();
+  });
+
+  it('rechaza tokens firmados con otra clave', async () => {
+    const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const pem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+    // Mismo kid, otra clave: la firma no debe validar.
+    const other = new TokenService(testEnv({ JWT_PRIVATE_KEY: pem }));
+    expect(await tokens.verifyAccessToken(await other.signAccessToken(input))).toBeNull();
+  });
+});

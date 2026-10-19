@@ -1,0 +1,122 @@
+import { Logger } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  type OnGatewayConnection,
+  type OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+} from '@nestjs/websockets';
+import { MessageText, WidgetEvent } from '@coral/contracts';
+import type { Namespace, Socket } from 'socket.io';
+import { z } from 'zod';
+import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { RedisService } from '../../infra/redis/redis.service.js';
+import { convRoom, orgRoom, RealtimeService } from '../realtime/realtime.service.js';
+import { ConversationsService } from './conversations.service.js';
+
+const Handshake = z.object({
+  /** Slug de la organización (en la demo, el del sandbox). */
+  key: z.string().regex(/^[a-z0-9-]{3,64}$/),
+  /** Id aleatorio del visitante, guardado en su navegador. */
+  visitorId: z.uuid(),
+  name: z.string().trim().min(1).max(60).optional(),
+});
+
+const MAX_PER_MINUTE = 12;
+
+interface WidgetSocketData {
+  organizationId: string;
+  visitorId: string;
+  name?: string;
+  conversationId?: string;
+}
+
+/** Chat del widget: un visitante = un contacto WEB; mensajes por socket con límite por minuto. */
+@WebSocketGateway({ namespace: '/widget' })
+export class WidgetGateway implements OnGatewayInit, OnGatewayConnection {
+  private readonly logger = new Logger(WidgetGateway.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+    private readonly conversations: ConversationsService,
+    private readonly realtime: RealtimeService,
+  ) {}
+
+  afterInit(ns: Namespace): void {
+    this.realtime.registerWidget(ns);
+    // Se valida en un middleware (antes de aceptar la conexión): así ningún evento llega con el
+    // socket a medio autenticar.
+    ns.use((client, next) => {
+      void this.authenticate(client).then(
+        (ok) => next(ok ? undefined : new Error('UNKNOWN_KEY')),
+        (err: Error) => {
+          this.logger.warn(`Conexión de widget rechazada: ${err.message}`);
+          next(new Error('UNAVAILABLE'));
+        },
+      );
+    });
+  }
+
+  private async authenticate(client: Socket): Promise<boolean> {
+    const parsed = Handshake.safeParse(client.handshake.auth);
+    if (!parsed.success) return false;
+    const org = await this.prisma.organization.findUnique({
+      where: { slug: parsed.data.key },
+      select: { id: true, expiresAt: true },
+    });
+    if (!org || (org.expiresAt && org.expiresAt < new Date())) return false;
+    client.data = {
+      organizationId: org.id,
+      visitorId: parsed.data.visitorId,
+      name: parsed.data.name,
+    } satisfies WidgetSocketData;
+    return true;
+  }
+
+  async handleConnection(client: Socket): Promise<void> {
+    await client.join(orgRoom((client.data as WidgetSocketData).organizationId));
+  }
+
+  /** Abre (o retoma) la conversación del visitante y devuelve su historial. */
+  @SubscribeMessage(WidgetEvent.Hello)
+  async hello(@ConnectedSocket() client: Socket) {
+    const data = client.data as WidgetSocketData;
+    const conv = await this.conversations.openConversation(
+      data.organizationId,
+      'WEB',
+      data.visitorId,
+      data.name,
+    );
+    data.conversationId = conv.id;
+    await client.join(convRoom(conv.id));
+    const messages = await this.conversations.history(data.organizationId, conv.id, false);
+    return { conversationId: conv.id, messages };
+  }
+
+  @SubscribeMessage(WidgetEvent.Send)
+  async send(@ConnectedSocket() client: Socket, @MessageBody() body: unknown) {
+    const data = client.data as WidgetSocketData;
+    const text = MessageText.safeParse((body as { text?: unknown } | null)?.text);
+    if (!text.success) return { ok: false, error: 'INVALID' };
+
+    const key = `widget:rate:${data.visitorId}`;
+    const count = await this.redis.client.incr(key);
+    if (count === 1) await this.redis.client.expire(key, 60);
+    if (count > MAX_PER_MINUTE) return { ok: false, error: 'RATE_LIMITED' };
+
+    const { conversation, message } = await this.conversations.inbound({
+      organizationId: data.organizationId,
+      channel: 'WEB',
+      externalId: data.visitorId,
+      name: data.name,
+      text: text.data,
+    });
+    if (data.conversationId !== conversation.id) {
+      data.conversationId = conversation.id;
+      await client.join(convRoom(conversation.id));
+    }
+    return { ok: true, id: message.id };
+  }
+}

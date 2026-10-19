@@ -1,0 +1,144 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  type ElementRef,
+  input,
+  type OnDestroy,
+  type OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
+import type { MessageDto } from '@coral/contracts';
+import { SOCKET_PATH, WidgetEvent } from '@coral/contracts/constants';
+import { io, type Socket } from 'socket.io-client';
+
+/**
+ * Simulador de cliente: el mismo protocolo que el widget web, dentro del panel. Sirve para probar
+ * la bandeja (y luego el bot) sin salir de la demo.
+ */
+@Component({
+  selector: 'app-customer-sim',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <section class="card flex h-full flex-col">
+      <header class="flex items-center justify-between border-b-2 border-black bg-black px-4 py-2">
+        <span class="mono text-xs font-bold uppercase tracking-widest text-lime"
+          >Simula un cliente</span
+        >
+        <span class="mono text-[0.65rem] text-muted">{{ status() }}</span>
+      </header>
+      <p class="border-b-2 border-black px-4 py-2 text-xs text-muted">
+        Así vería el chat un cliente en la web de Casa Zhef. Escribe y mira cómo llega a la bandeja.
+      </p>
+      <ol #scroller class="flex-1 space-y-2 overflow-y-auto p-3">
+        @for (m of messages(); track m.id) {
+          @if (m.sender === 'SYSTEM') {
+            <li class="mono text-center text-[0.65rem] text-muted">{{ m.text }}</li>
+          } @else {
+            <li class="flex" [class.justify-end]="m.sender === 'CONTACT'">
+              <span
+                class="max-w-[85%] border-2 border-black px-3 py-2 text-sm whitespace-pre-wrap"
+                [class]="m.sender === 'CONTACT' ? 'bg-lime text-black' : 'bg-deep'"
+                >{{ m.text }}</span
+              >
+            </li>
+          }
+        } @empty {
+          <li class="pt-8 text-center text-sm text-muted">Escribe un mensaje para empezar.</li>
+        }
+        @if (typing()) {
+          <li class="mono text-xs text-muted" aria-live="polite">Casa Zhef está escribiendo…</li>
+        }
+      </ol>
+      <form class="flex gap-2 border-t-2 border-black p-3" (submit)="send($event)">
+        <input
+          class="input"
+          name="text"
+          maxlength="2000"
+          autocomplete="off"
+          placeholder="Ej.: ¿Qué waffles tienen?"
+          aria-label="Mensaje del cliente"
+          [value]="draft()"
+          (input)="draft.set($any($event.target).value)"
+        />
+        <button class="btn btn-ok" type="submit" [disabled]="!draft().trim()">Enviar</button>
+      </form>
+    </section>
+  `,
+  host: { class: 'block h-full min-h-0' },
+})
+export class CustomerSim implements OnInit, OnDestroy {
+  /** Clave del widget (slug de la organización). */
+  readonly widgetKey = input.required<string>();
+
+  protected readonly messages = signal<MessageDto[]>([]);
+  protected readonly draft = signal('');
+  protected readonly status = signal('conectando…');
+  protected readonly typing = signal(false);
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
+  private socket?: Socket;
+
+  ngOnInit(): void {
+    const storageKey = `coral-sim:${this.widgetKey()}`;
+    let visitorId = sessionStorage.getItem(storageKey);
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      sessionStorage.setItem(storageKey, visitorId);
+    }
+    this.socket = io('/widget', {
+      path: SOCKET_PATH,
+      transports: ['websocket'],
+      auth: { key: this.widgetKey(), visitorId, name: 'Cliente de prueba' },
+    });
+    this.socket.on('connect', async () => {
+      this.status.set('en línea');
+      const hello = await this.socket!.emitWithAck(WidgetEvent.Hello);
+      this.messages.set(hello.messages);
+      this.scrollDown();
+    });
+    this.socket.on('disconnect', () => this.status.set('sin conexión'));
+    this.socket.on(WidgetEvent.Typing, (on: boolean) => {
+      this.typing.set(on);
+      this.scrollDown();
+    });
+    this.socket.on(WidgetEvent.Message, (m: MessageDto) => {
+      this.typing.set(false);
+      this.messages.update((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
+      this.scrollDown();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.socket?.disconnect();
+  }
+
+  protected async send(event: Event): Promise<void> {
+    event.preventDefault();
+    const text = this.draft().trim();
+    if (!text || !this.socket) return;
+    this.draft.set('');
+    const res = await this.socket.emitWithAck(WidgetEvent.Send, { text });
+    if (res.ok) {
+      this.messages.update((list) => [
+        ...list,
+        {
+          id: res.id,
+          conversationId: '',
+          sender: 'CONTACT',
+          text,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      this.scrollDown();
+    } else if (res.error === 'RATE_LIMITED') {
+      this.status.set('vas muy rápido: espera un minuto');
+    }
+  }
+
+  private scrollDown(): void {
+    setTimeout(() => {
+      const el = this.scroller()?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  }
+}
