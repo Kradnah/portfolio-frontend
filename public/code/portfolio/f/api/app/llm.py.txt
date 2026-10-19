@@ -15,7 +15,7 @@ class Llm(Protocol):
     def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]: ...
 
     async def complete_json(
-        self, messages: list[dict[str, str]], schema: dict[str, Any], *, max_tokens: int
+        self, messages: list[dict[str, Any]], schema: dict[str, Any], *, max_tokens: int
     ) -> tuple[str, dict[str, Any]]: ...
 
 
@@ -34,7 +34,7 @@ class OpenRouterLlm:
         }
 
     async def complete_json(
-        self, messages: list[dict[str, str]], schema: dict[str, Any], *, max_tokens: int
+        self, messages: list[dict[str, Any]], schema: dict[str, Any], *, max_tokens: int
     ) -> tuple[str, dict[str, Any]]:
         """Respuesta completa (sin streaming) con salida estructurada: (texto JSON, usage)."""
         body = {

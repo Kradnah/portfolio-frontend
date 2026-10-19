@@ -29,6 +29,13 @@ import { RevealDirective } from '../reveal.directive';
           <ul class="stack"><li>pdf.js</li><li>tesseract.js</li><li>FastAPI</li><li>LLM</li></ul>
           <span class="cta">{{ t().lab.invoiceCta }}</span>
         </a>
+        <a class="demo saas-card" routerLink="/demos/vision" appReveal="300">
+          <span class="tag live">{{ t().lab.live }}</span>
+          <h3>{{ t().lab.visionTitle }}</h3>
+          <p>{{ t().lab.visionDesc }}</p>
+          <ul class="stack"><li>MediaPipe</li><li>WebGL</li><li>FastAPI</li><li>LLM de visión</li></ul>
+          <span class="cta">{{ t().lab.visionCta }}</span>
+        </a>
       </div>
     </section>
   `,

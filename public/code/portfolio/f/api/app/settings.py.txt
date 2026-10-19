@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     invoice_per_ip_daily: int = 5
     invoice_global_daily: int = 60
 
+    # Demo de visión: solo el botón "Pregúntale a la IA" (la detección corre en el navegador).
+    vision_max_tokens: int = 500
+    vision_burst: int = 2
+    vision_burst_window_seconds: int = 120
+    vision_per_ip_daily: int = 5
+    vision_global_daily: int = 80
+
 
 @lru_cache
 def get_settings() -> Settings:

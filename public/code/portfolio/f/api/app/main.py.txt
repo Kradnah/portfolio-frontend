@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import call_qa, invoice
+from . import call_qa, invoice, vision
 from .limits import UsageLimiter
 from .llm import Llm, LlmError, OpenRouterLlm
 from .prompt import language_reminder, system_prompt
@@ -73,6 +73,12 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
         burst_window=settings.invoice_burst_window_seconds,
         ip_daily=settings.invoice_per_ip_daily,
         global_daily=settings.invoice_global_daily,
+    )
+    vision_limiter = UsageLimiter(
+        burst=settings.vision_burst,
+        burst_window=settings.vision_burst_window_seconds,
+        ip_daily=settings.vision_per_ip_daily,
+        global_daily=settings.vision_global_daily,
     )
     # Turnos usados por sesión: {sid: (turnos, caduca_en)}.
     turns: dict[str, tuple[int, float]] = {}
@@ -269,6 +275,48 @@ def create_app(settings: Settings | None = None, llm: Llm | None = None) -> Fast
             invoice_limiter.refund(ip)
             raise HTTPException(502, "extraction_unavailable") from err
         return {"extraction": result, "remainingToday": invoice_limiter.remaining(ip)}
+
+    @app.get("/api/demos/vision/quota")
+    async def vision_quota(request: Request) -> dict[str, int]:
+        return {
+            "remainingToday": vision_limiter.remaining(client_ip(request, settings)),
+            "perDay": settings.vision_per_ip_daily,
+        }
+
+    @app.post("/api/demos/vision")
+    async def vision_describe(
+        body: vision.VisionRequest,
+        request: Request,
+        llm: Annotated[Llm, Depends(get_llm)],
+        authorization: Annotated[str | None, Header()] = None,
+    ):
+        if not (
+            authorization
+            and authorization.startswith("Bearer ")
+            and signer.verify(authorization[7:])
+        ):
+            raise HTTPException(401, "invalid_session")
+        try:
+            vision.decode_image(body.image)
+        except vision.InvalidImage as err:
+            raise HTTPException(422, f"image_{err}") from err
+
+        ip = client_ip(request, settings)
+        verdict = vision_limiter.check(ip)
+        if not verdict.allowed:
+            log.info("vision limite ip=%s motivo=%s", anon(ip), verdict.reason)
+            return JSONResponse(
+                {"detail": verdict.reason},
+                status_code=429,
+                headers={"Retry-After": str(verdict.retry_after)},
+            )
+        try:
+            result = await vision.describe(llm, body, max_tokens=settings.vision_max_tokens)
+        except (LlmError, vision.DescribeFailed) as err:
+            log.warning("vision error %s", type(err).__name__)
+            vision_limiter.refund(ip)
+            raise HTTPException(502, "vision_unavailable") from err
+        return {"result": result, "remainingToday": vision_limiter.remaining(ip)}
 
     return app
 

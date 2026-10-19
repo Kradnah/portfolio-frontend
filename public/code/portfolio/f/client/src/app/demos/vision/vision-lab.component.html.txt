@@ -1,0 +1,126 @@
+<div class="page">
+  <header class="top">
+    <a class="back" routerLink="/">{{ t().vision.back }}</a>
+    <button type="button" class="lang-btn" (click)="i18n.toggle()" [attr.aria-label]="t().nav.switchTo" [title]="t().nav.switchTo">
+      <span [class.on]="i18n.lang() === 'es'">ES</span><span [class.on]="i18n.lang() === 'en'">EN</span>
+    </button>
+  </header>
+
+  <section class="head">
+    <h1 class="v-title">{{ t().vision.title }}</h1>
+    <p class="v-sub">{{ t().vision.sub }}</p>
+  </section>
+
+  <div class="stage-grid">
+    <!-- Cámara -->
+    <section class="card stage-card" [class.live]="phase() === 'live'">
+      <div class="stage">
+        <video #video class="video" [class.mirror]="facing() === 'user'" playsinline muted></video>
+        <canvas #overlay class="overlay"></canvas>
+
+        @if (phase() !== 'live') {
+          <div class="stage-msg" aria-live="polite">
+            @switch (phase()) {
+              @case ('loading') { <p class="msg">{{ t().vision.loading }}</p><div class="bar indeterminate"><span></span></div> }
+              @case ('starting') { <p class="msg">{{ t().vision.starting }}</p> }
+              @case ('denied') {
+                <p class="msg err">{{ t().vision.denied }}</p>
+                <button type="button" class="cta" (click)="start()">{{ t().vision.retry }}</button>
+              }
+              @case ('no-camera') { <p class="msg err">{{ t().vision.noCamera }}</p> }
+              @case ('failed') {
+                <p class="msg err">{{ t().vision.failed }}</p>
+                <button type="button" class="cta" (click)="start()">{{ t().vision.retry }}</button>
+              }
+              @default {
+                <button type="button" class="cta big" (click)="start()">{{ t().vision.start }}</button>
+                <p class="msg">{{ t().vision.idle }}</p>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="toolbar">
+        @if (phase() === 'live') {
+          <button type="button" class="tool" (click)="stop()">{{ t().vision.stop }}</button>
+          @if (canFlip()) {
+            <button type="button" class="tool" (click)="flip()">{{ t().vision.flip }}</button>
+          }
+          <dl class="metrics">
+            <div><dt>{{ t().vision.fps }}</dt><dd>{{ fps() }}</dd></div>
+            <div><dt>{{ t().vision.ms }}</dt><dd>{{ ms() }}</dd></div>
+            <div><dt>{{ t().vision.device }}</dt><dd>{{ delegate() }}</dd></div>
+          </dl>
+        } @else {
+          <span class="models">{{ t().vision.models }}</span>
+        }
+      </div>
+    </section>
+
+    <!-- Panel lateral -->
+    <aside class="side">
+      <section class="card held" [class.has]="held()">
+        <h2 class="h">{{ t().vision.inHand }}</h2>
+        @if (held(); as h) {
+          <p class="held-name">{{ label(h.label) }}</p>
+          <div class="conf" [attr.aria-label]="pct(h.score)"><span [style.width.%]="h.score * 100"></span></div>
+          <p class="held-score">{{ pct(h.score) }}</p>
+        } @else {
+          <p class="empty">{{ t().vision.nothingInHand }}</p>
+        }
+      </section>
+
+      <section class="card">
+        <h2 class="h">{{ t().vision.inScene }}</h2>
+        @if (others().length) {
+          <ul class="scene">
+            @for (o of others(); track $index) {
+              <li><span>{{ label(o.label) }}</span><span class="num">{{ pct(o.score) }}</span></li>
+            }
+          </ul>
+        } @else {
+          <p class="empty">{{ phase() === 'live' ? t().vision.nothing : t().vision.idle }}</p>
+        }
+      </section>
+
+      <section class="card ask">
+        <h2 class="h">{{ t().vision.askTitle }}</h2>
+        <p class="hint">{{ t().vision.askHint }}</p>
+        <button type="button" class="cta" (click)="ask()" [disabled]="phase() !== 'live' || asking() || quota().remainingToday <= 0">
+          {{ asking() ? t().vision.asking : t().vision.ask }}
+        </button>
+        <p class="quota">
+          {{ quota().remainingToday > 0 ? fill(t().vision.remaining, { n: quota().remainingToday, total: quota().perDay }) : t().vision.noneLeft }}
+        </p>
+        @if (askError()) {
+          <p class="error" role="alert">{{ askError() }}</p>
+        }
+        @if (answer(); as a) {
+          @if (!a.safe) {
+            <p class="empty">{{ t().vision.unsafe }}</p>
+          } @else {
+            <dl class="answer">
+              @if (a.inHand) {
+                <div><dt>{{ t().vision.holding }}</dt><dd class="strong">{{ a.inHand }}</dd></div>
+              }
+              <div><dt>{{ t().vision.scene }}</dt><dd>{{ a.description }}</dd></div>
+              @if (a.objects.length) {
+                <div><dt>{{ t().vision.objects }}</dt><dd>{{ a.objects.join(' · ') }}</dd></div>
+              }
+              @if (a.funFact) {
+                <div><dt>{{ t().vision.fact }}</dt><dd>{{ a.funFact }}</dd></div>
+              }
+            </dl>
+            <p class="ai-note">{{ t().vision.aiNote }}</p>
+          }
+        }
+      </section>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <p class="privacy">{{ t().vision.privacy }}</p>
+    <a routerLink="/codigo/portfolio" [queryParams]="{ f: 'client/src/app/demos/vision/detector.ts' }">{{ t().vision.codeLink }}</a>
+  </footer>
+</div>
